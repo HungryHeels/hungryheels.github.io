@@ -195,3 +195,23 @@ export function matchSentence(item: MenuItem, p: Profile, ev: Evaluation): strin
 }
 
 void hasVague;
+
+export interface CheckRow { group: 'strict' | 'diet'; label: string; state: EvState; why: string; outcome: 'pass' | 'fail' | 'unconfirmed' }
+
+/** Every check applied to an item, in the order the engine applies them, with the evidence for each. */
+export function explainChecks(item: MenuItem, p: Profile): CheckRow[] {
+  const rows: CheckRow[] = [];
+  const strict = (label: string, ev: Evidence) => rows.push({ group: 'strict', label, state: ev.state, why: ev.why, outcome: ev.state === 'no' ? 'pass' : 'fail' });
+  for (const a of p.allergens) strict(`${a.replace('_', ' ')} allergy`, evidence(item, ALLERGEN_CAT[a]));
+  if (p.avoidGluten) strict('gluten', evidence(item, 'gluten'));
+  if (p.avoidDairy) strict('dairy', evidence(item, 'dairy'));
+  if (p.avoidEgg) strict('egg', evidence(item, 'egg'));
+  for (const t of p.avoidIngredients) strict(`"${t}"`, customEvidence(item, t));
+  if (p.halalStyle) { strict('pork', evidence(item, 'pork')); strict('alcohol', evidence(item, 'alcohol')); }
+  const opts: EvidenceOpts = { vegan: p.pattern === 'vegan', ignoreSeasonings: p.pattern === 'carnivore' || p.pattern === 'animal_based' };
+  for (const cat of forbiddenCats(p)) {
+    const ev = evidence(item, cat, opts);
+    rows.push({ group: 'diet', label: `no ${CAT_LABELS[cat]}`, state: ev.state, why: ev.why, outcome: ev.state === 'no' ? 'pass' : ev.state === 'yes' ? 'fail' : 'unconfirmed' });
+  }
+  return rows;
+}

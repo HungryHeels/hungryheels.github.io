@@ -14,6 +14,7 @@ export interface AppState {
   sheet: { item: string; dayKey: string } | null;
   importResults: FileResult[]; importing: boolean; showDays: boolean; nutritionMsg: string | null;
   storageNote: string | null;
+  statusFilter: 'all' | 'fits' | 'possible' | 'excluded'; stationFilter: string; sortBy: 'station' | 'protein' | 'calories' | 'density' | 'name'; nutriOnly: boolean;
 }
 
 export const S: AppState = {
@@ -22,6 +23,7 @@ export const S: AppState = {
   tab: 'menu', menuTab: 'meal', search: '', hideNonFits: false,
   profile: defaultProfile('none'), onboarded: false, idea: 0,
   sheet: null, importResults: [], importing: false, showDays: false, nutritionMsg: null, storageNote: null,
+  statusFilter: 'all', stationFilter: '', sortBy: 'station', nutriOnly: false,
 };
 
 let mem: string | null = null;

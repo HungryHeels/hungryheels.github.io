@@ -78,3 +78,16 @@ test('labels never override an allergen declaration or ingredient list (UNC labe
   assert.equal(ev('Cajun Tofu Po Boy', 'none', { ing: 'tofu bread', allergens: ['milk'], labels: vegan }, { allergens: ['milk'] }).status, 'excluded');
   assert.equal(ev('Cajun Tofu Po Boy', 'vegan', { ing: 'tofu bread', allergens: ['milk'], labels: vegan }).status, 'excluded');
 });
+
+test('explainChecks lists strict and diet checks with outcomes that agree with evaluateItem', async () => {
+  const { explainChecks } = await import('../src/core/engine.ts');
+  const prof = { ...defaultProfile('vegetarian'), allergens: ['milk' as const], avoidIngredients: ['mushroom'] };
+  const it = mkItem('Veg Soup', { ing: 'water carrots broth salt' });
+  const rows = explainChecks(it, prof);
+  assert.deepEqual(rows.filter(r => r.group === 'strict').map(r => r.label), ['milk allergy', '"mushroom"']);
+  assert.ok(rows.filter(r => r.group === 'strict').every(r => r.outcome === 'pass'));
+  assert.ok(rows.some(r => r.group === 'diet' && r.outcome === 'unconfirmed'));
+  assert.equal(evaluateItem(it, prof).status, 'potential');
+  const cheese = mkItem('Cheddar', { ing: 'milk', allergens: ['milk'] });
+  assert.equal(explainChecks(cheese, prof)[0].outcome, 'fail');
+});
