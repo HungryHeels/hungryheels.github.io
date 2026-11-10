@@ -23,7 +23,12 @@ export interface Nutrition {
   sugar?: number | null;
   sodium?: number | null;   // mg
   borrowed?: boolean;       // true if copied from a third-party listing
+  source?: NutritionSource; // where the values came from; absent/null = none published
+  sourceLabel?: string;     // plain-language source, e.g. "official Carolina Dining export (imported Nov 12)"
 }
+/** official = an official export; user = typed in by the student from UNC's item panel ("entered by you");
+ *  third_party = Eat UNC's listing (borrowed). */
+export type NutritionSource = 'official' | 'user' | 'third_party';
 
 export interface DietLabels {
   vegan: boolean;

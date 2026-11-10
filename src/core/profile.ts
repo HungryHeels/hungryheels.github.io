@@ -38,6 +38,7 @@ export interface Profile {
   calorieCap: number;                // per meal, applied when calories are known
   targets: MacroTargets;             // per meal
   maxPortion: 1 | 2 | 3;
+  daily?: MacroTargets;              // optional whole-day targets for the day planner
 }
 
 export function defaultProfile(pattern: PatternId = 'none'): Profile {

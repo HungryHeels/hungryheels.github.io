@@ -225,7 +225,11 @@ function makeMeal(period: string, slots: Slot[], p: Profile, simplified: Simplif
   };
 }
 
-export interface BuildOptions { max?: number }
+export interface BuildOptions {
+  max?: number;
+  /** Lowercased main-dish names eaten recently (from the student's own history). Ranked a little lower for variety; never excluded. */
+  recentMains?: Set<string>;
+}
 export type FallbackReason = null | 'fewer_sides' | 'main_only' | 'other_period' | 'animal_plate';
 export interface BuildResult {
   meals: Meal[];
@@ -265,7 +269,7 @@ function buildPlate(day: MenuDay, period: Period, p: Profile, max: number): Meal
   return [...conf, ...poss].slice(0, max);
 }
 
-function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' | 'fewer' | 'main', max: number): Meal[] {
+function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' | 'fewer' | 'main', max: number, recent?: Set<string>): Meal[] {
   const { mains, sides } = candidatesFor(day, period, p);
   if (!mains.length) return [];
   const carn = p.pattern === 'carnivore';
@@ -330,7 +334,7 @@ function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' 
     usedMainNames.add(key);
     const first = scored[0];
     for (const y of first.slots.slice(1)) sideUse.set(y.cand.item.id, (sideUse.get(y.cand.item.id) ?? 0) + 1);
-    const mainPenalty = /\b(soup|chowder|bisque)\b/i.test(main.item.name) ? 0.2 : 0;
+    const mainPenalty = (/\b(soup|chowder|bisque)\b/i.test(main.item.name) ? 0.2 : 0) + (recent?.has(key) ? 0.25 : 0);
     meals.push(makeMeal(period.name, first.slots, p, level === 'full' ? null : level === 'fewer' ? 'fewer_sides' : 'main_only', { ...first.r, score: withUse(first) + mainPenalty }));
     // A second idea for the same main with entirely different sides (only when sides exist).
     const firstSides = new Set(first.slots.slice(1).map(x => x.cand.item.id));
@@ -355,7 +359,7 @@ export function buildMeals(day: MenuDay, periodName: string, p: Profile, opts: B
   if (!req) { res.noMealToday = true; res.banner = 'No meal periods are published for this day.'; return res; }
   const tries: Array<['full' | 'fewer' | 'main', FallbackReason]> = [['full', null], ['fewer', 'fewer_sides'], ['main', 'main_only']];
   for (const [level, fb] of tries) {
-    const m = buildForPeriod(day, req, p, level, max);
+    const m = buildForPeriod(day, req, p, level, max, opts.recentMains);
     if (m.length) {
       res.meals = m; res.period = req.name; res.fallback = fb;
       if (fb === 'fewer_sides') res.banner = `No full meal (main plus 2 sides) fits your rules at ${req.name}, so these have fewer sides. Your diet rules were not changed.`;
@@ -368,7 +372,7 @@ export function buildMeals(day: MenuDay, periodName: string, p: Profile, opts: B
   const others = day.periods.filter(x => x !== req).sort((a, b) => Math.abs(day.periods.indexOf(a) - idx) - Math.abs(day.periods.indexOf(b) - idx));
   for (const [level, fb] of tries) {
     for (const per of others) {
-      const m = buildForPeriod(day, per, p, level, max);
+      const m = buildForPeriod(day, per, p, level, max, opts.recentMains);
       if (m.length) {
         res.meals = m; res.period = per.name; res.fallback = 'other_period';
         res.banner = `Nothing at ${req.name} fits your rules, so this is the closest meal from ${per.name} the same day${fb ? ' (with fewer sides)' : ''}. Your diet rules were not changed.`;
