@@ -68,3 +68,18 @@ test('STRICT AUDIT: with each Big 9 allergen selected, no recommended part carri
     for (const per of d.periods) for (const m of buildMeals(d, per.name, prof).meals) for (const p of m.parts) assert.ok(!p.item.allergens.includes(a), `${a} ${d.date} ${p.item.name}`);
   }
 });
+
+test('Eat UNC borrowing: real coverage, warnings attached, disagreeing names stay unknown', () => {
+  for (const hall of ['chase', 'top-of-lenoir'] as const) {
+    const uniq = new Map<string, { cal: boolean; borrowed: boolean; warned: boolean; name: string }>();
+    for (const d of days.filter(x => x.hall === hall && !x.noMenuPosted)) for (const it of Object.values(d.items)) {
+      uniq.set(it.id, { cal: it.nutrition.calories !== null && it.nutrition.protein !== null, borrowed: !!it.nutrition.borrowed, warned: it.warnings.some(w => /borrowed from Eat UNC/.test(w)), name: it.name });
+    }
+    const vals = [...uniq.values()];
+    const have = vals.filter(v => v.cal).length;
+    assert.ok(have / vals.length >= 0.25, `${hall}: only ${have}/${vals.length} items have calories+protein`);
+    for (const v of vals) { if (v.borrowed) assert.ok(v.warned, `${v.name} borrowed without a warning`); if (v.cal) assert.ok(v.borrowed, `${v.name} has values from an unexpected source`); }
+    // "Quinoa" appears twice in Eat UNC's Chase listing with different values, so it must stay unknown.
+    if (hall === 'chase') { const q = vals.find(v => v.name === 'Quinoa'); if (q) assert.equal(q.cal, false, 'Quinoa should stay unknown (ambiguous in the snapshot)'); }
+  }
+});

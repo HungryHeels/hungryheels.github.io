@@ -14,7 +14,7 @@ Live site (after you turn on GitHub Pages): https://hungryheels.github.io/
 
 ## Where the data comes from (and what it lacks)
 The menus come from pages the author saved by hand in Safari (File > Save As > Web Archive). The app never contacts dining.unc.edu (its robots.txt disallows automated access to the date pages).
-A saved page contains item names, stations, meal periods and hours, ingredient text, and UNC's allergen and diet labels. **It does not contain calories, protein, fat or carbs**; UNC loads those only when you tap an item. Those values therefore show as **unknown** until you import an official nutrition export (see `docs/EMAIL_TO_DIETITIAN.md`) or an Eat UNC copy.
+A saved page contains item names, stations, meal periods and hours, ingredient text, and UNC's allergen and diet labels. **It does not contain calories, protein, fat or carbs**; UNC loads those only when you tap an item. Where possible, calories and protein are borrowed from a hand-transcribed Eat UNC (third-party) listing from Nov 5, 2026 (`data/eatunc-2026-11-05.txt`), covering roughly a third of items, each marked as borrowed. Fat and carbs stay **unknown** until an official nutrition export is imported (see `docs/EMAIL_TO_DIETITIAN.md`).
 
 Built in:
 - **Chase**, 2026-11-09 to 2026-12-10: 28 days with menus; Nov 25 to 28 had no menu posted.

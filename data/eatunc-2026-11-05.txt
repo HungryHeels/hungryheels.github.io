@@ -1,0 +1,624 @@
+# Eat UNC (third party, eatunc.com) lunch+dinner listing for 2026-11-05, hand-transcribed by the student.
+# Recovered from the student's original HungryHeels build. Format: hall | name | calories | protein
+chase | Blueberry Bagel | 290 | 9
+chase | Cheddar Jalapeno Bagel | 290 | 10
+chase | Cinnamon Raisin Bagel | 290 | 9
+chase | Everything Bagel | 290 | 10
+chase | French Toast Bagel | 280 | 9
+chase | Multigrain Bagel | 270 | 11
+chase | Plain Bagel | 290 | 10
+chase | Poppy Seed Bagel | 290 | 10
+chase | Sesame Bagel | 290 | 10
+chase | Wheat Bread Slice | 80 | 3.5
+chase | White Bread | 60 | 2
+chase | Whole Wheat Bagel | 280 | 9
+chase | Assorted Cookies | 130 | 1
+chase | Chai Latte Cheesecake | 300 | 3
+chase | Cream Cheese | 100 | 2
+chase | Fudge Brownies | 250 | 3
+chase | Grape Jelly | 50 | 0
+chase | Housemade Veggie Cream Cheese | 70 | 1
+chase | Monster Cookies (Made Without Gluten) | 200 | 8
+chase | Rice Krispie Treats | 170 | 1
+chase | Salted Caramel Cake | 380 | 4
+chase | Smart Balance Buttery Spread | 80 | 0
+chase | Strawberry Cream Cheese | 90 | 1
+chase | Sun Butter® | 180 | 6
+chase | Vegan Red Velvet Crinkle Cookies | 90 | 1
+chase | 1% Chocolate Milk | 150 | 8
+chase | 100% Apple Juice | 110 | 0
+chase | 100% Cranberry Juice | 140 | 0
+chase | 100% Orange Juice | 120 | 0
+chase | 2% Reduced Fat Milk | 120 | 8
+chase | Bubbly Lime | 0 | 0
+chase | Cheerwine® | 150 | 0
+chase | Chocolate Peamilk | 140 | 8
+chase | Diet Dr. Pepper® | 0 | 0
+chase | Diet Mountain Dew® | 0 | 0
+chase | Dr. Pepper® | 140 | 0
+chase | Gatorade® Fruit Punch | 80 | 0
+chase | Gatorade® Orange | 80 | 0
+chase | Hot Cocoa | 160 | 2
+chase | Larry's® Coffee | 0 | 0
+chase | Larry's® Decaf Coffee | 0 | 0
+chase | Mountain Dew® | 170 | 0
+chase | Oatmilk | 110 | 2
+chase | Pepsi® | 150 | 0
+chase | Pepsi® Zero Sugar | 0 | 0
+chase | Root Beer | 140 | 0
+chase | Seasonal Apple Cider | 120 | 0
+chase | Skim Milk | 80 | 8
+chase | Southern Sweet Tea | 130 | 0
+chase | Southern Unsweet Tea | 0 | 0
+chase | Soymilk | 100 | 8
+chase | Starry | 150 | 0
+chase | Strawberry Kiwi Juice | 120 | 0
+chase | Sunkist® Orange | 160 | 0
+chase | Tropicana® Fruit Punch | 170 | 0
+chase | Tropicana® Lemonade | 150 | 0
+chase | Whole Milk | 150 | 8
+chase | Apple Jacks® | 110 | 0
+chase | Cheerios™ | 80 | 3
+chase | Cinnamon Toast Crunch™ | 120 | 0.91
+chase | Cocoa Puffs™ | 130 | 1
+chase | Froot Loops® | 110 | 1
+chase | Frosted Flakes® | 130 | 2
+chase | Lucky Charms™ | 110 | 2
+chase | Oats and Honey Granola | 130 | 3
+chase | Rice Krispies® | 100 | 2
+chase | BBQ Sauce | 70 | 0
+chase | French Vanilla Creamer | 35 | 0
+chase | Hazelnut Creamer | 35 | 0
+chase | Heinz™ Pickle Flavored Ketchup | 15 | 0
+chase | Honey | 45 | 0
+chase | Ketchup | 20 | 0
+chase | Oil and Vinegar | 190 | 0
+chase | Original Creamer | 20 | 0
+chase | Ranch | 120 | 0
+chase | Raspberry Preserves | 50 | 0
+chase | Smart Balance Buttery Spread | 80 | 0
+chase | Sriracha Sauce | 5 | 0
+chase | Strawberry Preserves | 210 | 0
+chase | Texas Pete® Hot Sauce | 0 | 0
+chase | Whipped Topping | 25 | 0
+chase | Yellow Mustard | 25 | 1
+chase | Caramel Sauce | 100 | 0
+chase | Chocolate Sauce | 110 | 0
+chase | Chocolate Sprinkles | 20 | 0
+chase | Chopped M&Ms® | 60 | 1
+chase | Graham Cracker Crumbs | 35 | 0
+chase | Gummy Bears | 100 | 2
+chase | Gummy Candy | 100 | 1
+chase | Mango Sorbet | 120 | 0
+chase | Mint Chocolate Chip Ice Cream | 200 | 3
+chase | Oreo® Cookie Crumbs | 70 | 1
+chase | Rainbow Sprinkles | 25 | 0
+chase | Salted Caramel Craze Ice Cream | 230 | 3
+chase | Strawberry Cheesecake Ice Cream | 190 | 2
+chase | Vanilla Ice Cream | 170 | 3
+chase | Applesauce | 60 | 0
+chase | Baby Spinach | 10 | 2
+chase | Bacon Pieces | 120 | 11
+chase | Balsamic Vinaigrette | 60 | 0
+chase | Banana Peppers | 0 | 0
+chase | Beets | 10 | 0
+chase | Black Beans | 130 | 8
+chase | Black Olives | 30 | 0
+chase | Blue Cheese Dressing - Catering | 4750 | 37
+chase | Caesar Dressing | 150 | 1
+chase | Cantaloupe | 45 | 1
+chase | Carrots | 10 | 0
+chase | Chopped Hard Cooked Egg | 45 | 4
+chase | Cottage Cheese | 90 | 13
+chase | Croutons | 120 | 4
+chase | Cucumbers | 0 | 0
+chase | Diced Chicken | 100 | 12
+chase | Diced Pineapple | 35 | 1
+chase | Dried Cranberries | 90 | 0
+chase | Feta Cheese Crumbles | 80 | 5
+chase | Garbanzo Beans | 35 | 2
+chase | Grape Tomatoes | 5 | 0
+chase | Greek Chickpea Salad | 110 | 5
+chase | Green Peppers | 5 | 0
+chase | Honey Mustard Dressing | 130 | 0
+chase | Honeydew Melon | 40 | 1
+chase | Hummus | 240 | 5
+chase | Iceberg Lettuce | 10 | 0.51
+chase | Lite Italian Dressing | 40 | 0
+chase | Mushroom | 5 | 0.88
+chase | Nonfat Strawberry Yogurt | 120 | 6
+chase | Nonfat Vanilla Yogurt | 120 | 6
+chase | Oil and Vinegar | 190 | 0
+chase | Orange Slices | 15 | 0
+chase | Pasta Salad | 120 | 3
+chase | Plain Greek Yogurt | 90 | 17
+chase | Quinoa | 170 | 7
+chase | Raisins | 90 | 0.71
+chase | Ranch Dressing | 110 | 0
+chase | Red Grapes | 80 | 1
+chase | Red Kidney Beans | 50 | 4
+chase | Shredded Cheddar Cheese | 60 | 3
+chase | Sliced Red Onion | 10 | 0
+chase | Spring Salad Mix | 5 | 0
+chase | Toasted Sunflower Seeds | 190 | 6
+chase | Tofu | 120 | 13
+chase | Beef Strips | 70 | 13
+chase | Diced Zucchini | 10 | 1
+chase | Lemon Honey Vinaigrette Dressing | 100 | 0
+chase | Penne Pasta (Made without Gluten) with Marinara Sauce | 240 | 5
+chase | Power Slaw Mix | 15 | 1
+chase | Quinoa | 140 | 5
+chase | Roasted Olive Oil Tomato Sauce | 20 | 0
+chase | Roasted Red Peppers | 15 | 1
+chase | Vegan Chipotle Sauce | 30 | 0
+chase | Bob's Red Mill® Brown Sugar and Maple GF Oatmeal Cup | 240 | 7
+chase | Bob's Red Mill® GF Apple & Cinnamon Oats | 270 | 7
+chase | Bob's Red Mill® Gluten Free Oats | 210 | 7
+chase | Made Good® Birthday Cake Bar | 110 | 2
+chase | Made Good® Crunchy Sweet Cinnamon & Sea Salt Squares | 150 | 3
+chase | Made Good® Mini Soft Red Velvet Cookies | 120 | 1
+chase | Made Good® Organic Chocolate Chip Granola Bar | 100 | 2
+chase | Made Good® Organic Crunchy Oats and Dark Chocolate Squares | 140 | 2
+chase | Made Good® Organic Soft Baked Blueberry Oat Bars | 120 | 2
+chase | Made Good® Soft Mini Snickerdoodle | 110 | 1
+chase | MadeGood® Soft Baked Chocolate Chip Cookie | 120 | 1
+chase | MadeGood® Soft Baked Double Chocolate Cookies | 120 | 1
+chase | MadeGood® Vanilla Crispy Squares | 80 | 1
+chase | That's It® Apple & Blueberry Fruit Bar | 100 | 1
+chase | That's It® Apple & Cherry Fruit Bar | 100 | 1
+chase | That's It® Apple & Mango Fruit Bar | 100 | 0
+chase | Mixed Berries | 35 | 0
+chase | Pancake Syrup | 70 | 0
+chase | Waffle | 90 | 3
+chase | Whipped Topping | 110 | 0
+chase | American Cheese | 50 | 3
+chase | Banana Peppers | 0 | 0
+chase | Black Olives | 30 | 0
+chase | Cheddar Cheese | 230 | 13
+chase | Chicken Breast | 140 | 25
+chase | Chipotle Mayonnaise | 210 | 0
+chase | Chunky Chicken Salad | 60 | 1
+chase | Garlic Herb Wraps | 300 | 9
+chase | Hoagie Roll | 190 | 7
+chase | Honey Mustard Dressing | 130 | 0
+chase | Jalapeno Peppers | 10 | 0
+chase | Lettuce | 5 | 1
+chase | Mayonnaise | 100 | 0
+chase | Oil and Vinegar | 90 | 0
+chase | Pepper Jack Cheese | 50 | 4
+chase | Sliced Dill Pickles | 0 | 0
+chase | Sliced Ham | 110 | 14
+chase | Sliced Red Onion | 10 | 0
+chase | Sliced Roast Beef | 70 | 10
+chase | Sliced Salami | 180 | 8
+chase | Sliced Turkey | 110 | 18
+chase | Sourdough | 90 | 4
+chase | Spicy Brown Mustard | 15 | 0
+chase | Spinach Wrap | 300 | 8
+chase | Sundried Tomato Wraps | 300 | 8
+chase | Swiss Cheese | 1780 | 136
+chase | Tomatoes | 0 | 0
+chase | Tuna Salad | 280 | 17
+chase | Vegan American Sliced Cheese | 60 | 0
+chase | Vegan Mayo | 90 | 0
+chase | White Bread | 130 | 5
+chase | Whole Wheat Bread | 70 | 3
+chase | Yellow Mustard | 25 | 1
+chase | American Cheese | 50 | 3
+chase | Banana Peppers | 0 | 0
+chase | Black Olives | 30 | 0
+chase | Cheddar Cheese | 230 | 13
+chase | Chicken Breast | 140 | 25
+chase | Chipotle Mayonnaise | 210 | 0
+chase | Honey Mustard Dressing | 130 | 0
+chase | Jalapeno Peppers | 10 | 0
+chase | Lettuce | 5 | 1
+chase | Mayonnaise | 100 | 0
+chase | Oil and Vinegar | 90 | 0
+chase | Pepper Jack Cheese | 50 | 4
+chase | Sliced Dill Pickles | 0 | 0
+chase | Sliced Ham | 110 | 14
+chase | Sliced Red Onion | 10 | 0
+chase | Sliced Roast Beef | 70 | 10
+chase | Sliced Salami | 180 | 8
+chase | Sliced Turkey | 110 | 18
+chase | Spicy Brown Mustard | 15 | 0
+chase | Swiss Cheese | 1780 | 136
+chase | Tomatoes | 0 | 0
+chase | Tuna Salad | 280 | 17
+chase | Udi's® Multigrain Bread | 140 | 2
+chase | Udi's® White Bread | 140 | 2
+chase | Vegan American Sliced Cheese | 60 | 0
+chase | Vegan Mayo | 90 | 0
+chase | Yellow Mustard | 25 | 1
+chase | Marinara Sauce | 45 | 1
+chase | Pasta Noodles | 100 | 3
+chase | White Alfredo Sauce | 180 | 6
+chase | Creamy Tomato Soup | 150 | 4
+chase | Hearty Beef & Vegetable Soup | 80 | 2
+chase | Siracha Mayonnaise | 180 | 0
+chase | Smoked Salmon Sushi | 70 | 5
+chase | Soy Sauce | 10 | 1
+chase | Vegan Cucumber Roll | 80 | 2
+chase | Bacon Pieces | 35 | 2
+chase | Baked Russet Potato | 240 | 5
+chase | Baked Sweet Potato | 150 | 3
+chase | Chicken, Artichoke, & Spinach Pasta Bake | 370 | 21
+chase | Cinnamon Sugar Mix | 50 | 0
+chase | Diced Chicken | 100 | 19
+chase | Shredded Cheddar Cheese | 60 | 3
+chase | Sliced Scallions | 0 | 0
+chase | Smart Balance Buttery Spread | 80 | 0
+chase | Sour Cream | 60 | 1
+chase | Chicken, Artichoke, & Spinach Pasta Bake | 370 | 21
+chase | Guacamole | 50 | 0
+chase | Iceberg Lettuce | 5 | 0
+chase | Jalapeno Peppers | 10 | 0
+chase | Pico de Gallo | 5 | 0
+chase | Queso Sauce | 60 | 3
+chase | Sauteed Chorizo | 280 | 10
+chase | Seasoned Black Beans | 120 | 7
+chase | Shredded Cheddar Cheese | 60 | 3
+chase | Sour Cream | 60 | 1
+chase | Tortilla Chips | 60 | 0
+chase | Arroz con Pollo Plate | 350 | 25
+chase | Soy Bites | 160 | 8
+chase | Beef & Broccoli Stir-Fry | 870 | 42
+chase | Soy Bites | 160 | 8
+chase | 'The Heeler' Blueberry Smoothie | 120 | 1
+chase | Mango Banana Smoothie | 150 | 5
+chase | Southwest Chicken Salad | 270 | 8
+chase | IP3 Cheese Pizza | 250 | 12
+chase | IP3 Margherita Pizza | 250 | 12
+chase | IP3 Mediterranean Pizza | 140 | 9
+chase | IP3 Pepperoni Pizza | 250 | 12
+chase | IP3 Vegan Cheese Pizza | 200 | 4
+chase | Cheese Bread | 190 | 9
+chase | Cheese Pizza | 180 | 10
+chase | Pepperoni Pizza | 230 | 12
+chase | Vegan Cheese Pizza | 140 | 4
+chase | Chipotle Black Beans | 120 | 7
+chase | Cilantro Lime Rice | 100 | 2
+chase | Creole BBQ Chicken | 190 | 23
+chase | Roasted Corn | 110 | 3
+chase | Caribbean Rice and Red Beans | 100 | 3
+chase | Halal Cajun Chicken Breast | 120 | 19
+chase | Sauteed Squash | 50 | 1
+chase | Steamed Broccoli | 60 | 3
+chase | American Cheese | 50 | 3
+chase | Avocado Jalapeno Turkey Burger | 420 | 26
+chase | Black Bean Burger Patty | 120 | 11
+chase | Grilled Cheese Sandwich | 220 | 8
+chase | Hamburger Bun | 150 | 8
+chase | Twister Fries | 300 | 3
+chase | Udi's® Gluten-Free Hamburger Bun | 190 | 5
+chase | Vegan Sliced Cheese | 60 | 0
+chase | Veggie Toppings | 15 | 0.55
+chase | American Cheese | 50 | 3
+chase | Black Bean Burger Patty | 120 | 11
+chase | Chicken Parmesan Melt | 610 | 37
+chase | Grilled Cheese Sandwich | 220 | 8
+chase | Hamburger Bun | 150 | 8
+chase | Twister Fries | 300 | 3
+chase | Udi's® Gluten-Free Hamburger Bun | 190 | 5
+chase | Vegan Sliced Cheese | 60 | 0
+chase | Veggie Toppings | 15 | 0.55
+chase | BBQ Ranch Dressing | 80 | 0
+chase | BBQ Spiced Shredded Chicken | 150 | 22
+chase | Black Beans | 130 | 8
+chase | Carrots | 10 | 0
+chase | Crispy Yuca Fries | 350 | 1
+chase | Diced Celery | 0 | 0
+chase | Grape Tomatoes | 5 | 0
+chase | Romaine Lettuce | 10 | 0
+chase | Shredded Cheddar Cheese | 110 | 6
+chase | Tortilla Straws | 100 | 1
+chase | Bacon | 90 | 6
+chase | Chicken Patty | 310 | 12
+chase | Scrambled Eggs | 150 | 11
+chase | Spicy Cheese Grits | 150 | 6
+chase | Waffle | 90 | 2
+chase | White Pepper Gravy | 40 | 1
+chase | Middle-Eastern Falafel | 480 | 26
+chase | Moroccan Style Vegetable Stew | 130 | 3
+chase | Steamed Broccoli | 60 | 3
+chase | Flour Tortilla | 90 | 2
+chase | Frank's Hot Sauce | 5 | 0
+chase | Fried Cauliflower | 170 | 7
+chase | Guacamole | 50 | 0
+chase | Jalapeno Cabbage Slaw | 35 | 0
+chase | Roasted Corn | 110 | 3
+chase | Salsa | 10 | 0
+chase | Seasoned Black Beans | 120 | 7
+chase | Shredded Vegan Cheddar Cheese | 80 | 0
+lenoir | 1% Chocolate Milk | 150 | 8
+lenoir | 100% Apple Juice | 110 | 0
+lenoir | 100% Cranberry Juice | 140 | 0
+lenoir | 100% Orange Juice | 120 | 0
+lenoir | 2% Reduced Fat Milk | 120 | 8
+lenoir | Bubbly Lime | 0 | 0
+lenoir | Cheerwine® | 150 | 0
+lenoir | Chocolate Peamilk | 140 | 8
+lenoir | Diet Dr. Pepper® | 0 | 0
+lenoir | Diet Mountain Dew® | 0 | 0
+lenoir | Dr. Pepper® | 140 | 0
+lenoir | French Vanilla Creamer | 35 | 0
+lenoir | Gatorade® Fruit Punch | 80 | 0
+lenoir | Gatorade® Orange | 80 | 0
+lenoir | Hazelnut Creamer | 35 | 0
+lenoir | Larry's® Coffee | 0 | 0
+lenoir | Larry's® Decaf Coffee | 0 | 0
+lenoir | Mountain Dew® | 170 | 0
+lenoir | Oatmilk | 110 | 2
+lenoir | Original Creamer | 20 | 0
+lenoir | Pepsi® | 150 | 0
+lenoir | Pepsi® Zero Sugar | 0 | 0
+lenoir | Root Beer | 140 | 0
+lenoir | Schweppes® Ginger Ale | 130 | 0
+lenoir | Skim Milk | 80 | 8
+lenoir | Southern Sweet Tea | 130 | 0
+lenoir | Southern Unsweet Tea | 0 | 0
+lenoir | Soymilk | 100 | 8
+lenoir | Starry | 150 | 0
+lenoir | Strawberry Kiwi Juice | 120 | 0
+lenoir | Sunkist® Orange | 160 | 0
+lenoir | Tropicana® Fruit Punch | 170 | 0
+lenoir | Tropicana® Lemonade | 150 | 0
+lenoir | Whole Milk | 150 | 8
+lenoir | Blueberry Bagel | 290 | 9
+lenoir | Cheddar Jalapeno Bagel | 290 | 10
+lenoir | Cinnamon Raisin Bagel | 290 | 9
+lenoir | Everything Bagel | 290 | 10
+lenoir | French Toast Bagel | 280 | 9
+lenoir | Multigrain Bagel | 270 | 11
+lenoir | Plain Bagel | 290 | 10
+lenoir | Poppy Seed Bagel | 290 | 10
+lenoir | Sesame Bagel | 290 | 10
+lenoir | Wheat Bread Slice | 80 | 3.5
+lenoir | White Bread | 60 | 2
+lenoir | Whole Wheat Bagel | 280 | 9
+lenoir | Brown Rice | 80 | 2
+lenoir | Crispy Tofu | 520 | 23
+lenoir | Cucumbers | 0 | 0
+lenoir | Deli Chipotle Mayonnaise | 210 | 0
+lenoir | Edamame | 120 | 10
+lenoir | Green Cabbage | 0 | 0
+lenoir | Pickled Ginger | 0 | 0
+lenoir | Pickled Radish | 40 | 0
+lenoir | Poke Dressing | 200 | 0
+lenoir | Poke Tuna | 230 | 9
+lenoir | Shredded Carrots | 10 | 0
+lenoir | Sliced Avocado | 30 | 0
+lenoir | Sliced Scallions | 0 | 0
+lenoir | Apple Jacks® | 110 | 0
+lenoir | Cheerios™ | 80 | 3
+lenoir | Cinnamon Toast Crunch™ | 120 | 0.91
+lenoir | Frosted Flakes® | 130 | 2
+lenoir | Frosted Mini Wheats™ | 140 | 4
+lenoir | Golden Grahams™ | 110 | 2
+lenoir | Lucky Charms™ | 110 | 2
+lenoir | Oats and Honey Granola | 130 | 3
+lenoir | BBQ Sauce | 70 | 0
+lenoir | Heinz™ Pickle Flavored Ketchup | 15 | 0
+lenoir | Honey | 45 | 0
+lenoir | Honey Mustard | 70 | 0
+lenoir | Ketchup | 20 | 0
+lenoir | Mayonnaise | 100 | 0
+lenoir | Sriracha Sauce | 5 | 0
+lenoir | Texas Pete® Hot Sauce | 0 | 0
+lenoir | Yellow Mustard | 25 | 1
+lenoir | American Cheese | 50 | 3
+lenoir | Banana Peppers | 0 | 0
+lenoir | Black Olives | 30 | 0
+lenoir | Cheddar Cheese | 230 | 13
+lenoir | Chunky Chicken Salad | 60 | 1
+lenoir | Deli Chipotle Mayonnaise | 210 | 0
+lenoir | Garlic & Herb Wrap | 300 | 8
+lenoir | Hoagie Roll | 240 | 8
+lenoir | Jalapeno Peppers | 10 | 0
+lenoir | Lettuce | 5 | 1
+lenoir | Mayonnaise | 100 | 0
+lenoir | Oil and Vinegar | 90 | 0
+lenoir | Pepper Jack Cheese | 50 | 4
+lenoir | Potato Chips | 480 | 5
+lenoir | Provolone Cheese | 80 | 5
+lenoir | Rye Bread Slice | 90 | 3
+lenoir | Sliced Dill Pickles | 0 | 0
+lenoir | Sliced Ham | 110 | 14
+lenoir | Sliced Red Onion | 10 | 0
+lenoir | Sliced Roast Beef | 70 | 10
+lenoir | Sliced Turkey | 110 | 18
+lenoir | Sourdough | 90 | 4
+lenoir | Spinach Wrap | 300 | 8
+lenoir | Sundried Tomato Basil Wrap | 310 | 8
+lenoir | Swiss Cheese | 1780 | 136
+lenoir | Tomatoes | 0 | 0
+lenoir | Tuna Salad | 280 | 17
+lenoir | Udi's® Multigrain Bread | 140 | 2
+lenoir | Udi's® White Bread | 140 | 2
+lenoir | Vegan American Sliced Cheese | 60 | 0
+lenoir | Wheat Bread Slice | 80 | 3.5
+lenoir | Yellow Mustard | 25 | 1
+lenoir | Asian-Style Beef Noodle Soup | 130 | 6
+lenoir | Chipotle Mayonnaise | 210 | 0
+lenoir | Creamy Queso Dip | 130 | 6
+lenoir | Crunchy Shrimp Sushi | 130 | 6
+lenoir | Curried Tomato Lentil Soup | 180 | 10
+lenoir | Pickled Ginger | 0 | 0
+lenoir | Salsa | 10 | 0
+lenoir | Soy Sauce | 10 | 1
+lenoir | Tortilla Chips | 60 | 0
+lenoir | Vegan Cucumber Roll | 80 | 2
+lenoir | Wasabi | 20 | 0.57
+lenoir | Antipasto Salad | 160 | 7
+lenoir | Baby Carrots | 170 | 4
+lenoir | Caesar Pasta Salad | 210 | 5
+lenoir | Chickpeas with Peppers and Feta | 170 | 7
+lenoir | Hummus | 60 | 1
+lenoir | Mediterranean Pasta Salad | 90 | 2
+lenoir | Mediterranean White Bean Salad | 90 | 2
+lenoir | Pita Bread | 70 | 2
+lenoir | Roasted Red Pepper Hummus | 70 | 2
+lenoir | Sliced Mixed Bell Peppers | 15 | 1
+lenoir | Tomato Cucumber Salad | 25 | 1
+lenoir | Tzatziki Sauce | 60 | 1
+lenoir | Birthday Cake Ice Cream | 180 | 2
+lenoir | Caramel Sauce | 100 | 0
+lenoir | Chocolate Sauce | 110 | 0
+lenoir | Chocolate Sprinkles | 20 | 0
+lenoir | Chopped M&Ms® | 60 | 1
+lenoir | Graham Cracker Crumbs | 35 | 0
+lenoir | Gummy Bears | 100 | 2
+lenoir | Gummy Candy | 100 | 1
+lenoir | Mango Sorbet | 120 | 0
+lenoir | Mint Chocolate Chip Ice Cream | 200 | 3
+lenoir | Oreo® Cookie Crumbs | 70 | 1
+lenoir | Rainbow Sprinkles | 25 | 0
+lenoir | Salted Caramel Craze Ice Cream | 230 | 3
+lenoir | Scooper Hero Ice Cream | 170 | 3
+lenoir | Strawberry Cheesecake Ice Cream | 190 | 2
+lenoir | Vanilla Ice Cream | 170 | 3
+lenoir | Italian Sausage | 290 | 14
+lenoir | Marinara Sauce | 45 | 1
+lenoir | Meat Sauce | 90 | 4
+lenoir | Pasta Noodles | 100 | 3
+lenoir | Roasted Squash and Zucchini | 45 | 1
+lenoir | White Alfredo Sauce | 180 | 6
+lenoir | Whole Grain Penne | 100 | 3
+lenoir | Cheese Bread | 150 | 6
+lenoir | Cheese Pizza | 180 | 10
+lenoir | Pepperoni Pizza | 230 | 12
+lenoir | Philly Cheesesteak Pizza | 370 | 26
+lenoir | Vegan Cheese Pizza | 140 | 4
+lenoir | Applesauce | 60 | 0
+lenoir | Baby Spinach | 10 | 2
+lenoir | Bacon Pieces | 120 | 11
+lenoir | Balsamic Vinaigrette | 180 | 0
+lenoir | Banana Peppers | 0 | 0
+lenoir | Beets | 10 | 0
+lenoir | Black Olives | 30 | 0
+lenoir | Blue Cheese Dressing - Catering | 4750 | 37
+lenoir | Cage-Free Hard-Boiled Egg | 80 | 6
+lenoir | Cantaloupe | 45 | 1
+lenoir | Cottage Cheese | 90 | 13
+lenoir | Creamy Caesar Dressing | 290 | 2
+lenoir | Croutons | 120 | 4
+lenoir | Cucumbers | 0 | 0
+lenoir | Diced Chicken | 100 | 19
+lenoir | Diced Pineapple | 35 | 1
+lenoir | Edamame | 160 | 14
+lenoir | Feta Cheese Crumbles | 80 | 5
+lenoir | Garbanzo Beans | 35 | 2
+lenoir | Grape Tomatoes | 10 | 0
+lenoir | Green Peas | 20 | 1
+lenoir | Green Peppers | 5 | 0
+lenoir | Honey Mustard | 70 | 0
+lenoir | Honeydew Melon | 40 | 1
+lenoir | Iceberg Lettuce | 10 | 0.51
+lenoir | Italian Dressing | 110 | 0
+lenoir | Oil and Vinegar | 190 | 0
+lenoir | Orange Slices | 15 | 0
+lenoir | Plain Greek Yogurt | 90 | 17
+lenoir | Quinoa | 170 | 7
+lenoir | Raisins | 90 | 1
+lenoir | Ranch Dressing | 100 | 0
+lenoir | Red Grapes | 80 | 1
+lenoir | Red Kidney Beans | 50 | 4
+lenoir | Red Wine Vinegar | 10 | 0
+lenoir | Shredded Carrots | 10 | 0
+lenoir | Shredded Cheddar Cheese | 60 | 3
+lenoir | Sliced Red Onion | 10 | 0
+lenoir | Sliced Turkey | 110 | 18
+lenoir | Spring Salad Mix | 5 | 0
+lenoir | Sunflower Seeds | 35 | 1
+lenoir | Tofu | 120 | 13
+lenoir | Assorted Cookies | 130 | 1
+lenoir | Cream Cheese | 100 | 2
+lenoir | Fudge Brownies | 250 | 3
+lenoir | Grape Jelly | 50 | 0
+lenoir | Housemade Veggie Cream Cheese | 70 | 1
+lenoir | Monster Cookies (Made Without Gluten) | 200 | 8
+lenoir | Rice Krispie Treats | 170 | 1
+lenoir | Salted Caramel Cake | 380 | 4
+lenoir | Smart Balance Buttery Spread | 80 | 0
+lenoir | Strawberry Cream Cheese | 90 | 1
+lenoir | Sun Butter® | 180 | 6
+lenoir | Triple Chocolate Cheesecake | 380 | 4
+lenoir | Vegan Red Velvet Crinkle Cookies | 90 | 1
+lenoir | Bob's Red Mill® Brown Sugar and Maple GF Oatmeal Cup | 240 | 7
+lenoir | Bob's Red Mill® GF Apple & Cinnamon Oats | 270 | 7
+lenoir | Bob's Red Mill® Gluten Free Oats | 210 | 7
+lenoir | Made Good® Birthday Cake Bar | 110 | 2
+lenoir | Made Good® Crunchy Sweet Cinnamon & Sea Salt Squares | 150 | 3
+lenoir | Made Good® Mini Soft Red Velvet Cookies | 120 | 1
+lenoir | Made Good® Organic Chocolate Chip Granola Bar | 100 | 2
+lenoir | Made Good® Organic Crunchy Oats and Dark Chocolate Squares | 140 | 2
+lenoir | Made Good® Organic Soft Baked Blueberry Oat Bars | 120 | 2
+lenoir | Made Good® Soft Mini Snickerdoodle | 110 | 1
+lenoir | MadeGood® Soft Baked Chocolate Chip Cookie | 120 | 1
+lenoir | MadeGood® Soft Baked Double Chocolate Cookies | 120 | 1
+lenoir | MadeGood® Vanilla Crispy Squares | 80 | 1
+lenoir | That's It® Apple & Blueberry Fruit Bar | 100 | 1
+lenoir | That's It® Apple & Cherry Fruit Bar | 100 | 1
+lenoir | That's It® Apple & Mango Fruit Bar | 100 | 0
+lenoir | Apple Compote | 25 | 0
+lenoir | Blueberry Compote | 180 | 0
+lenoir | Chocolate Whipped Topping | 25 | 0
+lenoir | Pancake Syrup | 70 | 0
+lenoir | Strawberry Compote | 50 | 0
+lenoir | Waffle | 90 | 3
+lenoir | Whipped Topping | 110 | 0
+lenoir | Cavatappi alla Toscana | 340 | 13
+lenoir | Dinner Rolls | 110 | 3
+lenoir | Marinara Sauce | 45 | 1
+lenoir | Penne Pasta (Made Without Gluten) | 200 | 3
+lenoir | Penne with Chicken & Fire Roasted Tomatoes | 260 | 21
+lenoir | Soy Nuggets | 160 | 8
+lenoir | Baked Alfredo Chicken & Tortellini | 600 | 45
+lenoir | Dinner Rolls | 110 | 3
+lenoir | Marinara Sauce | 45 | 1
+lenoir | Mushroom Bacon Penne | 210 | 8
+lenoir | Penne Pasta (Made Without Gluten) | 200 | 3
+lenoir | Soy Nuggets | 160 | 8
+lenoir | Buffalo Cauliflower Wings | 70 | 4
+lenoir | Long Grain Brown Rice | 100 | 3
+lenoir | Stewed Tomato and Pintos | 70 | 4
+lenoir | Vegan Chorizo Corn Poblano | 140 | 6
+lenoir | Beyond® Sausage & Peppers Sub | 470 | 24
+lenoir | Montreal Potatoes | 90 | 2
+lenoir | Roasted Grape Tomatoes | 35 | 1
+lenoir | Sauteed Squash | 50 | 1
+lenoir | Citrus Chili Chicken Wings | 160 | 12
+lenoir | Roasted Tomatoes | 40 | 1
+lenoir | Sauteed Squash | 50 | 1
+lenoir | Veggie Rice Pilaf | 190 | 3
+lenoir | Corn on the Cob | 120 | 3
+lenoir | Jerk Chicken with Pineapple Salsa | 190 | 25
+lenoir | Roasted Broccoli and Cauliflower | 110 | 2
+lenoir | Stir Fried Pineapple Rice | 290 | 6
+lenoir | Beyond Beef Quesadilla | 430 | 17
+lenoir | Chicken & Cheese Quesadilla | 520 | 32
+lenoir | Diced Jalapenos | 0 | 0
+lenoir | Salsa | 10 | 0
+lenoir | Shoestring Fries | 290 | 1
+lenoir | Shredded Iceberg Lettuce | 70 | 3
+lenoir | Sour Cream | 60 | 1
+lenoir | Black Bean Burger Patty | 120 | 11
+lenoir | Hamburger Bun | 150 | 8
+lenoir | Korean Pork Sandwich | 270 | 14
+lenoir | Lettuce | 5 | 1
+lenoir | Sliced Cheddar Cheese | 60 | 3
+lenoir | Sliced Dill Pickles | 0 | 0
+lenoir | Sliced Red Onion | 10 | 0
+lenoir | Tomatoes | 0 | 0
+lenoir | Twister Fries | 300 | 3
+lenoir | Udi's® Gluten-Free Hamburger Bun | 190 | 5
+lenoir | Vegan Sliced Cheese | 60 | 0
+lenoir | Collard Greens | 50 | 3
+lenoir | Creole Jambalaya | 280 | 16
+lenoir | Jalapeno Cheddar Cornbread | 250 | 5
+lenoir | Roasted Broccoli and Cauliflower | 110 | 2
+lenoir | Mexican Street Corn | 170 | 6
+lenoir | Southwest Black Beans | 110 | 7
+lenoir | Southwest Style Beef Sirloin | 240 | 26
+lenoir | Spanish Rice | 80 | 2
