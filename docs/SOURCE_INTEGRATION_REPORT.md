@@ -12,6 +12,12 @@
 - One-off hours: Sun Nov 29 is Dinner-only (5pm-8:30pm); Thu Dec 3 adds Late Night (9pm-12am) and Dinner ends 8pm; Fri Dec 4 Dinner is 5pm-7pm.
 - These come from the saved pages. The app shows exactly these tabs; if the live site shows a period that is missing here, re-save that day and re-import it.
 
+## Common-sense rules (added Nov 10)
+- **Implausible nutrition is ignored, never corrected.** A borrowed value is dropped (item shows "unknown" with the reason) when it is a bulk catering item, over 1,500 kcal or 100 g protein for one serving, or when protein alone would exceed the stated calories. This removes Eat UNC's Swiss Cheese (1,780 kcal / 136 g) and "Blue Cheese Dressing - Catering" (4,750 kcal).
+- **Run-together ingredient words** (e.g. "smokedcucumbercheese") are also searched for foods, so hidden ingredients still count. This only ever makes rules stricter.
+- **Sides must be real sides.** Garnishes and single toppings (seeds, nuts, scallions, bacon bits, raisins, raw onions, olives, shredded cheese) are never sides. Deli slices and salad-bar proteins are allowed but ranked last. Plain rice/pasta/noodles are sides, never mains. Catering items are never used.
+- **Sensible plates:** no two sides of the same kind (two yogurts, two potato dishes, two fruits), sides vary across ideas, and soups rank below entrées.
+
 ## Data quirks found in the real pages
 - UNC labels and allergen lists sometimes contradict each other: "Mahi Mahi with Mango Salsa" is labeled vegan but lists fish; "Cajun Tofu Po Boy" is labeled vegan but flagged for milk; "Wheat Bread Slice" is labeled vegan but flagged for milk. The engine believes the allergen list and ingredient text over a label.
 - Some ingredient text is run together by the page ("agentcornstarch"); those items may be excluded more often than strictly necessary, which is the safe direction.

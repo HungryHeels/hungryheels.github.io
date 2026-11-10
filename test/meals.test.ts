@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { buildMeals, courseOf, totalsFor } from '../src/core/meals.ts';
 import { defaultProfile } from '../src/core/profile.ts';
 import { borrowNutrition } from '../src/core/borrow.ts';
+import { evaluateItem } from '../src/core/engine.ts';
 import type { MenuDay, MenuItem } from '../src/core/types.ts';
 import { mkItem } from './fixtures.ts';
 
@@ -113,4 +114,36 @@ test('animal diets with no main dish get a plate of animal foods (structure fall
 });
 test('ice cream, bakery and bread stations (Lenoir names) are never meal parts', () => {
   for (const st of ['Ice Cream Bar', 'Specialty Bakery', 'Breads and Bagels', 'Hummus Bar']) assert.equal(courseOf(mkItem('Vanilla Ice Cream'), st).course, 'skip', st);
+});
+
+test('common sense: garnishes are never sides; plain starch is never a main; no two sides of the same kind', async () => {
+  const { sideTier } = await import('../src/core/meals.ts');
+  for (const n of ['Toasted Sunflower Seeds', 'Sliced Scallions', 'Bacon Pieces', 'Raisins', 'Red Onions', 'Shredded Cheddar Cheese', 'Black Olives']) assert.equal(sideTier(mkItem(n), 'Salad Bar', null), 2, n);
+  assert.equal(sideTier(mkItem('Plain Greek Yogurt'), 'Salad Bar', null), 0);
+  assert.equal(sideTier(mkItem('Orange Slices'), 'Salad Bar', 'fruit'), 0);
+  assert.equal(sideTier(mkItem('Sliced Turkey'), 'Deli', 'protein'), 1);
+  for (const n of ['Pasta Noodles', 'Sushi Rice', 'Steamed White Rice', 'Quinoa']) assert.notEqual(courseOf(mkItem(n), 'Pasta').course, 'main', n);
+  assert.equal(courseOf(mkItem('Blue Cheese Dressing - Catering'), 'Salad Bar').course, 'skip');
+  const d = day([['Grill', [mkItem('Grilled Chicken', { ing: 'chicken' })]],
+    ['Salad Bar', [mkItem('Plain Greek Yogurt', { ing: 'cultured milk' }), mkItem('Vanilla Yogurt', { ing: 'milk sugar vanilla' }), mkItem('Toasted Sunflower Seeds', { ing: 'sunflower seeds' }), mkItem('Steamed Broccoli', { ing: 'broccoli' })]]]);
+  for (const m of buildMeals(d, 'Dinner', defaultProfile('none')).meals) {
+    const names = m.parts.map(p => p.item.name);
+    assert.ok(!names.includes('Toasted Sunflower Seeds'), names.join());
+    assert.ok(!(names.includes('Plain Greek Yogurt') && names.includes('Vanilla Yogurt')), names.join());
+  }
+});
+test('common sense: run-together ingredient words still reveal foods (safe direction)', async () => {
+  const { evidence } = await import('../src/core/engine.ts');
+  const it = mkItem('Smoked Salmon Sushi', { ing: 'fish salmon smoked sliced fresh salmon smokedcucumbercheese cream loaf cultureshredded carrotginger' });
+  assert.equal(evidence(it, 'vegetables', { ignoreSeasonings: true }).state, 'yes');
+  assert.equal(evaluateItem(it, defaultProfile('carnivore')).status, 'excluded');
+});
+test('common sense: implausible borrowed nutrition is ignored, never used', () => {
+  const d = day([['Deli', [mkItem('Swiss Cheese', { ing: 'milk' }), mkItem('Grilled Chicken', { ing: 'chicken' })]]]);
+  const meta = { source: "Eat UNC's Nov 5 listing", kind: 'third_party' as const, asOf: '2026-11-05' };
+  const r = borrowNutrition(d, [{ hall: 'chase', name: 'Swiss Cheese', calories: 1780, protein: 136 }, { hall: 'chase', name: 'Grilled Chicken', calories: 250, protein: 38 }], meta);
+  assert.equal(r.rejected, 1); assert.equal(r.borrowed, 1);
+  const sw = Object.values(d.items).find(i => i.name === 'Swiss Cheese')!;
+  assert.equal(sw.nutrition.calories, null);
+  assert.match(sw.warnings[0], /not plausible for one serving/);
 });

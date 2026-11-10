@@ -16,9 +16,13 @@ const STARCH_NAME = /\b(rice|potato|potatoes|yams?|fries|quinoa|pasta|noodles?|c
 
 export interface Classified { course: Course; kind: SideKind | null }
 
+const PLAIN_STARCH = /^\s*(plain |steamed |white |brown |sushi |jasmine |basmati |yellow |cilantro lime |egg )?(rice|pasta|pasta noodles|noodles|spaghetti|spaghetti noodles|penne|penne pasta|rotini|linguine|fettuccine|cavatappi|quinoa|couscous|orzo|grits|polenta)\s*$/;
+
 export function courseOf(item: MenuItem, station: string): Classified {
   if (SKIP_STATIONS.has(station)) return { course: 'skip', kind: null };
+  if (/\bcatering\b/i.test(item.name)) return { course: 'skip', kind: null };
   const n = norm(item.name);
+  if (PLAIN_STARCH.test(n)) return { course: 'side', kind: 'starch' };
   if (PROTEIN_SIDE.test(item.name.toLowerCase())) return { course: 'side', kind: 'protein' };
   if (/\b(dressing|sauce|gravy|syrup|ketchup|vinaigrette|marinade|dip|broth)\b/.test(n)) return { course: 'skip', kind: null };
   if (SKIP_NAME.test(n) && !MAIN_NAME.test(n)) return { course: 'skip', kind: null };
@@ -41,6 +45,38 @@ function classifySide(n: string): SideKind {
   if (STARCH_NAME.test(n)) return 'starch';
   return 'other';
 }
+
+// Common-sense quality of an item as a SIDE: 0 = a real side dish, 1 = acceptable but not ideal
+// (deli slices, salad-bar proteins), 2 = a garnish or topping, never a side on its own.
+const TOPPING_STATIONS = new Set(['Salad Bar', 'Build Your Own!', 'Made-to-Order', 'Sushi/Create', 'Deli', 'Made Without Gluten Deli', 'Hummus Bar', 'Pasta Bar']);
+const GARNISH = /\b(seeds?|nuts?|almonds?|walnuts?|pecans?|peanuts?|cashews?|scallions?|green onions?|croutons?|raisins|craisins|dried cranberries|bits|pieces|crumbles?|jalapenos?|olives?|pickles?|pickled|banana peppers|capers|cilantro|parsley|chives|wonton strips|tortilla strips|crispy onions|fried onions|sprinkles|shredded|grated|sauerkraut|kimchi|salsa|pico|guacamole|lemon wedges?|lime wedges?|nori|ginger)\b/;
+const SIDE_DISH = /\b(salad|slaw|medley|mix|roasted|steamed|sauteed|grilled|baked|mashed|fries|tots|potatoes|rice|beans|greens|soup|yogurt|cottage cheese|hard (boiled|cooked) eggs?|scrambled|edamame|fruit|cup)\b/;
+const PROTEIN_TOPPING = /\b(diced|chopped|sliced|grilled)?\s*(chicken|ham|turkey|roast beef|egg|eggs|tofu|black beans|chickpeas|garbanzo|kidney beans|tuna|salami|pepperoni)\b/;
+export function sideTier(item: MenuItem, station: string, kind: SideKind | null): 0 | 1 | 2 {
+  const n = norm(item.name);
+  if (GARNISH.test(n) && !/\b(salad|slaw)\b/.test(n)) return 2;
+  if (kind === 'fruit') return /\b(dried|raisins?)\b/.test(n) ? 2 : 0;
+  if (!TOPPING_STATIONS.has(station)) return 0;
+  if (/\b(yogurt|cottage cheese|salad|slaw|medley|soup)\b/.test(n) || /\bhard (boiled|cooked) eggs?\b/.test(n) && !/chopped/.test(n)) return 0;
+  if (PROTEIN_TOPPING.test(n) || /^\s*(bacon|sausage|edamame)\b/.test(n)) return 1;
+  if (SIDE_DISH.test(n)) return 1;
+  return 2; // raw single toppings: Red Onions, Diced Tomatoes, Spinach, Mushrooms...
+}
+
+/** Two sides of the same kind (two yogurts, two potatoes, two fruits) don't make a sensible plate. */
+export function sideFamily(c: { item: MenuItem; kind: SideKind | null }): string {
+  const n = norm(c.item.name);
+  if (/\b(yogurt|cottage cheese|parfait)\b/.test(n)) return 'dairy-cup';
+  if (/\b(potato|potatoes|fries|tots|hash|hashbrown|hash brown)\b/.test(n)) return 'potato';
+  if (/\brice\b/.test(n)) return 'rice';
+  if (/\b(pasta|noodles?|macaroni|penne|spaghetti|orzo)\b/.test(n)) return 'pasta';
+  if (/\beggs?\b/.test(n)) return 'egg';
+  if (/\b(salad|slaw)\b/.test(n)) return 'salad';
+  if (/\b(ham|turkey|roast beef|salami)\b/.test(n) && /\b(sliced|diced|deli)\b/.test(n)) return 'deli-meat';
+  if (c.kind === 'fruit') return 'fruit';
+  return 'id:' + c.item.id;
+}
+function sameFamily(a: Candidate, b: Candidate): boolean { return sideFamily(a) === sideFamily(b); }
 
 export interface MealPart { item: MenuItem; station: string; role: 'main' | 'side'; kind: SideKind | null; portions: number; evaluation: Evaluation }
 export interface MacroTotal { value: number | null; min: number; complete: boolean }
@@ -84,7 +120,7 @@ function unknownNames(parts: Array<{ item: MenuItem }>, p: Profile): string[] {
   return out;
 }
 
-export interface Candidate { item: MenuItem; station: string; course: Course; kind: SideKind | null; evaluation: Evaluation; animal: boolean }
+export interface Candidate { item: MenuItem; station: string; course: Course; kind: SideKind | null; evaluation: Evaluation; animal: boolean; tier: 0 | 1 | 2 }
 
 export function candidatesFor(day: MenuDay, period: Period, p: Profile): { mains: Candidate[]; sides: Candidate[] } {
   const mains: Candidate[] = [], sides: Candidate[] = [];
@@ -105,10 +141,12 @@ export function candidatesFor(day: MenuDay, period: Period, p: Profile): { mains
         const fruitOk = kind === 'fruit' && evidence(item, 'fruit').state !== 'no' && !p.animalBasedExcluded.includes('fruit');
         if (!animal && !fruitOk) continue;
       }
+      const tier = course === 'side' ? sideTier(item, st.name, kind) : 0;
+      if (tier === 2) continue;
       seen.add(id);
-      const c: Candidate = { item, station: st.name, course, kind, evaluation: ev, animal };
+      const c: Candidate = { item, station: st.name, course, kind, evaluation: ev, animal, tier };
       if (course === 'main') {
-        if (animalDiet && !(animalEvidence(item, ['meat', 'poultry', 'fish', 'shellfish', 'egg']).state === 'yes')) { sides.push({ ...c, course: 'side', kind: 'protein' }); continue; }
+        if (animalDiet && !(animalEvidence(item, ['meat', 'poultry', 'fish', 'shellfish', 'egg']).state === 'yes')) { const t = sideTier(item, st.name, 'protein'); if (t < 2) sides.push({ ...c, course: 'side', kind: 'protein', tier: t }); continue; }
         mains.push(c);
       } else sides.push(c);
     }
@@ -229,12 +267,13 @@ function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' 
   const vegFruit = sides.filter(s => s.kind === 'veg' || s.kind === 'fruit');
   const fruitOnly = sides.filter(s => s.kind === 'fruit');
   const others = sides.filter(s => s.kind !== 'veg' && s.kind !== 'fruit');
-  const sortKey = (c: Candidate) => (c.evaluation.status === 'match' ? 0 : 1) * 1e6 + (hash(day.date + c.item.id) % 1000);
+  const sortKey = (c: Candidate) => (c.evaluation.status === 'match' ? 0 : 1) * 1e6 + c.tier * 2e5 + (hash(day.date + c.item.id) % 1000);
   const rank = (arr: Candidate[]) => arr.slice().sort((a, b) => sortKey(a) - sortKey(b));
   const mainsR = rank(mains).sort((a, b) => (a.evaluation.status === b.evaluation.status ? proteinish(b) - proteinish(a) : 0));
   const hasTargets = Object.values(p.targets).some(v => !!v);
   const meals: Meal[] = [];
   const usedMainNames = new Set<string>();
+  const sideUse = new Map<string, number>();
   const nSides = level === 'full' ? 2 : level === 'fewer' ? 1 : 0;
 
   for (const main of mainsR.slice(0, 60)) {
@@ -260,7 +299,7 @@ function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' 
     let combos: Candidate[][] = [[]];
     for (const pool of pools) {
       const next: Candidate[][] = [];
-      for (const c of combos) for (const s of pool) if (!c.some(x => x.item.id === s.item.id)) next.push([...c, s]);
+      for (const c of combos) for (const s of pool) if (!c.some(x => x.item.id === s.item.id || sameFamily(x, s))) next.push([...c, s]);
       combos = next;
     }
     const scored: Array<{ slots: Slot[]; r: ReturnType<typeof evalCombo> }> = [];
@@ -272,20 +311,27 @@ function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' 
         const slots = cands.map((c, i) => ({ cand: c, portions: ports[i] }));
         const r = evalCombo(slots, p);
         if (!r.ok) continue;
-        const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05), 0) + (slots.reduce((a, s) => a + s.portions - 1, 0)) * 0.001 + (tie++ % 7) * 1e-6;
+        const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05) + s.cand.tier * 0.3, 0) + (slots.reduce((a, s) => a + s.portions - 1, 0)) * 0.001 + (tie++ % 7) * 1e-6;
         if (!bestForCombo || adj < bestForCombo.r.score) bestForCombo = { slots, r: { ...r, score: adj } };
       }
       if (bestForCombo) scored.push(bestForCombo);
     }
     if (!scored.length) continue;
-    scored.sort((a, b) => a.r.score - b.r.score);
+    // Variety: sides already used in earlier ideas cost a little, so ideas don't all share the same sides.
+    const withUse = (x: { slots: Slot[]; r: ReturnType<typeof evalCombo> }) => x.r.score + x.slots.slice(1).reduce((a, y) => a + (sideUse.get(y.cand.item.id) ?? 0) * 0.12, 0);
+    scored.sort((a, b) => withUse(a) - withUse(b));
     usedMainNames.add(key);
     const first = scored[0];
-    meals.push(makeMeal(period.name, first.slots, p, level === 'full' ? null : level === 'fewer' ? 'fewer_sides' : 'main_only', first.r));
+    for (const y of first.slots.slice(1)) sideUse.set(y.cand.item.id, (sideUse.get(y.cand.item.id) ?? 0) + 1);
+    const mainPenalty = /\b(soup|chowder|bisque)\b/i.test(main.item.name) ? 0.2 : 0;
+    meals.push(makeMeal(period.name, first.slots, p, level === 'full' ? null : level === 'fewer' ? 'fewer_sides' : 'main_only', { ...first.r, score: withUse(first) + mainPenalty }));
     // A second idea for the same main with entirely different sides (only when sides exist).
     const firstSides = new Set(first.slots.slice(1).map(x => x.cand.item.id));
     const alt = firstSides.size ? scored.find(x => x.slots.slice(1).every(y => !firstSides.has(y.cand.item.id))) : undefined;
-    if (alt) meals.push(makeMeal(period.name, alt.slots, p, level === 'full' ? null : level === 'fewer' ? 'fewer_sides' : 'main_only', { ...alt.r, score: alt.r.score + 0.02 }));
+    if (alt) {
+      meals.push(makeMeal(period.name, alt.slots, p, level === 'full' ? null : level === 'fewer' ? 'fewer_sides' : 'main_only', { ...alt.r, score: withUse(alt) + mainPenalty + 0.02 }));
+      for (const y of alt.slots.slice(1)) sideUse.set(y.cand.item.id, (sideUse.get(y.cand.item.id) ?? 0) + 1);
+    }
     if (meals.length >= max * 3) break;
   }
   meals.sort((a, b) => a.score - b.score || (a.tier === b.tier ? 0 : a.tier === 'confirmed' ? -1 : 1));

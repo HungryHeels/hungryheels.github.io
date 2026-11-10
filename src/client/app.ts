@@ -144,6 +144,7 @@ function mealCard(m: Meal, day: MenuDay, idx: number, total: number): HTMLElemen
       p.item.allergens.length ? h('p', { class: 'part-allergens' }, 'UNC-listed allergens: ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : h('p', { class: 'part-meta' }, 'No major allergens listed by UNC (lists can be incomplete).'),
       nutritionGrid({ ...p.item, nutrition: scale(p.item, p.portions) }),
       p.item.nutrition.borrowed ? h('small', { class: 'borrow-note' }, 'Calories and protein from Eat UNC’s Nov 5 listing (third party), not UNC’s page for this date.') : null,
+      p.item.warnings.some(w => /not plausible/.test(w)) ? h('small', { class: 'warn-text' }, p.item.warnings.find(w => /not plausible/.test(w))!) : null,
       h('details', { class: 'ingr-d' }, h('summary', null, `Checks · ${checkSummary(p.item, S.profile)}`), checkList(explainChecks(p.item, S.profile), true)),
       h('details', { class: 'ingr-d' }, h('summary', null, 'Ingredients'),
         h('p', { class: 'ingr' }, p.item.ingredients ?? 'No ingredient list was published for this item (treated as unknown).'))))),

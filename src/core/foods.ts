@@ -32,14 +32,14 @@ const T: Record<FoodCat, string[]> = {
     'quinoa', 'barley', 'rye', 'couscous', 'bulgur', 'farro', 'corn', 'cornmeal', 'grits', 'polenta', 'tortilla', 'wrap', 'cereal', 'cracker',
     'crackers', 'breading', 'breaded', 'batter', 'pita', 'naan', 'biscuit', 'pancake', 'waffle', 'muffin', 'cake', 'cookie', 'pizza crust',
     'dough', 'semolina', 'macaroni', 'spaghetti', 'penne', 'rotini', 'linguine', 'fettuccine', 'orzo', 'millet', 'sorghum', 'amaranth',
-    'cornstarch', 'corn starch', 'tapioca', 'starch', 'croutons', 'crouton', 'gnocchi', 'dumpling', 'ramen', 'udon', 'soba', 'hoagie', 'sourdough', 'toast'],
+    'cornstarch', 'corn starch', 'tapioca', 'starch', 'croutons', 'crouton', 'sushi', 'gnocchi', 'dumpling', 'ramen', 'udon', 'soba', 'hoagie', 'sourdough', 'toast'],
   legumes: ['bean', 'beans', 'lentil', 'lentils', 'chickpea', 'chickpeas', 'garbanzo', 'pea', 'peas', 'soy', 'soybean', 'soybeans', 'tofu', 'tempeh',
     'edamame', 'hummus', 'falafel', 'peanut', 'peanuts', 'seitan', 'black beans', 'pinto', 'lupin', 'miso', 'natto'],
   vegetables: ['broccoli', 'cauliflower', 'carrot', 'carrots', 'spinach', 'kale', 'lettuce', 'cabbage', 'zucchini', 'squash', 'cucumber', 'tomato',
     'tomatoes', 'pepper', 'peppers', 'onion', 'onions', 'mushroom', 'mushrooms', 'celery', 'asparagus', 'green beans', 'brussels', 'potato',
     'potatoes', 'sweet potato', 'beet', 'beets', 'radish', 'eggplant', 'arugula', 'collard', 'collards', 'chard', 'okra', 'corn on the cob',
     'leek', 'garlic', 'ginger', 'jalapeno', 'jalapenos', 'salad', 'vegetable', 'vegetables', 'veggie', 'veggies', 'slaw', 'bok choy', 'artichoke',
-    'pickle', 'pickles', 'olive', 'olives', 'avocado', 'guacamole', 'salsa', 'pico', 'kimchi', 'sauerkraut', 'turnip', 'parsnip', 'plantain', 'scallion', 'scallions', 'cilantro', 'parsley', 'basil'],
+    'pickle', 'pickles', 'olive', 'olives', 'seaweed', 'nori', 'wakame', 'kelp', 'avocado', 'guacamole', 'salsa', 'pico', 'kimchi', 'sauerkraut', 'turnip', 'parsnip', 'plantain', 'scallion', 'scallions', 'cilantro', 'parsley', 'basil'],
   fruit: ['apple', 'apples', 'banana', 'bananas', 'orange', 'oranges', 'berries', 'berry', 'blueberry', 'blueberries', 'strawberry', 'strawberries',
     'raspberry', 'grape', 'grapes', 'melon', 'cantaloupe', 'watermelon', 'honeydew', 'pineapple', 'mango', 'peach', 'peaches', 'pear', 'pears',
     'plum', 'cherry', 'cherries', 'kiwi', 'lemon', 'lime', 'grapefruit', 'apricot', 'fruit', 'raisin', 'raisins', 'cranberry', 'cranberries',
@@ -132,8 +132,28 @@ export function findTerms(normalized: string, cat: FoodCat): string[] {
   re.lastIndex = 0;
   const out: string[] = [];
   for (const m of normalized.matchAll(re)) out.push(m[1].replace(/\s+/g, ' '));
+  if (!out.length) out.push(...findInRunOns(normalized, cat));
   return out;
 }
+
+// UNC's ingredient text sometimes runs words together ("smokedcucumbercheese", "shredded carrotginger").
+// Inside such run-on tokens (14+ letters) we also look for single-word terms of 5+ letters.
+// This only ever finds MORE foods, which is the safe direction for every rule.
+const runOnCache = new Map<FoodCat, string[]>();
+function findInRunOns(normalized: string, cat: FoodCat): string[] {
+  const tokens = normalized.split(' ').filter(t => t.length >= 14 && /^[a-z]+$/.test(t));
+  if (!tokens.length) return [];
+  let terms = runOnCache.get(cat);
+  if (!terms) { terms = [...new Set(T[cat])].filter(t => !t.includes(' ') && t.length >= 5).sort((a, b) => b.length - a.length); runOnCache.set(cat, terms); }
+  const safe = SAFE_RUNON;
+  for (const tok of tokens) {
+    let t = tok;
+    for (const sp of safe) t = t.split(sp).join('_');
+    for (const term of terms) if (t.includes(term)) return [term];
+  }
+  return [];
+}
+const SAFE_RUNON = ['eggplant', 'buttermilk', 'butternut', 'peppercorn', 'nutmeg', 'buckwheat', 'coconut', 'cornstarch', 'peanutbutter', 'cocoabutter', 'creamoftartar', 'sweetcorn', 'cornsyrup', 'riceflour', 'ricevinegar', 'winevinegar', 'grapeseed', 'starchmodified', 'pepperflakes', 'blackpepper', 'whitepepper'];
 
 export function hasVague(normalized: string): string[] {
   vagueRe.lastIndex = 0;
