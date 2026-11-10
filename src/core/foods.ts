@@ -61,24 +61,43 @@ const T: Record<FoodCat, string[]> = {
   alcohol: ['wine', 'beer', 'rum', 'bourbon', 'whiskey', 'vodka', 'brandy', 'liqueur', 'sherry', 'sake', 'mirin', 'cooking wine', 'marsala', 'vermouth', 'amaretto', 'alcohol', 'lager', 'stout', 'cider vinegar wine', 'bitters'],
 };
 
-// Phrases that contain a lexicon word but are NOT that food. Removed before matching.
-export const SAFE_PHRASES: string[] = [
-  'coconut milk', 'coconut cream', 'coconut butter', 'coconut oil', 'almond milk', 'oat milk', 'oatmilk', 'soy milk', 'soymilk', 'rice milk', 'peamilk', 'pea milk',
-  'cashew milk', 'hemp milk', 'plant based milk', 'nut milk', 'milk chocolate', 'cocoa butter', 'shea butter', 'peanut butter', 'almond butter', 'sunflower butter',
-  'seed butter', 'apple butter', 'butternut', 'butter bean', 'butter beans', 'butter lettuce', 'butterhead', 'cream of tartar', 'cream of wheat', 'ice cream cone',
-  'eggplant', 'egg roll', 'egg noodle', 'egg noodles', 'nutmeg', 'buckwheat', 'water chestnut', 'water chestnuts', 'sweet corn', 'corn syrup', 'high fructose corn syrup',
-  'corn oil', 'soybean oil', 'soy lecithin', 'sunflower lecithin', 'peppercorn', 'black pepper', 'white pepper', 'red pepper flakes', 'pepper flakes', 'cayenne pepper',
-  'ground pepper', 'chili pepper', 'rice vinegar', 'wine vinegar', 'red wine vinegar', 'white wine vinegar', 'balsamic vinegar', 'cider vinegar', 'apple cider vinegar',
-  'lemon juice', 'lime juice', 'orange juice', 'lemon zest', 'lime zest', 'lemon pepper', 'garlic powder', 'onion powder', 'ginger powder', 'tomato paste',
-  'cocoa', 'cacao', 'vegan butter', 'vegan cheese', 'vegan mayo', 'vegan mayonnaise', 'vegan cream cheese', 'vegan sour cream', 'dairy free', 'dairy-free', 'non dairy',
-  'nondairy', 'egg free', 'egg replacer', 'plant based', 'bell pepper', 'bell peppers', 'sweet potato fries', 'hot sauce', 'chicken of the woods', 'sunflower oil',
-  'hamburger bun', 'hot dog bun', 'ham radio', 'sesame oil', 'almond flour', 'coconut flour', 'rice flour', 'corn flour', 'chickpea flour', 'oat flour', 'tapioca flour',
-  'potato starch', 'corn starch', 'cornstarch', 'tapioca starch', 'rice starch', 'modified food starch', 'modified corn starch', 'food starch', 'rice bran', 'rice bran oil', 'rice flour',
-  'cream of mushroom', 'turmeric', 'pumpkin pie spice', 'mace', 'star anise', 'caraway seed', 'cumin seed', 'fennel seed', 'celery seed', 'mustard seed', 'coriander seed', 'poppy seed',
-  'vegetable color', 'vegetable colour', 'vegetable juice', 'vegetable juice for color', 'vegetable gum', 'vegetable glycerin', 'vegetable enzymes', 'vegetable shortening',
-  'vegetable mono and diglycerides', 'carob bean gum', 'locust bean gum', 'vanilla bean', 'vanilla beans', 'vanilla bean seeds', 'cocoa bean', 'cocoa beans', 'coffee bean', 'salad oil',
-  'salad dressing', 'dill seed', 'anise seed', 'cardamom', 'coriander', 'cumin', 'rice paper', 'plantain chips', 'sunflower seed butter', 'sunbutter', 'oat beverage', 'rice beverage', 'non fat dry milk free',
+// Phrases that contain a lexicon word but are NOT that food, each scoped to the categories it is a false
+// positive FOR. "peanut butter" is not dairy, but it IS peanut: stripping it for every category used to hide
+// peanut from a peanut-allergy check. A phrase is only ever neutralized for the categories listed here.
+type SafeScope = FoodCat[];
+const PLANT_ADDITIVE: SafeScope = ['grains', 'legumes', 'vegetables', 'fruit', 'nuts_seeds'];
+const SAFE_SCOPED: Array<[SafeScope, string[]]> = [
+  // Not dairy (the dairy-sounding word is used for a plant food).
+  [['dairy'], ['coconut milk', 'coconut cream', 'coconut butter', 'almond milk', 'oat milk', 'oatmilk', 'soy milk', 'soymilk', 'rice milk', 'peamilk', 'pea milk',
+    'cashew milk', 'hemp milk', 'plant based milk', 'nut milk', 'cocoa butter', 'shea butter', 'peanut butter', 'almond butter', 'sunflower butter',
+    'seed butter', 'apple butter', 'butternut', 'butter bean', 'butter beans', 'butter lettuce', 'butterhead', 'cream of tartar', 'cream of wheat', 'ice cream cone',
+    'vegan butter', 'vegan cheese', 'vegan cream cheese', 'vegan sour cream', 'dairy free', 'dairy-free', 'non dairy', 'nondairy', 'sunflower seed butter', 'sunbutter',
+    'oat beverage', 'rice beverage', 'non fat dry milk free']],
+  [['dairy', 'egg'], ['vegan mayo', 'vegan mayonnaise']],
+  [['egg'], ['eggplant', 'egg free', 'egg replacer']],
+  // Not wheat or gluten (a flour or starch named after another plant).
+  [['wheat', 'gluten', 'grains'], ['buckwheat', 'almond flour', 'coconut flour', 'rice flour', 'corn flour', 'chickpea flour', 'oat flour', 'tapioca flour', 'potato starch',
+    'corn starch', 'cornstarch', 'tapioca starch', 'rice starch', 'modified food starch', 'modified corn starch', 'food starch']],
+  // Not meat.
+  [['meat', 'pork'], ['hamburger bun', 'hot dog bun', 'ham radio']],
+  [['poultry'], ['chicken of the woods']],
+  [['tree_nut', 'nuts_seeds'], ['nutmeg', 'water chestnut', 'water chestnuts']],
+  // Not alcohol (vinegars), and not the fruit/grain they were made from (seasoning-level for animal diets).
+  [['alcohol', 'grains', 'fruit'], ['rice vinegar', 'wine vinegar', 'red wine vinegar', 'white wine vinegar', 'balsamic vinegar', 'cider vinegar', 'apple cider vinegar']],
+  // Seasoning-level plant words (matter only for carnivore / animal-based plant evidence).
+  [['fruit', 'vegetables'], ['lemon juice', 'lime juice', 'orange juice', 'lemon zest', 'lime zest', 'lemon pepper']],
+  [['vegetables'], ['garlic powder', 'onion powder', 'ginger powder', 'peppercorn', 'black pepper', 'white pepper', 'red pepper flakes', 'pepper flakes', 'cayenne pepper',
+    'ground pepper', 'vegetable color', 'vegetable colour', 'vegetable juice', 'vegetable juice for color', 'vegetable gum', 'vegetable glycerin', 'vegetable enzymes',
+    'vegetable shortening', 'vegetable mono and diglycerides', 'salad oil', 'salad dressing', 'turmeric', 'pumpkin pie spice', 'mace', 'star anise', 'cardamom', 'coriander', 'cumin']],
+  [['grains'], ['corn syrup', 'high fructose corn syrup', 'corn oil', 'rice bran', 'rice bran oil', 'cocoa', 'cacao']],
+  [['legumes', 'nuts_seeds'], ['soybean oil', 'soy lecithin', 'sunflower lecithin', 'sunflower oil', 'carob bean gum', 'locust bean gum', 'vanilla bean', 'vanilla beans',
+    'vanilla bean seeds', 'cocoa bean', 'cocoa beans', 'coffee bean', 'caraway seed', 'cumin seed', 'fennel seed', 'celery seed', 'mustard seed', 'coriander seed', 'poppy seed',
+    'dill seed', 'anise seed', 'grapeseed oil', 'grape seed oil']],
+  [['nuts_seeds'], ['sesame oil']],
+  [PLANT_ADDITIVE, ['plant based', 'sunflower oil']],
 ];
+/** Every safe phrase (for display/tests). Use stripSafe(text, cat) to apply them. */
+export const SAFE_PHRASES: string[] = [...new Set(SAFE_SCOPED.flatMap(([, l]) => l))];
 
 // Incidental seasoning-level ingredients. Ignored when judging "plant evidence" for carnivore
 // (a steak seared in oil with salt, pepper and onion powder is still treated as an animal food).
@@ -103,6 +122,9 @@ export const VAGUE_PHRASES: string[] = [
   'natural and artificial flavors', 'flavor', 'flavors', 'extractives', 'vegetable broth', 'color', 'colors', 'protein', 'lecithin',
 ];
 
+/** The lexicon words for one food category (copy). */
+export function lexiconTerms(cat: FoodCat): string[] { return [...T[cat]]; }
+
 const cache = new Map<FoodCat, RegExp>();
 export function lexRegex(cat: FoodCat): RegExp {
   let r = cache.get(cat);
@@ -115,16 +137,33 @@ export function lexRegex(cat: FoodCat): RegExp {
 }
 
 const OIL_RUN = /(?:^|\s)(?:(?:soybean|soy|canola|corn|sunflower|cottonseed|safflower|palm|olive|vegetable|high oleic|andor|and or|and|or|extra virgin|evoo|rapeseed|coconut)\s+)+oils?(?:\s+blend)?(?=\s|$)/g;
-const safeRe = new RegExp('(?:^|\\s)(' + [...SAFE_PHRASES].sort((a, b) => b.length - a.length).map(p => norm(p).trim().replace(/ /g, '\\s+')).join('|') + ')(?=\\s|$)', 'g');
 const seasonRe = new RegExp('(?:^|\\s)(' + [...SEASONING_PHRASES].sort((a, b) => b.length - a.length).map(p => norm(p).trim().replace(/ /g, '\\s+')).join('|') + ')(?=s?\\s|$)', 'g');
 const vagueRe = new RegExp('(?:^|\\s)(' + [...VAGUE_PHRASES].sort((a, b) => b.length - a.length).map(p => norm(p).trim().replace(/ /g, '\\s+')).join('|') + ')(?=\\s|$)', 'g');
 
-/** Replace safe phrases with a neutral token so e.g. "coconut milk" does not count as dairy. */
-export function stripSafe(normalized: string): string {
-  return normalized.replace(OIL_RUN, ' _safe_ ').replace(safeRe, ' _safe_ ');
+const phraseRe = (list: string[]) => new RegExp('(?:^|\\s)(' + [...list].sort((a, b) => b.length - a.length).map(p => norm(p).trim().replace(/ /g, '\\s+')).join('|') + ')(?=\\s|$)', 'g');
+const safeReCache = new Map<FoodCat, RegExp | null>();
+function safeReFor(cat: FoodCat): RegExp | null {
+  if (!safeReCache.has(cat)) {
+    const list = SAFE_SCOPED.filter(([scope]) => scope.includes(cat)).flatMap(([, l]) => l);
+    safeReCache.set(cat, list.length ? phraseRe(list) : null);
+  }
+  return safeReCache.get(cat)!;
 }
+// Allergen categories never have a cooking-oil run removed: "soybean oil" still counts for a soy allergy.
+const OIL_KEEP: FoodCat[] = ['soy', 'peanut', 'tree_nut', 'sesame'];
+
+/** Replace the phrases that are a false positive for `cat` with a neutral token, so e.g. "coconut milk"
+ *  does not count as dairy. Phrases are scoped: "peanut butter" is removed for dairy, never for peanut. */
+export function stripSafe(normalized: string, cat: FoodCat): string {
+  let s = OIL_KEEP.includes(cat) ? normalized : normalized.replace(OIL_RUN, ' _safe_ ');
+  const re = safeReFor(cat);
+  if (re) s = s.replace(re, ' _safe_ ');
+  return s;
+}
+// Vegetable peppers are food, not seasoning: protect them before seasoning words ("pepper") are removed.
+const VEG_PEPPER = /(?:^|\s)((?:bell|green|sweet|banana|poblano|yellow|orange|roasted red|red bell|mini sweet)\s+peppers?)(?=\s|$)/g;
 export function stripSeasonings(normalized: string): string {
-  return normalized.replace(seasonRe, ' _season_ ');
+  return normalized.replace(VEG_PEPPER, (_m, p: string) => ' ' + p.replace(/\s+/g, 'qq') + ' ').replace(seasonRe, ' _season_ ').replace(/qq/g, ' ');
 }
 
 export function findTerms(normalized: string, cat: FoodCat): string[] {
@@ -145,7 +184,7 @@ function findInRunOns(normalized: string, cat: FoodCat): string[] {
   if (!tokens.length) return [];
   let terms = runOnCache.get(cat);
   if (!terms) { terms = [...new Set(T[cat])].filter(t => !t.includes(' ') && t.length >= 5).sort((a, b) => b.length - a.length); runOnCache.set(cat, terms); }
-  const safe = SAFE_RUNON;
+  const safe = SAFE_RUNON.filter(([, scope]) => scope.includes(cat)).map(([w]) => w);
   for (const tok of tokens) {
     let t = tok;
     for (const sp of safe) t = t.split(sp).join('_');
@@ -153,7 +192,13 @@ function findInRunOns(normalized: string, cat: FoodCat): string[] {
   }
   return [];
 }
-const SAFE_RUNON = ['eggplant', 'buttermilk', 'butternut', 'peppercorn', 'nutmeg', 'buckwheat', 'coconut', 'cornstarch', 'peanutbutter', 'cocoabutter', 'creamoftartar', 'sweetcorn', 'cornsyrup', 'riceflour', 'ricevinegar', 'winevinegar', 'grapeseed', 'starchmodified', 'pepperflakes', 'blackpepper', 'whitepepper'];
+// Run-together words that are a false positive only for the listed categories (same scoping as above).
+const SAFE_RUNON: Array<[string, FoodCat[]]> = [
+  ['eggplant', ['egg']], ['butternut', ['dairy']], ['peppercorn', ['vegetables']], ['nutmeg', ['tree_nut', 'nuts_seeds']], ['buckwheat', ['wheat', 'gluten', 'grains']],
+  ['coconut', ['tree_nut', 'nuts_seeds']], ['cornstarch', ['wheat', 'gluten']], ['peanutbutter', ['dairy']], ['cocoabutter', ['dairy']], ['creamoftartar', ['dairy']],
+  ['cornsyrup', ['grains']], ['riceflour', ['wheat', 'gluten']], ['ricevinegar', ['grains', 'alcohol']], ['winevinegar', ['alcohol']], ['grapeseed', ['fruit', 'nuts_seeds']],
+  ['starchmodified', ['grains', 'wheat', 'gluten']], ['pepperflakes', ['vegetables']], ['blackpepper', ['vegetables']], ['whitepepper', ['vegetables']],
+];
 
 export function hasVague(normalized: string): string[] {
   vagueRe.lastIndex = 0;

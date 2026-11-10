@@ -1,6 +1,6 @@
 import type { MenuDay, MenuItem, Period } from './types.ts';
 import { animalEvidence, evaluateItem, evidence, type Evaluation } from './engine.ts';
-import { findTerms, norm, stripSafe } from './foods.ts';
+import { norm } from './foods.ts';
 import type { Profile } from './profile.ts';
 
 export type Course = 'main' | 'side' | 'skip';
@@ -396,4 +396,4 @@ export function periodItems(day: MenuDay, period: Period): Array<{ item: MenuIte
   for (const st of period.stations) for (const id of st.itemIds) if (!seen.has(id)) { seen.add(id); out.push({ item: day.items[id], station: st.name }); }
   return out;
 }
-void findTerms; void stripSafe; void nutScore;
+void nutScore;

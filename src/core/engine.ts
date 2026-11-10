@@ -1,9 +1,14 @@
 import type { MenuItem } from './types.ts';
-import { ANIMAL_CATS, CAT_LABELS, PLANT_CATS, findTerms, hasVague, norm, stripSafe, stripSeasonings, type FoodCat } from './foods.ts';
+import { ANIMAL_CATS, CAT_LABELS, PLANT_CATS, findTerms, hasVague, lexiconTerms, norm, stripSafe, stripSeasonings, type FoodCat } from './foods.ts';
 import type { AllergenId, Profile } from './profile.ts';
 
 export type EvState = 'yes' | 'no' | 'unknown';
-export interface Evidence { state: EvState; why: string }
+/** Which kind of evidence decided a check. Order of trust: allergen declaration > ingredient text > label > name. */
+export type EvBasis = 'allergen' | 'ingredients' | 'label' | 'name' | 'missing' | 'none';
+export interface Evidence { state: EvState; why: string; basis?: EvBasis }
+export const BASIS_LABEL: Record<EvBasis, string> = {
+  allergen: 'UNC allergen list', ingredients: 'ingredient text', label: 'UNC diet label', name: 'item name', missing: 'no ingredient list', none: 'no rule',
+};
 export type Status = 'match' | 'potential' | 'insufficient' | 'excluded';
 export interface Evaluation {
   status: Status;
@@ -27,7 +32,7 @@ export interface EvidenceOpts { vegan?: boolean; ignoreSeasonings?: boolean }
 
 const memo = new WeakMap<MenuItem, Map<string, Evidence>>();
 
-/** Does this item contain food category `cat`? Order: label > allergen declaration > ingredients > name. */
+/** Does this item contain food category `cat`? Order: allergen declaration > ingredients > label > name. */
 export function evidence(item: MenuItem, cat: FoodCat, opts: EvidenceOpts = {}): Evidence {
   const key = cat + (opts.vegan ? ':v' : '') + (opts.ignoreSeasonings ? ':s' : '');
   let m = memo.get(item);
@@ -52,45 +57,96 @@ function computeEvidence(item: MenuItem, cat: FoodCat, opts: EvidenceOpts): Evid
   //    disagree, we believe the one that says "contains" (the safe direction).
   const flag = ALLERGEN_FLAG[cat];
   if (flag && item.allergens.includes(flag)) {
-    return { state: 'yes', why: labelNo ? `UNC lists ${flag.replace('_', ' ')} as an allergen even though it is ${labelNo}` : `UNC lists ${flag.replace('_', ' ')} as an allergen` };
+    return { state: 'yes', basis: 'allergen', why: labelNo ? `UNC lists ${flag.replace('_', ' ')} as an allergen even though it is ${labelNo}` : `UNC lists ${flag.replace('_', ' ')} as an allergen` };
   }
   // 2. Ingredient list also overrides a label.
-  let ingText = item.ingredients ? stripSafe(norm(item.ingredients)) : '';
-  let nameText = stripSafe(norm(item.name));
+  let ingText = item.ingredients ? stripSafe(norm(item.ingredients), cat) : '';
+  let nameText = stripSafe(norm(item.name), cat);
   if (opts.ignoreSeasonings) { ingText = stripSeasonings(ingText); nameText = stripSeasonings(nameText); }
   const ingHits = ingText ? findTerms(ingText, cat) : [];
   if (ingHits.length) {
-    return { state: 'yes', why: labelNo ? `ingredients include ${ingHits[0]} even though it is ${labelNo}` : `ingredients include ${ingHits[0]}` };
+    return { state: 'yes', basis: 'ingredients', why: labelNo ? `ingredients include ${ingHits[0]} even though it is ${labelNo}` : `ingredients include ${ingHits[0]}` };
   }
   // 3. Published label says no, and nothing contradicts it.
-  if (labelNo) return { state: 'no', why: labelNo };
+  if (labelNo) return { state: 'no', basis: 'label', why: labelNo };
   // 4. Name.
   const nameHits = findTerms(nameText, cat);
   if (nameHits.length) {
     // A plant-based name ("Impossible Sausage Patty") with a full ingredient list that names no such food is plant-based.
     if (item.ingredients && PLANT_QUALIFIER.test(norm(item.name)) && ANIMAL_CATS.includes(cat)) {
-      return { state: 'no', why: `name says plant-based and ingredients list no ${CAT_LABELS[cat]}` };
+      return { state: 'no', basis: 'ingredients', why: `name says plant-based and ingredients list no ${CAT_LABELS[cat]}` };
     }
-    return { state: 'yes', why: `name includes ${nameHits[0]}` };
+    return { state: 'yes', basis: 'name', why: `name includes ${nameHits[0]}` };
   }
   // 5. Cannot tell?
-  if (!item.ingredients) return { state: 'unknown', why: 'no ingredient list published' };
+  if (!item.ingredients) return { state: 'unknown', basis: 'missing', why: 'no ingredient list published' };
   const animalSource = cat === 'meat' || cat === 'poultry' || cat === 'fish' || cat === 'shellfish' || cat === 'pork';
-  if (animalSource && BROTH_VAGUE.test(ingText)) return { state: 'unknown', why: 'ingredients mention broth, stock or gravy without naming the source' };
-  if (opts.vegan && ANIMAL_CATS.includes(cat) && FLAVOR_VAGUE.test(ingText) && !flag) return { state: 'unknown', why: 'ingredients mention flavors or seasonings without naming their source' };
-  return { state: 'no', why: 'not found in the ingredient list' };
+  if (animalSource && BROTH_VAGUE.test(ingText)) return { state: 'unknown', basis: 'ingredients', why: 'ingredients mention broth, stock or gravy without naming the source' };
+  if (opts.vegan && ANIMAL_CATS.includes(cat) && FLAVOR_VAGUE.test(ingText) && !flag) return { state: 'unknown', basis: 'ingredients', why: 'ingredients mention flavors or seasonings without naming their source' };
+  return { state: 'no', basis: 'ingredients', why: 'not found in the ingredient list' };
 }
 
-/** Free-text avoid term: matches name or ingredients. Missing ingredient list => unknown. */
+/** Free-text avoid term: matches name or ingredients, including its synonyms. Missing ingredient list => unknown.
+ *  Safe phrases are NOT removed here: someone avoiding "garlic" also avoids "garlic powder", and someone avoiding
+ *  "peanut" also avoids "peanut butter". When the term names a food group the app knows (pork, shellfish, tree nuts...),
+ *  every word in that group counts too. This only ever makes the rule stricter. */
 export function customEvidence(item: MenuItem, term: string): Evidence {
   const t = norm(term).trim();
-  if (!t) return { state: 'no', why: '' };
-  const re = new RegExp('(?:^|\\s)' + t.replace(/ /g, '\\s+') + '(?:s|es)?(?=\\s|$)');
-  const nameT = stripSafe(norm(item.name));
-  if (re.test(nameT)) return { state: 'yes', why: `name includes "${term}"` };
-  if (!item.ingredients) return { state: 'unknown', why: 'no ingredient list published' };
-  if (re.test(stripSafe(norm(item.ingredients)))) return { state: 'yes', why: `ingredients include "${term}"` };
-  return { state: 'no', why: `"${term}" not found in the ingredient list` };
+  if (!t) return { state: 'no', basis: 'none', why: '' };
+  const terms = expandAvoid(t);
+  const res = terms.map(x => new RegExp('(?:^|\\s)' + x.replace(/ /g, '\\s+') + '(?:s|es)?(?=\\s|$)'));
+  const hit = (text: string) => {
+    for (let i = 0; i < res.length; i++) if (res[i].test(text)) return terms[i];
+    // Run-together words ("garlicbutter"): look inside long tokens for terms of 5+ letters.
+    for (const tok of text.split(' ')) if (tok.length >= 12 && /^[a-z]+$/.test(tok)) for (const x of terms) if (x.length >= 5 && !x.includes(' ') && tok.includes(x)) return x;
+    return null;
+  };
+  const cat = AVOID_CATS[t];
+  const nameT = norm(item.name);
+  const n = hit(nameT);
+  if (n) return { state: 'yes', basis: 'name', why: n === t ? `name includes "${term}"` : `name includes ${n} (counts as "${term}")` };
+  if (cat) { const ev = evidence(item, cat); if (ev.state === 'yes' && ev.basis === 'allergen') return { ...ev, why: `${ev.why} (counts as "${term}")` }; }
+  if (!item.ingredients) return { state: 'unknown', basis: 'missing', why: 'no ingredient list published' };
+  const i = hit(norm(item.ingredients));
+  if (i) return { state: 'yes', basis: 'ingredients', why: i === t ? `ingredients include "${term}"` : `ingredients include ${i} (counts as "${term}")` };
+  return { state: 'no', basis: 'ingredients', why: `"${term}" not found in the ingredient list` };
+}
+
+// Synonyms for free-text avoids. Each entry is symmetric within its list.
+const SYNONYM_GROUPS: string[][] = [
+  ['cilantro', 'coriander leaf', 'coriander leaves'], ['chickpea', 'garbanzo', 'garbanzo bean', 'chick pea'], ['shrimp', 'prawn'],
+  ['scallion', 'green onion', 'spring onion'], ['eggplant', 'aubergine'], ['zucchini', 'courgette'], ['arugula', 'rocket'],
+  ['bell pepper', 'capsicum', 'sweet pepper'], ['corn', 'maize', 'cornmeal', 'corn starch', 'cornstarch', 'corn syrup', 'polenta', 'grits', 'hominy'],
+  ['mushroom', 'portobello', 'portabella', 'portabello', 'shiitake', 'cremini', 'crimini', 'enoki', 'button mushroom', 'oyster mushroom', 'chanterelle'],
+  ['onion', 'shallot', 'onion powder', 'red onion', 'yellow onion', 'white onion'], ['garlic', 'garlic powder', 'granulated garlic', 'garlic salt'],
+  ['msg', 'monosodium glutamate'], ['tomato', 'tomatoes', 'tomato paste', 'marinara', 'ketchup'],
+  ['coconut', 'coconut milk', 'coconut oil', 'coconut cream'], ['mustard', 'mustard seed', 'dijon'], ['celery', 'celery seed', 'celery salt', 'celeriac'],
+  ['lactose', 'milk', 'cream', 'whey'], ['gelatin', 'gelatine'], ['caffeine', 'coffee', 'espresso', 'tea', 'cola'], ['apple', 'applesauce', 'apple juice', 'apple cider'],
+  ['pepper', 'black pepper', 'peppers'], ['chili', 'chile', 'chilli', 'jalapeno', 'chipotle', 'cayenne', 'habanero', 'serrano', 'sriracha'],
+];
+// Free-text terms that name a whole food group: every lexicon word for that group counts.
+const AVOID_CATS: Record<string, FoodCat> = {
+  pork: 'pork', meat: 'meat', beef: 'meat', poultry: 'poultry', chicken: 'poultry', fish: 'fish', seafood: 'shellfish', shellfish: 'shellfish',
+  dairy: 'dairy', milk: 'dairy', egg: 'egg', eggs: 'egg', gluten: 'gluten', wheat: 'wheat', soy: 'soy', sesame: 'sesame', peanut: 'peanut', peanuts: 'peanut',
+  'tree nut': 'tree_nut', 'tree nuts': 'tree_nut', nuts: 'tree_nut', alcohol: 'alcohol', honey: 'honey',
+};
+// Group words that would make "beef" mean "all meat": narrow these to their own terms.
+const NARROW: Record<string, string[]> = {
+  beef: ['beef', 'steak', 'sirloin', 'brisket', 'veal', 'roast beef', 'corned beef', 'ground beef', 'pastrami', 'hamburger', 'cheeseburger', 'burger patty', 'taco meat', 'meatball', 'meatloaf', 'barbacoa', 'philly', 'sloppy joe', 'beef broth', 'beef stock', 'bone broth', 'au jus', 'tallow', 'jerky'],
+  chicken: ['chicken', 'chicken broth', 'chicken stock', 'chicken fat', 'wings', 'nuggets', 'tenders', 'drumstick', 'tinga', 'poultry'],
+  milk: [],
+};
+export function expandAvoid(t: string): string[] {
+  const out = new Set<string>([t]);
+  if (t.endsWith('ies')) out.add(t.slice(0, -3) + 'y');
+  else if (t.endsWith('es') && t.length > 4) out.add(t.slice(0, -2));
+  else if (t.endsWith('s') && t.length > 3) out.add(t.slice(0, -1));
+  if (t.endsWith('y') && t.length > 3) out.add(t.slice(0, -1) + 'ies');
+  for (const g of SYNONYM_GROUPS) if (g.some(x => out.has(x))) for (const x of g) out.add(x);
+  const cat = AVOID_CATS[t];
+  if (cat) for (const x of NARROW[t] ?? lexiconTerms(cat)) out.add(x);
+  if (t === 'milk') for (const x of lexiconTerms('dairy')) out.add(x);
+  return [...out].sort((a, b) => b.length - a.length);
 }
 
 export function forbiddenCats(p: Profile): FoodCat[] {
@@ -196,12 +252,12 @@ export function matchSentence(item: MenuItem, p: Profile, ev: Evaluation): strin
 
 void hasVague;
 
-export interface CheckRow { group: 'strict' | 'diet'; label: string; state: EvState; why: string; outcome: 'pass' | 'fail' | 'unconfirmed' }
+export interface CheckRow { group: 'strict' | 'diet'; label: string; state: EvState; why: string; basis: EvBasis; outcome: 'pass' | 'fail' | 'unconfirmed' }
 
 /** Every check applied to an item, in the order the engine applies them, with the evidence for each. */
 export function explainChecks(item: MenuItem, p: Profile): CheckRow[] {
   const rows: CheckRow[] = [];
-  const strict = (label: string, ev: Evidence) => rows.push({ group: 'strict', label, state: ev.state, why: ev.why, outcome: ev.state === 'no' ? 'pass' : 'fail' });
+  const strict = (label: string, ev: Evidence) => rows.push({ group: 'strict', label, state: ev.state, why: ev.why, basis: ev.basis ?? 'none', outcome: ev.state === 'no' ? 'pass' : 'fail' });
   for (const a of p.allergens) strict(`${a.replace('_', ' ')} allergy`, evidence(item, ALLERGEN_CAT[a]));
   if (p.avoidGluten) strict('gluten', evidence(item, 'gluten'));
   if (p.avoidDairy) strict('dairy', evidence(item, 'dairy'));
@@ -211,7 +267,7 @@ export function explainChecks(item: MenuItem, p: Profile): CheckRow[] {
   const opts: EvidenceOpts = { vegan: p.pattern === 'vegan', ignoreSeasonings: p.pattern === 'carnivore' || p.pattern === 'animal_based' };
   for (const cat of forbiddenCats(p)) {
     const ev = evidence(item, cat, opts);
-    rows.push({ group: 'diet', label: `no ${CAT_LABELS[cat]}`, state: ev.state, why: ev.why, outcome: ev.state === 'no' ? 'pass' : ev.state === 'yes' ? 'fail' : 'unconfirmed' });
+    rows.push({ group: 'diet', label: `no ${CAT_LABELS[cat]}`, state: ev.state, why: ev.why, basis: ev.basis ?? 'none', outcome: ev.state === 'no' ? 'pass' : ev.state === 'yes' ? 'fail' : 'unconfirmed' });
   }
   return rows;
 }
