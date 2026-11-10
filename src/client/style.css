@@ -216,3 +216,35 @@ table.contrib,table.ideas{font-variant-numeric:tabular-nums}
 @media (min-width:960px){.dash{grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr)}}
 .dash-main,.dash-side{grid-template-columns:minmax(0,1fr)}
 .meal,.panel{min-width:0}
+
+/* ===== Simple, direct layout (v3) ===== */
+@media (min-width:960px){#app{max-width:680px}.view{padding-left:16px;padding-right:16px}}
+.pills.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.pills.scroll::-webkit-scrollbar{display:none}
+.pills.scroll .pill{flex:none;display:grid;justify-items:center;line-height:1.15;padding:6px 14px}
+.pills.scroll .pill small{font-size:11.5px}
+.now{color:var(--ok);font-size:12px;font-weight:700}
+.pill.on .now{color:var(--accent-text)}
+.meal.simple{display:grid;gap:10px}
+.plate{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.plate li+li{border-top:1px solid var(--line)}
+.plate-row{width:100%;border:none;border-radius:0;display:flex;align-items:center;gap:8px;text-align:left;padding:10px 12px;background:var(--card)}
+.plate-main{display:grid;gap:2px;flex:1;min-width:0}
+.plate-name{font-size:17px;font-weight:700}
+.plate-allergen{color:var(--warn);font-weight:600}
+.chev{font-size:24px;color:var(--muted)}
+.total-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.total-row div{background:var(--bg);border-radius:12px;padding:8px 12px;display:grid}
+.total-row strong{font-size:22px}
+.goal-line{margin:0;font-weight:600;font-size:14.5px}
+.more{border:1px solid var(--line);border-radius:12px;padding:0 12px;background:var(--card)}
+.more[open]{padding-bottom:10px}
+.more-part{border-top:1px solid var(--line);padding-top:4px}
+.rules-line{font-size:13.5px;color:var(--muted);margin:4px 0;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.rules-line .linkish{min-height:32px;padding:0 4px}
+.inline .switch{flex:1;padding:6px 0;min-height:44px}
+.sort{min-height:44px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card);flex:none}
+.verdict{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+@media (min-width:760px){.sheet{max-width:640px}}
+.plate-name .badge{margin-left:8px;vertical-align:2px}
+.nutri dd{overflow-wrap:normal;word-break:keep-all}.nutri{grid-template-columns:repeat(auto-fit,minmax(72px,1fr))}

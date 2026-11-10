@@ -1,7 +1,7 @@
 import { h, clear } from './dom.ts';
 import { S, FIRST_DATE, allDays, dayFor, lastDate, loadProfile, nextDateWithData, saveProfile, setPattern } from './state.ts';
 import { clearImported, importFile, importOfficialCsv, loadImported, loadSeed, persistence } from './imports.ts';
-import { buildMeals, candidatesFor, periodItems, type Meal } from '../core/meals.ts';
+import { buildMeals, candidatesFor, periodItems, type Meal, type BuildResult } from '../core/meals.ts';
 import { evaluateItem, explainChecks, matchSentence } from '../core/engine.ts';
 import { allergenGrid, checkList, checkSummary, contributionTable, dayTimeline, ideasTable, macroMeter, mealStats, periodStats, periodStatsPanel, profileSummary } from './views.ts';
 import { ALLERGEN_IDS, ALLERGEN_LABELS, PATTERN_DEFINITIONS, PATTERN_LABELS, type PatternId } from '../core/profile.ts';
@@ -86,9 +86,11 @@ function dateBar(day: MenuDay | null): HTMLElement {
     h('button', { type: 'button', 'aria-label': 'Next day', disabled: S.date >= last, onClick: () => move(1) }, '›'));
 }
 function periodPills(day: MenuDay): HTMLElement {
-  return h('div', { class: 'pills', role: 'group', 'aria-label': 'Meal period' }, day.periods.map(p =>
+  const now = servingNow(day, nyNow());
+  const live = now.state === 'serving' ? now.period.name : null;
+  return h('div', { class: 'pills scroll', role: 'group', 'aria-label': 'Meal' }, day.periods.map(p =>
     h('button', { type: 'button', class: 'pill' + (p.name === S.period ? ' on' : ''), 'aria-pressed': p.name === S.period, onClick: () => go(() => { S.period = p.name; S.idea = 0; }, `${p.name} selected.`) },
-      p.name, p.hours ? h('small', null, ' ' + p.hours) : h('small', null, ' hours unverified'))));
+      h('span', null, p.name, p.name === live ? h('span', { class: 'now' }, ' ● now') : null), h('small', null, p.hours ?? 'hours unverified'))));
 }
 function servingLine(day: MenuDay): HTMLElement | null {
   const s = servingNow(day, nyNow());
@@ -100,12 +102,12 @@ function servingLine(day: MenuDay): HTMLElement | null {
   return h('p', { class: 'serving' }, txt);
 }
 
-function limitsDisclosure(): HTMLElement {
+function limitsDisclosure(openIt = false): HTMLElement {
   const p = S.profile;
   const num = (label: string, val: number | undefined, set: (n: number | undefined) => void, ph: string) =>
     h('label', { class: 'field' }, label, h('input', { type: 'number', inputmode: 'numeric', min: 0, value: val ?? '', placeholder: ph,
       onChange: (e: Event) => { const v = (e.target as HTMLInputElement).value; set(v === '' ? undefined : Math.max(0, Number(v))); S.idea = 0; saveProfile(); render(); } }));
-  return h('details', { class: 'limits' }, h('summary', null, 'Nutrition limits'),
+  return h('details', { class: 'limits', open: openIt }, h('summary', null, 'Nutrition goals per meal'),
     h('p', { class: 'muted' }, 'Per meal. Leave a target blank to ignore it. Only published values are used; unknown values are never guessed, so a target can only be checked when every part of a meal has that value.'),
     num('Calorie cap', p.calorieCap, n => { p.calorieCap = n ?? 1000; }, '1000'),
     num('Protein target (g)', p.targets.protein, n => { p.targets = { ...p.targets, protein: n }; }, 'e.g. 40'),
@@ -117,144 +119,121 @@ function limitsDisclosure(): HTMLElement {
     h('p', { class: 'muted' }, 'With targets set, the app can serve double or triple portions of an item so a meal can reach your numbers when only a few items fit your diet.'));
 }
 
-// ---------------- Meal card ----------------
+// ---------------- Meal card (simple) ----------------
 const open = (day: MenuDay) => (id: string) => go(() => { S.sheet = { item: id, dayKey: `${day.hall}:${day.date}` }; });
+const kcalLine = (it: MenuItem, k: number) => {
+  const n = it.nutrition;
+  if (n.calories === null && n.protein === null) return 'nutrition unknown';
+  return [n.calories !== null ? `${Math.round(n.calories * k)} kcal` : 'kcal unknown', n.protein !== null ? `${Math.round(n.protein * k)} g protein` : 'protein unknown'].join(' · ');
+};
+function totalText(t: Meal['totals']['calories'], unitTxt: string): string {
+  if (t.complete) return `${Math.round(t.value!)}${unitTxt}`;
+  return t.min > 0 ? `at least ${Math.round(t.min)}${unitTxt}` : 'unknown';
+}
+function targetLine(m: Meal): HTMLElement | null {
+  const t = S.profile.targets;
+  const bits: string[] = [];
+  for (const k of ['protein', 'fat', 'carbs'] as const) {
+    const goal = t[k]; if (!goal) continue;
+    const x = m.totals[k];
+    if (!x.complete) bits.push(`${MACRO[k]}: can’t check (some values unknown)`);
+    else { const v = Math.round(x.value!); const ok = Math.abs(v - goal) / goal <= 0.1; bits.push(`${MACRO[k]} ${v} of ${goal} g ${ok ? '✓ on target' : v < goal ? '↓ under' : '↑ over'}`); }
+  }
+  return bits.length ? h('p', { class: 'goal-line' }, bits.join(' · ')) : null;
+}
+const MACRO = { protein: 'Protein', fat: 'Fat', carbs: 'Carbs' } as const;
 
-function mealCard(m: Meal, day: MenuDay, idx: number, total: number): HTMLElement {
+function mealCard(m: Meal, day: MenuDay, r: BuildResult, idx: number): HTMLElement {
   const openItem = open(day);
-  return h('article', { class: 'meal', 'aria-labelledby': 'meal-h' },
-    h('div', { class: 'meal-head' },
-      h('div', null, h('p', { class: 'eyebrow' }, `Idea ${idx + 1} of ${total} · ${HALL_NAMES[day.hall]} · ${formatDate(day.date)}`),
-        h('h3', { id: 'meal-h' }, `${m.period} plate`)),
-      m.tier === 'confirmed' ? chip('Confirmed', 'ok') : chip('Possible', 'warn')),
-    h('p', { class: 'muted' }, m.tier === 'confirmed' ? 'Every part passes your rules on UNC’s published labels, allergens and ingredients.'
-      : `Some parts could not be fully confirmed: ${m.unconfirmed.map(u => `${u.name} (${u.why})`).join('; ')}.`),
-    mealStats(m),
-    h('section', { class: 'macros', 'aria-label': 'Meal macros' }, h('h4', null, 'Macros vs your limits'),
-      (['calories', 'protein', 'fat', 'carbs'] as const).map(k => macroMeter(k, m.totals[k], S.profile)),
-      m.unknownNutrition.length ? h('p', { class: 'warn-text' }, `Totals are minimums. No published value for: ${m.unknownNutrition.join(', ')}.`) : null),
-    h('h4', null, 'Parts'),
-    h('ol', { class: 'parts' }, m.parts.map(p => h('li', { class: 'part-card' },
-      h('div', { class: 'part-top' },
-        h('span', { class: 'role role-' + p.role }, m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : (p.kind === 'veg' ? 'Vegetable side' : p.kind === 'fruit' ? 'Fruit side' : p.kind === 'protein' ? 'Protein side' : p.kind === 'starch' ? 'Starch side' : 'Side')),
-        p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}× portion`) : null,
-        p.evaluation.status === 'match' ? chip('Confirmed', 'ok') : chip('Unconfirmed', 'warn')),
-      h('button', { type: 'button', class: 'part-name', onClick: () => openItem(p.item.id) }, p.item.name, h('span', { class: 'sr' }, ' (details)')),
-      h('small', { class: 'part-meta' }, `${p.station}${p.item.labels.vegan ? ' · UNC: vegan' : p.item.labels.vegetarian ? ' · UNC: vegetarian' : ''}${p.item.labels.halal ? ' · UNC: halal' : ''}${p.item.labels.madeWithoutGluten ? ' · UNC: made w/o gluten' : ''}`),
-      p.item.allergens.length ? h('p', { class: 'part-allergens' }, 'UNC-listed allergens: ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : h('p', { class: 'part-meta' }, 'No major allergens listed by UNC (lists can be incomplete).'),
-      nutritionGrid({ ...p.item, nutrition: scale(p.item, p.portions) }),
-      p.item.nutrition.borrowed ? h('small', { class: 'borrow-note' }, 'Calories and protein from Eat UNC’s Nov 5 listing (third party), not UNC’s page for this date.') : null,
-      p.item.warnings.some(w => /not plausible/.test(w)) ? h('small', { class: 'warn-text' }, p.item.warnings.find(w => /not plausible/.test(w))!) : null,
-      h('details', { class: 'ingr-d' }, h('summary', null, `Checks · ${checkSummary(p.item, S.profile)}`), checkList(explainChecks(p.item, S.profile), true)),
-      h('details', { class: 'ingr-d' }, h('summary', null, 'Ingredients'),
-        h('p', { class: 'ingr' }, p.item.ingredients ?? 'No ingredient list was published for this item (treated as unknown).'))))),
-    h('h4', null, 'Breakdown'), contributionTable(m, openItem),
-    m.targetNotes.length ? h('ul', { class: 'notes' }, m.targetNotes.map(n => h('li', null, n))) : null,
-    h('p', { class: 'why' }, whyText(m)));
-}
-function scale(it: MenuItem, k: number) {
-  const n = it.nutrition; const f = (v: number | null | undefined) => (v === null || v === undefined ? null : Math.round(v * k * 10) / 10);
-  return { calories: f(n.calories), protein: f(n.protein), fat: f(n.fat), carbs: f(n.carbs), fiber: f(n.fiber), sugar: f(n.sugar), sodium: f(n.sodium) };
-}
-function whyText(m: Meal): string {
-  const label = S.profile.pattern === 'none' ? 'your rules' : `your ${PATTERN_LABELS[S.profile.pattern]} diet`;
-  const picks = m.parts.map(p => p.item.name).join(', ');
-  const strict = [S.profile.allergens.length ? `${S.profile.allergens.map(a => ALLERGEN_LABELS[a].toLowerCase()).join(', ')} allergy` : '', S.profile.avoidGluten ? 'gluten' : '', S.profile.avoidDairy ? 'dairy' : '', S.profile.avoidEgg ? 'egg' : '',
-    ...S.profile.avoidIngredients, S.profile.halalStyle ? 'pork and alcohol' : ''].filter(Boolean);
-  return `Why this meal: ${picks} all pass ${label}${strict.length ? ` and were checked against your avoid list (${strict.join(', ')})` : ''}. Items we could not rule out for your avoid list are never recommended.`;
+  const roleOf = (p: Meal['parts'][number]) => (m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : 'Side');
+  return h('article', { class: 'meal simple', 'aria-labelledby': 'meal-h' },
+    h('div', { class: 'meal-head' }, h('h3', { id: 'meal-h' }, `${m.period} · ${HALL_NAMES[day.hall]}`),
+      m.tier === 'confirmed' ? chip('Fits your rules', 'ok') : chip('Mostly confirmed', 'warn')),
+    h('ul', { class: 'plate' }, m.parts.map(p => h('li', null,
+      h('button', { type: 'button', class: 'plate-row', onClick: () => openItem(p.item.id) },
+        h('span', { class: 'plate-main' },
+          h('span', { class: 'plate-name' }, p.item.name, p.portions > 1 ? h('span', { class: 'badge' }, ` ${p.portions}×`) : null),
+          h('small', null, `${roleOf(p)} · ${p.station} · ${kcalLine(p.item, p.portions)}`),
+          p.item.allergens.length ? h('small', { class: 'plate-allergen' }, 'Contains: ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : null),
+        h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'))))),
+    h('div', { class: 'total-row' },
+      h('div', null, h('small', null, 'Calories'), h('strong', null, totalText(m.totals.calories, ''))),
+      h('div', null, h('small', null, 'Protein'), h('strong', null, totalText(m.totals.protein, ' g')))),
+    targetLine(m),
+    m.tier !== 'confirmed' ? h('p', { class: 'muted' }, `Not fully confirmed: ${m.unconfirmed.map(u => u.name).join(', ')}. Tap an item to see why.`) : null,
+    m.unknownNutrition.length ? h('p', { class: 'muted' }, `No published nutrition for ${m.unknownNutrition.join(', ')}, so totals are a minimum.`) : null,
+    h('details', { class: 'more' }, h('summary', null, 'Details: rule checks, ingredients, other ideas'),
+      m.parts.map(p => h('section', { class: 'more-part' }, h('h4', null, p.item.name),
+        checkList(explainChecks(p.item, S.profile), true),
+        h('p', { class: 'ingr' }, h('strong', null, 'Ingredients: '), p.item.ingredients ?? 'not published (treated as unknown).'),
+        p.item.warnings.length ? h('ul', { class: 'notes' }, p.item.warnings.map(w => h('li', null, w))) : null)),
+      h('h4', null, 'Breakdown'), contributionTable(m, openItem),
+      r.meals.length > 1 ? [h('h4', null, 'All ideas for this meal'), ideasTable(r, idx, k => go(() => { S.idea = k; }, `Idea ${k + 1} of ${r.meals.length}.`))] : null));
 }
 
 function mealPane(day: MenuDay): HTMLElement {
-  const wrap = h('div', { class: 'pane' });
+  const wrap = h('div', { class: 'pane', 'aria-live': 'polite' });
   if (!S.period) return wrap;
-  const period = day.periods.find(p => p.name === S.period)!;
   const r = buildMeals(day, S.period, S.profile);
-  const main = h('div', { class: 'dash-main', 'aria-live': 'polite' });
-  const aside = h('aside', { class: 'dash-side', 'aria-label': 'Meal details and alternatives' });
-  if (r.banner) main.appendChild(h('div', { class: 'banner ' + (r.noMealToday ? 'bad' : 'warn'), role: 'status' }, r.banner));
+  if (r.banner) wrap.appendChild(h('div', { class: 'banner ' + (r.noMealToday ? 'bad' : 'warn'), role: 'status' }, r.banner));
   if (r.noMealToday) {
-    main.appendChild(h('div', { class: 'empty' }, h('h3', null, 'No meal fits today'),
+    wrap.appendChild(h('div', { class: 'empty' }, h('h3', null, 'No meal fits today'),
       h('p', null, 'Nothing on this menu passes all of your rules. We did not loosen them.'),
-      h('button', { class: 'primary', type: 'button', onClick: () => go(() => { S.menuTab = 'all'; }) }, 'Browse all items')));
-  } else {
-    const n = r.meals.length;
-    const i = S.idea % n;
-    if (r.period && r.period !== S.period) main.appendChild(h('p', { class: 'muted' }, `Showing ${r.period} (you picked ${S.period}).`));
-    main.appendChild(h('div', { class: 'actions sticky-actions' },
-      h('button', { class: 'ghost', type: 'button', 'aria-label': 'Previous idea', disabled: n < 2, onClick: () => go(() => { S.idea = (i - 1 + n) % n; }, `Idea ${((i - 1 + n) % n) + 1} of ${n}.`) }, '‹'),
-      h('button', { class: 'primary grow', type: 'button', disabled: n < 2, onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, `Another idea (${i + 1} of ${n})`),
-      h('button', { class: 'ghost', type: 'button', onClick: () => go(() => { S.tab = 'you'; }) }, 'Rules')));
-    main.appendChild(mealCard(r.meals[i], day, i, n));
-    aside.appendChild(h('section', { class: 'panel' }, h('h3', null, 'Compare ideas'), ideasTable(r, i, k => go(() => { S.idea = k; }, `Idea ${k + 1} of ${n}.`))));
+      h('button', { class: 'primary', type: 'button', onClick: () => go(() => { S.menuTab = 'all'; }) }, 'See all items')));
+    return wrap;
   }
-  aside.appendChild(periodStatsPanel(periodStats(day, period, S.profile), period.name));
-  aside.appendChild(limitsDisclosure());
-  wrap.append(h('div', { class: 'dash' }, main, aside));
+  const n = r.meals.length, i = S.idea % n;
+  wrap.appendChild(mealCard(r.meals[i], day, r, i));
+  wrap.appendChild(h('div', { class: 'actions' },
+    n > 1 ? h('button', { class: 'ghost', type: 'button', 'aria-label': 'Previous idea', onClick: () => go(() => { S.idea = (i - 1 + n) % n; }, `Idea ${((i - 1 + n) % n) + 1} of ${n}.`) }, '‹ Back') : null,
+    h('button', { class: 'primary grow', type: 'button', disabled: n < 2, onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, n < 2 ? 'Only idea' : `Another idea (${i + 1} of ${n})`)));
   return wrap;
 }
 
-// ---------------- All items ----------------
+// ---------------- All items (simple) ----------------
 function allItemsPane(day: MenuDay): HTMLElement {
   const wrap = h('div', { class: 'pane' });
   const period = day.periods.find(p => p.name === S.period);
   if (!period) return wrap;
-  const stats = periodStats(day, period, S.profile);
-  const q = h('input', { type: 'search', class: 'search', placeholder: `Search ${stats.items} items, ingredients…`, 'aria-label': 'Search items and ingredients', value: S.search });
-  const list = h('div', { class: 'items', 'aria-live': 'polite' });
+  const q = h('input', { type: 'search', class: 'search', placeholder: 'Search items or ingredients', 'aria-label': 'Search items or ingredients', value: S.search });
+  const list = h('div', { class: 'items' });
   const count = h('p', { class: 'muted', role: 'status' });
-  const statusSeg = h('div', { class: 'seg small', role: 'group', 'aria-label': 'Filter by fit' },
-    ([['all', `All ${stats.items}`], ['fits', `Fits ${stats.fits}`], ['possible', `Possible ${stats.possible + stats.unknown}`], ['excluded', `Not for you ${stats.excluded}`]] as const).map(([k, lab]) =>
-      h('button', { type: 'button', class: S.statusFilter === k ? 'on' : '', 'aria-pressed': S.statusFilter === k, onClick: () => go(() => { S.statusFilter = k; }) }, lab)));
-  const stSel = h('select', { 'aria-label': 'Station', onChange: (e: Event) => go(() => { S.stationFilter = (e.target as HTMLSelectElement).value; }) },
-    h('option', { value: '' }, 'All stations'), period.stations.map(st => h('option', { value: st.name, ...(S.stationFilter === st.name ? { selected: true } : {}) }, `${st.name} (${st.itemIds.length})`)));
-  const sortSel = h('select', { 'aria-label': 'Sort by', onChange: (e: Event) => go(() => { S.sortBy = (e.target as HTMLSelectElement).value as typeof S.sortBy; }) },
-    ([['station', 'Sort: by station'], ['protein', 'Sort: most protein'], ['density', 'Sort: protein per 100 kcal'], ['calories', 'Sort: fewest calories'], ['name', 'Sort: A to Z']] as const).map(([v, l]) => h('option', { value: v, ...(S.sortBy === v ? { selected: true } : {}) }, l)));
+  const sortSel = h('select', { 'aria-label': 'Sort', class: 'sort', onChange: (e: Event) => go(() => { S.sortBy = (e.target as HTMLSelectElement).value as typeof S.sortBy; }) },
+    ([['station', 'By station'], ['protein', 'Most protein'], ['calories', 'Fewest calories'], ['name', 'A to Z']] as const).map(([v, l]) => h('option', { value: v, ...(S.sortBy === v ? { selected: true } : {}) }, l)));
   const draw = () => {
     clear(list);
     const term = S.search.trim().toLowerCase();
     type Row = { it: MenuItem; st: string; status: string };
-    const rows: Row[] = [];
-    const seen = new Set<string>();
-    for (const st of period.stations) {
-      if (S.stationFilter && st.name !== S.stationFilter) continue;
-      for (const id of st.itemIds) {
-        const it = day.items[id];
-        if (!it || seen.has(id)) continue;
-        if (term && !it.name.toLowerCase().includes(term) && !(it.ingredients ?? '').toLowerCase().includes(term)) continue;
-        if (S.nutriOnly && it.nutrition.calories === null) continue;
-        const status = evaluateItem(it, S.profile).status;
-        const grp = status === 'match' ? 'fits' : status === 'excluded' ? 'excluded' : 'possible';
-        if (S.statusFilter !== 'all' && S.statusFilter !== grp) continue;
-        seen.add(id); rows.push({ it, st: st.name, status });
-      }
+    const rows: Row[] = []; const seen = new Set<string>(); let total = 0;
+    for (const st of period.stations) for (const id of st.itemIds) {
+      const it = day.items[id]; if (!it || seen.has(id)) continue; seen.add(id); total++;
+      if (term && !it.name.toLowerCase().includes(term) && !(it.ingredients ?? '').toLowerCase().includes(term)) continue;
+      const status = evaluateItem(it, S.profile).status;
+      if (S.hideNonFits && status === 'excluded') continue;
+      rows.push({ it, st: st.name, status });
     }
-    const nv = (v: number | null, dflt: number) => (v === null ? dflt : v);
+    const nv = (v: number | null, d: number) => (v === null ? d : v);
     if (S.sortBy === 'protein') rows.sort((a, b) => nv(b.it.nutrition.protein, -1) - nv(a.it.nutrition.protein, -1));
     if (S.sortBy === 'calories') rows.sort((a, b) => nv(a.it.nutrition.calories, 1e9) - nv(b.it.nutrition.calories, 1e9));
-    if (S.sortBy === 'density') { const d = (x: MenuItem) => (x.nutrition.calories && x.nutrition.protein !== null ? x.nutrition.protein / x.nutrition.calories : -1); rows.sort((a, b) => d(b.it) - d(a.it)); }
-    if (S.sortBy === 'name') rows.sort((a, b) => a.it.name.localeCompare(b.it.name));
-    count.textContent = `Showing ${rows.length} of ${stats.items} items.`;
+    if (S.sortBy === 'name' || S.sortBy === 'density') rows.sort((a, b) => a.it.name.localeCompare(b.it.name));
+    count.textContent = `${rows.length} of ${total} items`;
     const rowEl = (r: Row) => h('li', null, h('button', { type: 'button', class: 'item-row', onClick: () => open(day)(r.it.id) },
-      h('span', { class: 'item-main' }, h('span', { class: 'item-name' }, r.it.name),
-        h('small', null, [S.sortBy !== 'station' ? r.st : '', r.it.nutrition.calories !== null ? `${r.it.nutrition.calories} kcal` : 'kcal ?', r.it.nutrition.protein !== null ? `${r.it.nutrition.protein} g protein` : 'protein ?', r.it.allergens.length ? 'Allergens: ' + r.it.allergens.map(a => a.replace('_', ' ')).join(', ') : ''].filter(Boolean).join(' · '))),
-      r.status === 'match' ? chip('Fits', 'ok') : r.status === 'potential' ? chip('Possible', 'warn') : r.status === 'insufficient' ? chip('Unknown', 'warn') : chip('Not for you', 'bad')));
+      h('span', { class: 'item-main' }, h('span', { class: 'item-name' }, r.it.name), h('small', null, (S.sortBy !== 'station' ? r.st + ' · ' : '') + kcalLine(r.it, 1))),
+      r.status === 'match' ? chip('Fits', 'ok') : r.status === 'excluded' ? chip('Not for you', 'bad') : chip('Unsure', 'warn')));
     if (S.sortBy === 'station') {
       const groups = new Map<string, Row[]>();
       for (const r of rows) (groups.get(r.st) ?? groups.set(r.st, []).get(r.st)!).push(r);
-      for (const [st, rs] of groups) list.appendChild(h('section', null, h('h3', { class: 'station' }, `${st} · ${rs.length}`), h('ul', { class: 'list' }, rs.map(rowEl))));
+      for (const [st, rs] of groups) list.appendChild(h('section', null, h('h3', { class: 'station' }, st), h('ul', { class: 'list' }, rs.map(rowEl))));
     } else if (rows.length) list.appendChild(h('ul', { class: 'list' }, rows.map(rowEl)));
-    if (!rows.length) list.appendChild(h('p', { class: 'muted' }, 'No items match these filters.'));
+    if (!rows.length) list.appendChild(h('p', { class: 'muted' }, 'Nothing matches.'));
   };
   q.addEventListener('input', () => { S.search = q.value; draw(); });
   draw();
-  wrap.append(h('div', { class: 'dash' },
-    h('div', { class: 'dash-main' }, h('div', { class: 'filters' }, q, statusSeg, h('div', { class: 'inline wrap' }, stSel, sortSel),
-      sw('Only items with published nutrition', S.nutriOnly, v => go(() => { S.nutriOnly = v; }))), count, list),
-    h('aside', { class: 'dash-side' }, periodStatsPanel(stats, period.name))));
+  wrap.append(q, h('div', { class: 'inline' }, sw('Only what fits me', S.hideNonFits, v => go(() => { S.hideNonFits = v; })), sortSel), count, list);
   return wrap;
 }
 
-// ---------------- Item sheet ----------------
+// ---------------- Item sheet (simple) ----------------
 function sheetView(): HTMLElement | null {
   if (!S.sheet) return null;
   const day = allDays().find(d => `${d.hall}:${d.date}` === S.sheet!.dayKey);
@@ -262,67 +241,57 @@ function sheetView(): HTMLElement | null {
   if (!day || !it) return null;
   const ev = evaluateItem(it, S.profile);
   const close = () => go(() => { S.sheet = null; });
-  const where = day.periods.flatMap(p => p.stations.filter(s => s.itemIds.includes(it.id)).map(s => `${p.name} (${s.name})`));
-  const single = { calories: { value: it.nutrition.calories, min: it.nutrition.calories ?? 0, complete: it.nutrition.calories !== null }, protein: { value: it.nutrition.protein, min: it.nutrition.protein ?? 0, complete: it.nutrition.protein !== null }, fat: { value: it.nutrition.fat, min: it.nutrition.fat ?? 0, complete: it.nutrition.fat !== null }, carbs: { value: it.nutrition.carbs, min: it.nutrition.carbs ?? 0, complete: it.nutrition.carbs !== null } };
+  const where = day.periods.flatMap(p => p.stations.filter(s => s.itemIds.includes(it.id)).map(s => `${p.name} · ${s.name}`));
+  const labels = [it.labels.vegan ? 'Vegan' : '', it.labels.vegetarian ? 'Vegetarian' : '', it.labels.halal ? 'Halal' : '', it.labels.madeWithoutGluten ? 'Made without gluten' : ''].filter(Boolean);
   const box = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'sheet-h', tabindex: '-1' },
-    h('div', { class: 'sheet-head' }, h('div', null, h('p', { class: 'eyebrow' }, `${HALL_NAMES[day.hall]} · ${formatDate(day.date)}`), h('h2', { id: 'sheet-h' }, it.name)),
-      h('button', { type: 'button', class: 'close', 'aria-label': 'Close', onClick: close }, 'Close')),
-    h('p', null, ev.status === 'match' ? chip('Fits your rules', 'ok') : ev.status === 'excluded' ? chip('Not for you', 'bad') : chip('Could not confirm', 'warn'), ' ', h('small', null, checkSummary(it, S.profile))),
-    h('p', null, matchSentence(it, S.profile, ev)),
-    h('div', { class: 'sheet-grid' },
-      h('section', null, h('h3', null, 'Rule checks'), checkList(explainChecks(it, S.profile))),
-      h('section', null, h('h3', null, 'One serving vs your per-meal limits'),
-        (['calories', 'protein', 'fat', 'carbs'] as const).map(k => macroMeter(k, single[k], S.profile)),
-        it.nutrition.borrowed ? h('p', { class: 'warn-text' }, 'Calories and protein are borrowed from Eat UNC’s Nov 5 listing (third party). Check UNC’s item panel if it matters.') : null,
-        it.nutrition.calories === null ? h('p', { class: 'muted' }, 'No nutrition published for this item. Open it on dining.unc.edu to see it, or import an official export in You › Menu data.') : null)),
-    h('h3', null, 'Allergens UNC lists'), allergenGrid(it),
-    h('p', { class: 'muted' }, 'A “not listed” allergen is not a guarantee. Lists can be incomplete.'),
-    h('h3', null, 'UNC labels'),
-    h('p', null, [it.labels.vegan ? 'Vegan' : '', it.labels.vegetarian ? 'Vegetarian' : '', it.labels.halal ? 'Halal' : '', it.labels.madeWithoutGluten ? 'Made without gluten' : ''].filter(Boolean).join(' · ') || 'No diet labels published.'),
-    h('p', { class: 'muted' }, 'Labels are UNC’s. When a label disagrees with UNC’s own allergen list or ingredients, this app trusts the allergen list and ingredients.'),
-    h('h3', null, 'Ingredients'), h('p', { class: 'ingr' }, it.ingredients ?? 'No ingredient text was published (treated as unknown).'),
-    h('h3', null, 'Where and when'), h('ul', { class: 'notes' }, where.map(w => h('li', null, w))),
-    it.warnings.length ? h('ul', { class: 'notes' }, it.warnings.map(w => h('li', null, w))) : null,
-    provenanceLine(day), h('p', { class: 'muted' }, `Recipe id ${it.id}. ${DISCLAIMER}`));
+    h('div', { class: 'sheet-head' }, h('h2', { id: 'sheet-h' }, it.name), h('button', { type: 'button', class: 'close', onClick: close }, 'Close')),
+    h('p', { class: 'verdict' }, ev.status === 'match' ? chip('Fits your rules', 'ok') : ev.status === 'excluded' ? chip('Not for you', 'bad') : chip('Unsure', 'warn'), ' ',
+      ev.status === 'excluded' ? (ev.excludedBy ?? '').replace(/^Excluded: |^Not [a-z-]+: /, '') : ev.status !== 'match' ? `Couldn’t confirm: ${ev.unconfirmed.join('; ')}` : ''),
+    h('h3', null, 'Nutrition (one serving)'), nutritionGrid(it, false),
+    it.nutrition.borrowed ? h('p', { class: 'muted' }, 'Calories and protein from Eat UNC’s Nov 5 listing (third party).') : null,
+    it.warnings.filter(w => /not plausible/.test(w)).map(w => h('p', { class: 'warn-text' }, w)),
+    h('h3', null, 'Allergens'),
+    h('p', null, it.allergens.length ? `UNC lists: ${it.allergens.map(a => a.replace('_', ' ')).join(', ')}.` : 'UNC lists no major allergens.', ' ', h('span', { class: 'muted' }, 'Lists can be incomplete.')),
+    h('h3', null, 'Ingredients'), h('p', { class: 'ingr' }, it.ingredients ?? 'Not published (treated as unknown).'),
+    h('details', { class: 'more' }, h('summary', null, 'Why, labels and source'),
+      h('h4', null, 'Rule checks'), checkList(explainChecks(it, S.profile), true),
+      h('h4', null, 'UNC labels'), h('p', null, labels.join(' · ') || 'None published.'),
+      h('h4', null, 'Served'), h('ul', { class: 'notes' }, where.map(w => h('li', null, w))),
+      provenanceLine(day)),
+    h('p', { class: 'muted' }, DISCLAIMER));
   const back = h('div', { class: 'scrim', onClick: (e: Event) => { if (e.target === back) close(); } }, box);
   back.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') close(); });
   setTimeout(() => box.focus(), 0);
   return back;
 }
 
-// ---------------- Menu tab ----------------
+// ---------------- Menu tab (simple) ----------------
 function menuView(): HTMLElement {
   if (!S.onboarded) return quizView();
   const day = currentDay();
   ensurePeriod(day);
   const v = h('div', { class: 'view' });
-  v.appendChild(h('div', { class: 'profile-bar' }, h('span', null, h('small', null, 'Your rules: '), profileSummary(S.profile)),
-    h('button', { type: 'button', class: 'ghost small', onClick: () => go(() => { S.tab = 'you'; }) }, 'Edit')));
-  v.appendChild(h('div', { class: 'controls' }, hallSwitch(), dateBar(day)));
-  if (S.loading) { v.appendChild(h('p', { class: 'muted', role: 'status' }, 'Loading built-in menus…')); return v; }
+  v.appendChild(hallSwitch());
+  v.appendChild(dateBar(day));
+  if (S.loading) { v.appendChild(h('p', { class: 'muted', role: 'status' }, 'Loading menus…')); return v; }
   if (S.seedError) v.appendChild(h('div', { class: 'banner warn' }, S.seedError));
-  if (!day) {
+  if (!day || day.noMenuPosted) {
     const nxt = nextDateWithData(S.hall, S.date);
-    v.appendChild(h('div', { class: 'banner warn', role: 'status' }, h('p', null, `No saved menu for ${HALL_NAMES[S.hall]} on ${formatDate(S.date)}.`),
+    v.appendChild(h('div', { class: 'banner warn', role: 'status' },
+      h('p', null, !day ? `No menu saved for ${HALL_NAMES[S.hall]} on ${formatDate(S.date)}.` : `No menu was posted when you saved this page (${formatDate(day.date)}). It may be a break day.`),
       h('div', { class: 'actions' },
-        h('button', { type: 'button', class: 'primary', onClick: () => go(() => { S.tab = 'you'; }) }, 'Menu data'),
-        nxt ? h('button', { type: 'button', onClick: () => go(() => { S.date = nxt; S.period = null; }) }, `Jump to ${formatDate(nxt)}`) : null)));
-    v.appendChild(limitsDisclosure()); v.appendChild(disclaimerBlock());
+        nxt ? h('button', { type: 'button', class: 'primary', onClick: () => go(() => { S.date = nxt; S.period = null; S.idea = 0; }) }, `Go to ${formatDate(nxt)}`) : null,
+        h('button', { type: 'button', onClick: () => go(() => { S.tab = 'you'; }) }, 'Add a saved page'))));
+    v.appendChild(disclaimerBlock());
     return v;
   }
-  if (day.noMenuPosted) {
-    v.appendChild(h('div', { class: 'banner warn', role: 'status' }, h('p', null, `No menu was posted when you saved this page (${formatDate(day.date)}). It may be a break day or not published yet.`),
-      h('p', null, 'You can re-save the page later from dining.unc.edu and import it again in You › Menu data.'),
-      h('button', { type: 'button', onClick: () => go(() => { S.tab = 'you'; }) }, 'Menu data')));
-    v.appendChild(provenanceLine(day)); v.appendChild(disclaimerBlock());
-    return v;
-  }
-  v.appendChild(h('div', { class: 'periods' }, periodPills(day), dayTimeline(day, S.period)));
-  const sv = servingLine(day); if (sv) v.appendChild(sv);
+  v.appendChild(periodPills(day));
   v.appendChild(h('div', { class: 'seg tabs', role: 'group', 'aria-label': 'View' },
     h('button', { type: 'button', class: S.menuTab === 'meal' ? 'on' : '', 'aria-pressed': S.menuTab === 'meal', onClick: () => go(() => { S.menuTab = 'meal'; }) }, 'My meal'),
     h('button', { type: 'button', class: S.menuTab === 'all' ? 'on' : '', 'aria-pressed': S.menuTab === 'all', onClick: () => go(() => { S.menuTab = 'all'; }) }, 'All items')));
   v.appendChild(S.menuTab === 'meal' ? mealPane(day) : allItemsPane(day));
+  v.appendChild(h('p', { class: 'rules-line' }, h('span', null, 'Your rules: ', profileSummary(S.profile)), ' ',
+    h('button', { type: 'button', class: 'linkish', onClick: () => go(() => { S.tab = 'you'; }) }, 'Change')));
   v.appendChild(provenanceLine(day));
   v.appendChild(disclaimerBlock());
   return v;
@@ -353,7 +322,7 @@ function youView(): HTMLElement {
       sw('No pork or alcohol (halal-style)', p.halalStyle, x => { p.halalStyle = x; upd(); }, 'An ingredient rule only. This is not a halal certification.')),
     customAvoid(upd)));
 
-  v.appendChild(h('section', { 'aria-labelledby': 'nutr-h' }, h('h2', { id: 'nutr-h' }, 'Nutrition priorities and limits'), limitsDisclosure()));
+  v.appendChild(h('section', { 'aria-labelledby': 'nutr-h' }, h('h2', { id: 'nutr-h' }, 'Nutrition goals'), limitsDisclosure(true)));
   v.appendChild(dataSection());
   v.appendChild(h('section', { 'aria-labelledby': 'about-h' }, h('h2', { id: 'about-h' }, 'About'),
     h('p', null, UNOFFICIAL), h('p', null, DISCLAIMER),
@@ -447,6 +416,8 @@ function render() {
     h('button', { type: 'button', 'aria-current': S.tab === 'menu' ? 'page' : null, class: S.tab === 'menu' ? 'on' : '', onClick: () => go(() => { S.tab = 'menu'; }) }, h('span', { 'aria-hidden': 'true' }, '🍽'), 'Menu'),
     h('button', { type: 'button', 'aria-current': S.tab === 'you' ? 'page' : null, class: S.tab === 'you' ? 'on' : '', onClick: () => go(() => { S.tab = 'you'; }) }, h('span', { 'aria-hidden': 'true' }, '⚙'), 'You'));
   root.append(header, main, nav);
+  const sel = root.querySelector('.pills.scroll .pill.on') as HTMLElement | null;
+  if (sel && sel.parentElement) sel.parentElement.scrollLeft = sel.offsetLeft - 16;
   const sh = sheetView(); if (sh) root.appendChild(sh);
   window.scrollTo(0, keepScroll);
 }

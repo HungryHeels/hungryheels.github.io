@@ -197,12 +197,19 @@ function evalCombo(slots: Slot[], p: Profile): { score: number; totals: MealTota
 }
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
-function portionOptions(n: number, max: number, hasTargets: boolean): number[][] {
-  if (!hasTargets || max <= 1) return [Array(n).fill(1)];
+/** Extra portions only where they make sense: the main (up to the user's limit) and protein sides (up to 2x).
+ *  Fruit, vegetables and starches are always one portion. */
+function portionLimit(c: Candidate, role: 'main' | 'side', max: number): number {
+  if (role === 'main') return max;
+  if (c.kind === 'protein' || c.animal) return Math.min(2, max);
+  return 1;
+}
+function portionOptions(cands: Candidate[], max: number, hasTargets: boolean, plate = false): number[][] {
+  const lim = cands.map((c, i) => (!hasTargets || max <= 1 ? 1 : portionLimit(c, i === 0 && !plate ? 'main' : 'side', max)));
   const out: number[][] = [];
   const rec = (i: number, cur: number[]) => {
-    if (i === n) { out.push(cur.slice()); return; }
-    for (let k = 1; k <= max; k++) { cur.push(k); rec(i + 1, cur); cur.pop(); }
+    if (i === cands.length) { out.push(cur.slice()); return; }
+    for (let k = 1; k <= lim[i]; k++) { cur.push(k); rec(i + 1, cur); cur.pop(); }
   };
   rec(0, []);
   return out;
@@ -244,11 +251,11 @@ function buildPlate(day: MenuDay, period: Period, p: Profile, max: number): Meal
   const out: Meal[] = [];
   for (const set of sets) {
     let best: { slots: Slot[]; r: ReturnType<typeof evalCombo> } | null = null;
-    for (const ports of portionOptions(set.length, p.maxPortion, hasTargets)) {
+    for (const ports of portionOptions(set, p.maxPortion, hasTargets, true)) {
       const slots = set.map((c, i) => ({ cand: c, portions: ports[i] }));
       const r = evalCombo(slots, p);
       if (!r.ok) continue;
-      const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05), 0) + slots.reduce((a, s) => a + s.portions - 1, 0) * 0.001;
+      const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05), 0) + slots.reduce((a, s) => a + s.portions - 1, 0) * 0.04;
       if (!best || adj < best.r.score) best = { slots, r: { ...r, score: adj } };
     }
     if (best) out.push(makeMeal(period.name, best.slots, p, 'animal_plate', best.r));
@@ -307,11 +314,11 @@ function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' 
     for (const combo of combos) {
       const cands = [main, ...combo];
       let bestForCombo: { slots: Slot[]; r: ReturnType<typeof evalCombo> } | null = null;
-      for (const ports of portionOptions(cands.length, p.maxPortion, hasTargets)) {
+      for (const ports of portionOptions(cands, p.maxPortion, hasTargets)) {
         const slots = cands.map((c, i) => ({ cand: c, portions: ports[i] }));
         const r = evalCombo(slots, p);
         if (!r.ok) continue;
-        const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05) + s.cand.tier * 0.3, 0) + (slots.reduce((a, s) => a + s.portions - 1, 0)) * 0.001 + (tie++ % 7) * 1e-6;
+        const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05) + s.cand.tier * 0.3, 0) + (slots.reduce((a, s) => a + s.portions - 1, 0)) * 0.04 + (tie++ % 7) * 1e-6;
         if (!bestForCombo || adj < bestForCombo.r.score) bestForCombo = { slots, r: { ...r, score: adj } };
       }
       if (bestForCombo) scored.push(bestForCombo);

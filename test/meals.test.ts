@@ -147,3 +147,11 @@ test('common sense: implausible borrowed nutrition is ignored, never used', () =
   assert.equal(sw.nutrition.calories, null);
   assert.match(sw.warnings[0], /not plausible for one serving/);
 });
+test('common sense: extra portions go to the main and protein sides, never fruit, vegetables or starch', () => {
+  const d = day([['Grill', [mkItem('Grilled Chicken', { ing: 'chicken', nutrition: nut(150, 25, 3, 0) })]],
+    ['Sides', [mkItem('Honeydew Melon', { ing: 'melon', nutrition: nut(60, 1, 0, 15) }), mkItem('Steamed Broccoli', { ing: 'broccoli', nutrition: nut(30, 3, 0, 6) }), mkItem('Brown Rice', { ing: 'rice', nutrition: nut(200, 4, 2, 44) })]]]);
+  const p = { ...defaultProfile('none'), targets: { protein: 70 }, maxPortion: 3 as const };
+  for (const m of buildMeals(d, 'Dinner', p).meals) for (const part of m.parts) if (part.role === 'side') assert.equal(part.portions, 1, part.item.name);
+  const m = buildMeals(d, 'Dinner', p).meals[0];
+  assert.ok(m.parts[0].portions > 1, 'main should scale toward the protein target');
+});

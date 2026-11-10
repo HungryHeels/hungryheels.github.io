@@ -20,7 +20,7 @@ export interface AppState {
 export const S: AppState = {
   seed: [], imported: [], seedError: null, loading: true,
   hall: 'chase', date: FIRST_DATE, period: null,
-  tab: 'menu', menuTab: 'meal', search: '', hideNonFits: false,
+  tab: 'menu', menuTab: 'meal', search: '', hideNonFits: true,
   profile: defaultProfile('none'), onboarded: false, idea: 0,
   sheet: null, importResults: [], importing: false, showDays: false, nutritionMsg: null, storageNote: null,
   statusFilter: 'all', stationFilter: '', sortBy: 'station', nutriOnly: false,
