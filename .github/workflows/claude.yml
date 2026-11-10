@@ -1,0 +1,29 @@
+# Lets you write "@claude" in an issue or pull request comment to ask Claude to investigate or fix a bug.
+# UNVERIFIED: this file was written from general knowledge of anthropics/claude-code-action and has not been run.
+# Setup is in docs/SETUP_GITHUB.md (install the Claude GitHub app and add the ANTHROPIC_API_KEY secret).
+name: Claude Code
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') && github.event.comment.user.login == github.repository_owner) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') && github.event.comment.user.login == github.repository_owner) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude') && github.event.issue.user.login == github.repository_owner)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
