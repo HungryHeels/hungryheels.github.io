@@ -6,7 +6,7 @@ import type { Profile } from './profile.ts';
 export type Course = 'main' | 'side' | 'skip';
 export type SideKind = 'veg' | 'fruit' | 'starch' | 'protein' | 'other';
 
-const SKIP_STATIONS = new Set(['Beverages', 'Condiments and Spreads', 'Ice Cream', 'Cereal', 'Bakery', 'Bagels and Breads', 'Stress Less Cabinet', 'Waffle Bar']);
+const SKIP_STATIONS = new Set(['Beverages', 'Condiments and Spreads', 'Ice Cream', 'Ice Cream Bar', 'Cereal', 'Bakery', 'Specialty Bakery', 'Bagels and Breads', 'Breads and Bagels', 'Hummus Bar', 'Stress Less Cabinet', 'Waffle Bar']);
 const SKIP_NAME = /\b(dressing|sauce|gravy|syrup|ketchup|mustard|mayo|mayonnaise|aioli|vinaigrette|ranch|salsa verde|jam|jelly|jellies|topping|toppings|whipped|sprinkles|creamer|bun|buns|roll|rolls|bread|bagel|muffin|cookie|cookies|brownie|cake|pie|donut|donuts|danish|scone|croissant|biscuit|smoothie|juice|soda|tea|coffee|lemonade|water|cocoa|latte|spread|buttery|butter|margarine|honey|sugar|sweetener|seasoning|croutons?|chips|tortilla|wrap|wraps|pita|naan|cornbread|stuffing|glaze|compote|marinade|dip|hummus|syrup|pancakes?|waffles?|french toast|dessert|candy|gummy|cereal|granola|oatmeal|grits|creme|custard|pudding|frosting|icing|relish|pickle chips|olives?|bacon bits|pieces|crumbles?|shredded cheese|sliced cheese|american cheese|cheddar cheese|sour cream|cream cheese|queso|guacamole|pico de gallo)\b/;
 const MAIN_NAME = /\b(chicken|turkey|beef|pork|steak|brisket|lamb|ham|sausage|meatball|meatballs|shrimp|fish|salmon|cod|catfish|tuna|tilapia|tofu|tempeh|seitan|nuggets|tenders|patty|burger|sandwich|sub|quesadilla|taco|tacos|burrito|bowl|curry|stir fry|stir-fry|fried rice|pad thai|lasagna|casserole|bake|pizza|omelet|omelette|scramble|mac and cheese|mac cheese|gumbo|chili|stew|chowder|soup|falafel|gyro|carne|kielbasa|chorizo|roast|loin|ribs|wings|cheesesteak|slider|po boy|pasta|penne|linguine|spaghetti|noodles?|lentil|jerk|teriyaki|bites|chik n|chik'n|impossible|beyond|sushi|poke|burger patty|manicotti|tortellini|cavatappi)\b/;
 const PROTEIN_SIDE = /^\s*(bacon|turkey bacon|diced ham|diced chicken|hot diced chicken|bacon pieces|hard boiled eggs?|boiled eggs?|scrambled eggs?|cottage cheese|plain greek yogurt|greek yogurt|nonfat yogurt.*|vanilla yogurt|sliced ham|sliced turkey|sliced roast beef|edamame|tofu|hard cooked eggs?)\s*$/;
@@ -25,7 +25,7 @@ export function courseOf(item: MenuItem, station: string): Classified {
   if (station === 'Deli' || station === 'Made Without Gluten Deli') {
     return /\b(sandwich|sub|wrap)\b/.test(n) && MAIN_NAME.test(n) ? { course: 'main', kind: null } : { course: 'skip', kind: null };
   }
-  if (station === 'Pasta' || station === 'Pizza') {
+  if (station === 'Pasta' || station === 'Pasta Bar' || station === 'Pizza') {
     return MAIN_NAME.test(n) && !/\bsauce\b/.test(n) ? { course: 'main', kind: null } : { course: 'skip', kind: null };
   }
   if (station === 'Sushi/Create' || station === 'Made-to-Order') {
@@ -45,7 +45,7 @@ function classifySide(n: string): SideKind {
 export interface MealPart { item: MenuItem; station: string; role: 'main' | 'side'; kind: SideKind | null; portions: number; evaluation: Evaluation }
 export interface MacroTotal { value: number | null; min: number; complete: boolean }
 export interface MealTotals { calories: MacroTotal; protein: MacroTotal; fat: MacroTotal; carbs: MacroTotal }
-export type Simplified = null | 'fewer_sides' | 'main_only';
+export type Simplified = null | 'fewer_sides' | 'main_only' | 'animal_plate';
 export interface Meal {
   id: string;
   period: string;
@@ -171,7 +171,7 @@ function portionOptions(n: number, max: number, hasTargets: boolean): number[][]
 }
 
 function makeMeal(period: string, slots: Slot[], p: Profile, simplified: Simplified, base: ReturnType<typeof evalCombo>): Meal {
-  const parts: MealPart[] = slots.map((s, i) => ({ item: s.cand.item, station: s.cand.station, role: i === 0 ? 'main' : 'side', kind: s.cand.kind, portions: s.portions, evaluation: s.cand.evaluation }));
+  const parts: MealPart[] = slots.map((s, i) => ({ item: s.cand.item, station: s.cand.station, role: i === 0 && simplified !== 'animal_plate' ? 'main' : 'side', kind: s.cand.kind, portions: s.portions, evaluation: s.cand.evaluation }));
   const unconfirmed = parts.filter(x => x.evaluation.status !== 'match').map(x => ({ name: x.item.name, why: x.evaluation.unconfirmed.join('; ') }));
   return {
     id: period + '|' + parts.map(x => x.item.id + 'x' + x.portions).join('+'),
@@ -181,7 +181,7 @@ function makeMeal(period: string, slots: Slot[], p: Profile, simplified: Simplif
 }
 
 export interface BuildOptions { max?: number }
-export type FallbackReason = null | 'fewer_sides' | 'main_only' | 'other_period';
+export type FallbackReason = null | 'fewer_sides' | 'main_only' | 'other_period' | 'animal_plate';
 export interface BuildResult {
   meals: Meal[];
   period: string | null;       // period actually used
@@ -192,6 +192,34 @@ export interface BuildResult {
 }
 
 /** Build ranked meal ideas for one period at a given structure level. */
+function buildPlate(day: MenuDay, period: Period, p: Profile, max: number): Meal[] {
+  // Last resort for animal-based and carnivore when no main dish fits: a plate of the animal foods that do fit.
+  if (p.pattern !== 'carnivore' && p.pattern !== 'animal_based') return [];
+  const { mains, sides } = candidatesFor(day, period, p);
+  const pool = [...mains, ...sides].filter(c => c.animal);
+  if (!pool.length) return [];
+  const rankKey = (c: Candidate) => -proteinish(c) * 1e6 + (c.evaluation.status === 'match' ? 0 : 5e5) + (hash(day.date + c.item.id) % 1000);
+  const top = pool.slice().sort((a, b) => rankKey(a) - rankKey(b)).slice(0, 7);
+  const hasTargets = Object.values(p.targets).some(v => !!v);
+  const sets: Candidate[][] = top.length === 1 ? [[top[0]]] : [];
+  for (let i = 0; i < top.length; i++) for (let j = i + 1; j < top.length; j++) sets.push([top[i], top[j]]);
+  const out: Meal[] = [];
+  for (const set of sets) {
+    let best: { slots: Slot[]; r: ReturnType<typeof evalCombo> } | null = null;
+    for (const ports of portionOptions(set.length, p.maxPortion, hasTargets)) {
+      const slots = set.map((c, i) => ({ cand: c, portions: ports[i] }));
+      const r = evalCombo(slots, p);
+      if (!r.ok) continue;
+      const adj = r.score + slots.reduce((a, s) => a + (s.cand.evaluation.status === 'match' ? 0 : 0.05), 0) + slots.reduce((a, s) => a + s.portions - 1, 0) * 0.001;
+      if (!best || adj < best.r.score) best = { slots, r: { ...r, score: adj } };
+    }
+    if (best) out.push(makeMeal(period.name, best.slots, p, 'animal_plate', best.r));
+  }
+  out.sort((a, b) => a.score - b.score);
+  const conf = out.filter(m => m.tier === 'confirmed'), poss = out.filter(m => m.tier !== 'confirmed');
+  return [...conf, ...poss].slice(0, max);
+}
+
 function buildForPeriod(day: MenuDay, period: Period, p: Profile, level: 'full' | 'fewer' | 'main', max: number): Meal[] {
   const { mains, sides } = candidatesFor(day, period, p);
   if (!mains.length) return [];
@@ -293,6 +321,15 @@ export function buildMeals(day: MenuDay, periodName: string, p: Profile, opts: B
         res.banner = `Nothing at ${req.name} fits your rules, so this is the closest meal from ${per.name} the same day${fb ? ' (with fewer sides)' : ''}. Your diet rules were not changed.`;
         return res;
       }
+    }
+  }
+  // Animal diets with no main dish anywhere today: a plate of the animal foods that fit (rules unchanged).
+  for (const per of [req, ...others]) {
+    const m = buildPlate(day, per, p, max);
+    if (m.length) {
+      res.meals = m; res.period = per.name; res.fallback = 'animal_plate';
+      res.banner = `No main dish fits your rules ${per === req ? `at ${req.name}` : `today at ${req.name}, so this uses ${per.name}`}. This is a plate of the animal foods that do fit. Your diet rules were not changed.`;
+      return res;
     }
   }
   res.noMealToday = true;

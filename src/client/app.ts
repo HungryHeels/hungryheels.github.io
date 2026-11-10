@@ -138,7 +138,7 @@ function mealCard(m: Meal, day: MenuDay): HTMLElement {
     h('ol', { class: 'parts' }, m.parts.map(p => h('li', null,
       h('button', { type: 'button', class: 'part', onClick: () => go(() => { S.sheet = { item: p.item.id, dayKey: `${day.hall}:${day.date}` }; }) },
         h('span', { class: 'part-top' }, h('strong', null, p.item.name), p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}× portion`) : null),
-        h('small', null, `${p.role === 'main' ? 'Main' : 'Side'} · ${p.station}`),
+        h('small', null, `${m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : 'Side'} · ${p.station}`),
         nutritionGrid({ ...p.item, nutrition: scale(p.item, p.portions) }))))),
     h('h4', null, 'Meal totals'), totalsRow(m),
     m.unknownNutrition.length ? h('p', { class: 'warn-text' }, `Totals are minimums. No published nutrition for: ${m.unknownNutrition.join(', ')}.`) : null,

@@ -16,7 +16,9 @@ Live site (after you turn on GitHub Pages): https://hungryheels.github.io/
 The menus come from pages the author saved by hand in Safari (File > Save As > Web Archive). The app never contacts dining.unc.edu (its robots.txt disallows automated access to the date pages).
 A saved page contains item names, stations, meal periods and hours, ingredient text, and UNC's allergen and diet labels. **It does not contain calories, protein, fat or carbs**; UNC loads those only when you tap an item. Those values therefore show as **unknown** until you import an official nutrition export (see `docs/EMAIL_TO_DIETITIAN.md`) or an Eat UNC copy.
 
-Built in: Chase, 2026-11-09 to 2026-12-10 (28 days with menus; Nov 25 to 28 had no menu posted). Top of Lenoir has no built-in days yet; import saved pages in **You > Menu data**.
+Built in:
+- **Chase**, 2026-11-09 to 2026-12-10: 28 days with menus; Nov 25 to 28 had no menu posted.
+- **Top of Lenoir**, 2026-11-10 to 2026-12-10: 27 days with menus; Nov 25 to 28 had no menu posted; **Nov 9 was never saved** (import it in You > Menu data if you want it). Some Lenoir days have no Dinner tab in the saved page (Nov 13, 14, 20, 21 and Dec 5); the app shows exactly the periods the page contains and never guesses a missing one.
 
 ## Add or refresh a day
 1. On a Mac, open dining.unc.edu > Locations > Chase or Top of Lenoir, choose the date, wait for it to load.

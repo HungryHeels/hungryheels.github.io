@@ -102,3 +102,15 @@ test('totalsFor adds published values only', () => {
   const t = totalsFor([{ item: mkItem('A', { nutrition: nut(100, 10, 1, 5) }), portions: 2 }, { item: mkItem('B', { nutrition: nut(50, null, 1, 5) }), portions: 1 }]);
   assert.equal(t.calories.value, 250); assert.equal(t.protein.value, null); assert.equal(t.protein.min, 20);
 });
+
+test('animal diets with no main dish get a plate of animal foods (structure fallback, rules unchanged)', () => {
+  const d = day([['Salad Bar', [mkItem('Plain Greek Yogurt', { ing: 'cultured milk', allergens: ['milk'] }), mkItem('Cottage Cheese', { ing: 'milk cream salt', allergens: ['milk'] }), mkItem('Orange Slices', { ing: 'oranges' }), mkItem('Brown Rice', { ing: 'rice' })]]]);
+  const r = buildMeals(d, 'Dinner', defaultProfile('carnivore'));
+  assert.equal(r.fallback, 'animal_plate');
+  assert.match(r.banner!, /diet rules were not changed/);
+  assert.ok(r.meals[0].parts.every(p => p.role === 'side'));
+  assert.deepEqual(r.meals[0].parts.map(p => p.item.name).sort(), ['Cottage Cheese', 'Plain Greek Yogurt']);
+});
+test('ice cream, bakery and bread stations (Lenoir names) are never meal parts', () => {
+  for (const st of ['Ice Cream Bar', 'Specialty Bakery', 'Breads and Bagels', 'Hummus Bar']) assert.equal(courseOf(mkItem('Vanilla Ice Cream'), st).course, 'skip', st);
+});

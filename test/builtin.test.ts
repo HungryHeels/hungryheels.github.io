@@ -10,11 +10,19 @@ import { defaultProfile, type PatternId } from '../src/core/profile.ts';
 const days = decodeSeed(JSON.parse(gunzipSync(Buffer.from(SEED_B64, 'base64')).toString('utf8')));
 const withMenu = days.filter(d => !d.noMenuPosted);
 
-test('seed: 28 Chase days with menus, 4 "no menu posted" days (Nov 25-28)', () => {
-  assert.equal(days.length, 32);
-  assert.equal(withMenu.length, 28);
-  assert.deepEqual(days.filter(d => d.noMenuPosted).map(d => d.date), ['2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28']);
-  for (const d of withMenu) { const n = Object.keys(d.items).length; assert.ok(n >= 261 && n <= 311, `${d.date} has ${n} items`); }
+test('seed: Chase has 28 menu days + 4 no-menu days; Top of Lenoir has 27 + 4 (Nov 9 not saved)', () => {
+  const chase = days.filter(d => d.hall === 'chase'), len = days.filter(d => d.hall === 'top-of-lenoir');
+  assert.equal(chase.length, 32); assert.equal(chase.filter(d => !d.noMenuPosted).length, 28);
+  assert.equal(len.length, 31); assert.equal(len.filter(d => !d.noMenuPosted).length, 27);
+  const noMenu = ['2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28'];
+  assert.deepEqual(chase.filter(d => d.noMenuPosted).map(d => d.date), noMenu);
+  assert.deepEqual(len.filter(d => d.noMenuPosted).map(d => d.date), noMenu);
+  assert.ok(!len.some(d => d.date === '2026-11-09'));
+  for (const d of withMenu) { const n = Object.keys(d.items).length; assert.ok(n >= 221 && n <= 325, `${d.hall} ${d.date} has ${n} items`); }
+});
+test('seed: Lenoir days without a Dinner tab are exactly the ones the saved pages show (not guessed)', () => {
+  const noDinner = days.filter(d => d.hall === 'top-of-lenoir' && !d.noMenuPosted && !d.periods.some(p => p.name === 'Dinner')).map(d => d.date);
+  assert.deepEqual(noDinner, ['2026-11-13', '2026-11-14', '2026-11-20', '2026-11-21', '2026-12-05']);
 });
 test('seed: every built-in item has ingredient text and provenance with a saved time', () => {
   for (const d of withMenu) {
@@ -27,7 +35,7 @@ const PATTERNS: PatternId[] = ['vegetarian', 'pescatarian', 'vegan', 'animal_bas
 test('PRESET AUDIT: each preset returns a meal for every day with a menu', () => {
   for (const pat of PATTERNS) for (const d of withMenu) {
     const r = buildMeals(d, d.periods.find(p => p.name === 'Dinner')?.name ?? d.periods[0].name, defaultProfile(pat));
-    assert.ok(r.meals.length > 0, `${pat} ${d.date}`);
+    assert.ok(r.meals.length > 0, `${pat} ${d.hall} ${d.date}`);
   }
 });
 test('PRESET AUDIT: no meal part contradicts its preset', () => {
