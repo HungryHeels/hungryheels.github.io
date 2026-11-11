@@ -18,7 +18,8 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. Navy and 
 | `--badge-text` | `#13294b` | `#13294b` | Text on `--carolina` (stays dark in both themes for contrast) |
 | `--overlay` | `rgba(0,0,0,.45)` | same | Dims the page behind dish details |
 | `--ok` / `--ok-bg` | `#14612f` / `#e3f3e8` | `#9ee0b4` / `#12351f` | Fits, passed |
-| `--warn` / `--warn-bg` | `#6e4300` / `#fff1d6` | `#ffd88a` / `#40300d` | Unsure, stale, confirm with staff |
+| `--warn` / `--warn-bg` | `#6e4300` / `#fff1d6` | `#ffd88a` / `#40300d` | **Warnings only:** “Contains …” allergens, unsure, stale, confirm with staff. Never for neutral information such as where nutrition came from. |
+| `--sel-bg` | `#e6eff8` | `#1b2c48` | Selected option (hall, meal, mode): tint + 2px `--accent` outline + ✓. Filled `--accent` is reserved for primary actions. |
 | `--bad` / `--bad-bg` | `#8c1d1d` / `#fde6e6` | `#ffb4b4` / `#431818` | Not for you, removed |
 | `--focus` | `#0b57d0` | `#9cc3ff` | Focus ring |
 
@@ -50,7 +51,8 @@ Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segm
 
 ## Components
 - **Header:** white bar, sticky; the name "Hungry Heels" + "Unofficial" tag on the left, three text links (Today, Menus, Me) on the right. The active link is bold with a 3px `--carolina` underline and `aria-current="page"`. No bottom tab bar.
-- **Buttons:** primary (filled `--accent`), secondary (card background, `--line` border), quiet (text link style). Min 44px tall. Hover darkens the border; focus shows the 3px `--focus` ring; disabled is 55% opacity with a not-allowed cursor.
+- **Buttons:** primary (filled `--accent`; at most one per view, and not used for “Another idea”), secondary (card background, `--line` border), quiet (text link style). Min 44px tall. Hover darkens the border; focus shows the 3px `--focus` ring; disabled is 55% opacity with a not-allowed cursor.
+- **Selected options** (segmented controls, meal pills): `--sel-bg` tint, 2px `--accent` inset outline and a ✓, never the filled primary style.
 - **Links:** `--accent`, underlined in body text; nav links not underlined until hover.
 - **Inputs and selects:** 44px, `--r1`, `--line` border, `--bg` fill, visible label above.
 - **Cards:** `--card`, 1px `--line`, `--r3`, 16px padding. One card per idea; never a grid of identical marketing cards.

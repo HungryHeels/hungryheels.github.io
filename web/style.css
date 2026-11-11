@@ -1,6 +1,6 @@
 /* Hungry Heels. Tokens follow DESIGN.md. Meaning is always carried by text and symbols too, never color alone. */
 :root{--fs-xs:13px;--fs-sm:14px;--fs-md:16px;--fs-lg:18px;--fs-xl:22px;--fs-2xl:28px;--fs-3xl:36px;
-  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--r1:6px;--r2:10px;--r3:14px;--width:1120px;--gutter:16px;--badge-text:#13294b;--overlay:rgba(0,0,0,.45)}
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--r1:6px;--r2:10px;--r3:14px;--width:1120px;--gutter:16px;--badge-text:#13294b;--overlay:rgba(0,0,0,.45);--sel-bg:#e6eff8}
 @media (min-width:760px){:root{--gutter:24px}}
 :root{
   --bg:#f4f5f7; --card:#ffffff; --text:#13294b; --muted:#4f5b6e; --line:#d5dbe6; --accent:#1b5c8c; --accent-text:#ffffff; --carolina:#7bafd4;
@@ -282,3 +282,22 @@ body.sheet-open{overflow:hidden}
 .dayplan>li{display:grid;gap:var(--s3)}
 .manual input[aria-invalid=true]{border:2px solid var(--bad)}
 .datebar .date-btn{width:auto;flex:1;font-size:var(--fs-md);padding:var(--s2)}
+
+/* Design critique fixes (Nov 11) */
+/* 1. Amber is for warnings only: allergens and "confirm with staff". Where nutrition came from is information. */
+.src-warn{color:var(--muted)}
+.plate-allergen{color:var(--warn);font-weight:700}
+/* 2. Selected is not the same as "press this": selected options are tinted and outlined with a check mark;
+      filled navy is kept for primary actions. */
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--sel-bg:#1b2c48}}
+:root[data-theme=dark]{--sel-bg:#1b2c48}
+:root[data-contrast=high]{--sel-bg:transparent}
+.seg button.on,.pill.on{background:var(--sel-bg);color:var(--text);box-shadow:inset 0 0 0 2px var(--accent);border-color:var(--accent)}
+.seg button.on::before{content:"✓ ";font-weight:700;color:var(--accent)}
+.pill.on>span:first-child::before{content:"✓ ";color:var(--accent)}
+.pill.on .now{color:var(--ok)}
+/* 3. Phones: Menus drops its intro (like Today) and the meal row fades at its edges instead of slicing words. */
+@media (max-width:759px){
+  .menus .page-head .lede{display:none}
+  .pills{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 24px),transparent);padding-left:6px}
+}

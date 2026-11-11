@@ -36,7 +36,8 @@ function plateList(m: Meal, day: MenuDay, prefix: string): HTMLElement {
       h('span', { class: 'plate-main' },
         h('span', { class: 'plate-name' }, p.item.name, p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}×`) : null),
         h('small', null, `${roleOf(p)} · ${p.station} · ${kcalLine(p.item, p.portions)}`),
-        h('small', null, sourceBadge(p.item), p.item.allergens.length ? h('span', { class: 'plate-allergen' }, ' · Contains ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : null)),
+        p.item.allergens.length ? h('small', { class: 'plate-allergen' }, '△ Contains ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : null,
+        h('small', null, sourceBadge(p.item))),
       h('span', { class: 'chev', 'aria-hidden': 'true' }, '›')))));
 }
 /** Calories and protein tiles, plus fat and carbs: a tile when any value is known, otherwise one short line. */
@@ -104,7 +105,7 @@ function oneMeal(day: MenuDay): HTMLElement {
   // Idea controls sit above the card so "Another idea" is on the first screen of a phone.
   wrap.appendChild(h('div', { class: 'actions idea-nav' },
     n > 1 ? h('button', { type: 'button', 'aria-label': 'Previous idea', 'data-fk': 'idea-prev', onClick: () => go(() => { S.idea = (i - 1 + n) % n; }, `Idea ${((i - 1 + n) % n) + 1} of ${n}.`) }, '‹ Back') : null,
-    h('button', { class: 'primary grow', type: 'button', disabled: n < 2, 'data-fk': 'idea-next', onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, n < 2 ? 'Only idea' : `Another idea (${i + 1} of ${n})`)));
+    h('button', { class: 'grow', type: 'button', disabled: n < 2, 'data-fk': 'idea-next', onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, n < 2 ? 'Only idea' : `Another idea (${i + 1} of ${n})`)));
   wrap.appendChild(mealCard(r.meals[i], day, r, i));
   return wrap;
 }

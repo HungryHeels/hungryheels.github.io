@@ -63,8 +63,8 @@ for (const name of engines) {
     p.on('console', (m: any) => { if (m.type() === 'error') errors.push(m.text()); });
     p.on('pageerror', (e: any) => errors.push(String(e)));
     p.on('request', (r: any) => { if (!r.url().startsWith(BASE) && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) offsite.push(r.url()); });
-    // A real page load each time (goto to a new #hash alone would not reload), so persistence checks are honest.
-    const go = async (hash: string) => { await p.goto(BASE + hash); await p.reload(); await ready(p); };
+    let loads = 0;   // a unique query string forces a real page load (a new #hash alone would not reload)
+    const go = async (hash: string) => { await p.goto(`${BASE}?load=${++loads}${hash}`); await ready(p); };
     const asNone = () => p.evaluate(() => { const hh = (window as any).__hh; hh.S.profile.pattern = 'none'; hh.render(); });
 
     // First run: one question, one tap to a meal. Three pages in the header; no app tab bar.
@@ -78,6 +78,20 @@ for (const name of engines) {
     await p.waitForSelector('article.meal');
     ok(await p.locator('article.meal').count() === 1, 'one tap from the first question shows a meal');
     ok(await p.locator('h1').innerText() === 'Meal for Mon, Nov 16', 'heading names the date when it is not today (review fix 1)');
+    {
+      const c = await p.evaluate(() => {
+        const al = document.querySelector('.plate-allergen'), src = document.querySelector('.plate-row .src'), on = document.querySelector('.seg button.on')!;
+        const root = getComputedStyle(document.documentElement);
+        return { allergen: al ? getComputedStyle(al).color : null, source: src ? getComputedStyle(src).color : null, muted: root.getPropertyValue('--muted').trim(),
+          selBg: getComputedStyle(on).backgroundColor, primaryBg: root.getPropertyValue('--accent').trim(),
+          ideaPrimary: document.querySelector('[data-fk=idea-next]')!.classList.contains('primary'), selCheck: getComputedStyle(on, '::before').content };
+      });
+      ok(c.allergen !== null && c.source !== null && c.allergen !== c.source, 'allergen line and nutrition source no longer share a color (critique 1)');
+      const hex = (rgb: string) => '#' + rgb.match(/\d+/g)!.slice(0, 3).map(n => (+n).toString(16).padStart(2, '0')).join('');
+      ok(hex(c.source!) === c.muted.toLowerCase(), `nutrition source is muted (${hex(c.source!)} vs ${c.muted})`);
+      ok(hex(c.selBg) !== c.primaryBg.toLowerCase() && c.selCheck.includes('✓'), 'selected options are tinted with a check, not filled like a primary button (critique 2)');
+      ok(!c.ideaPrimary, '"Another idea" is a secondary button (critique 2)');
+    }
     ok(await p.evaluate(() => { const b = document.querySelector('[data-fk=idea-next]')!.getBoundingClientRect(); return b.bottom <= innerHeight; }), '"Another idea" is on the first screen (review fix 3)');
     await p.getByRole('link', { name: 'About Hungry Heels' }).click();
     await p.waitForSelector('.landing');
@@ -120,6 +134,11 @@ for (const name of engines) {
 
     // A deep link opens a dish directly.
     await go('#/menus?hall=chase&date=2026-11-16&period=Dinner');
+    if (w < 760) {
+      ok(!(await p.locator('.menus .lede').isVisible()), 'Menus intro is hidden on phones (critique 3)');
+      ok(await p.evaluate(() => { const row = document.querySelector('.pills')!; const left = row.getBoundingClientRect().left;
+        return Array.from(row.querySelectorAll('.pill')).every(el => el.getBoundingClientRect().right <= left + 1 || el.getBoundingClientRect().left >= left - 1); }), 'no meal pill is sliced at the left edge (critique 3)');
+    }
     ok(await p.evaluate(() => { const r = document.querySelector('.item-row')!.getBoundingClientRect(); return r.top < innerHeight; }), 'first menu item is visible on the first screen');
     const firstItem = p.locator('.item-row').first();
     const itemKey = await firstItem.getAttribute('data-fk');

@@ -116,7 +116,7 @@ function render() {
   root.append(head, main, foot);
   document.title = S.page === 'today' && (S.about || !S.onboarded) ? 'Hungry Heels (unofficial): one dining-hall meal that fits how you eat' : `${PAGE_TITLES[S.page]} · Hungry Heels (unofficial)`;
   const pill = root.querySelector('.pills .pill.on') as HTMLElement | null;   // keep the chosen meal visible in the scrolling row
-  if (pill?.parentElement && pill.parentElement.scrollWidth > pill.parentElement.clientWidth) pill.parentElement.scrollLeft = pill.offsetLeft - pill.parentElement.offsetLeft - 16;
+  if (pill?.parentElement && pill.parentElement.scrollWidth > pill.parentElement.clientWidth) { const lead = (pill.previousElementSibling as HTMLElement | null) ?? pill; pill.parentElement.scrollLeft = lead.offsetLeft - pill.parentElement.offsetLeft; }
   const sh = sheetView();
   const sheetKey = S.sheet ? S.sheet.dayKey + ':' + S.sheet.item : null;
   if (sh) { root.appendChild(sh); head.inert = true; main.inert = true; foot.inert = true; document.body.classList.add('sheet-open'); }
