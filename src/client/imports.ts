@@ -3,20 +3,18 @@ import { PageError, parseUncPage } from '../sources/unc-page.ts';
 import { borrowNutrition } from '../core/borrow.ts';
 import { decodeSeed, type SeedFile } from '../core/seed.ts';
 import { EAT_UNC_META, EAT_UNC_SNAPSHOT } from '../sources/snapshot-data.ts';
-import { applyOfficial, parseOfficialCsv, type OfficialRow } from '../sources/nutrition-import.ts';
+import { applyNutritionLayers, parseOfficial, type ManualEntry } from '../sources/nutrition-import.ts';
 import { validateDay } from '../core/validate.ts';
+import { dedupeBatch, diffDays, isMenuFile, staleness } from '../core/refresh.ts';
+import { formatSaved } from '../core/schedule.ts';
 import type { MenuDay } from '../core/types.ts';
 import { SEED_B64 } from './seed-data.ts';
-
-export interface FileResult {
-  file: string; ok: boolean; hall?: string; date?: string; items?: number; periods?: number; noMenu?: boolean;
-  notes: string[]; error?: string;
-}
+import { S, allDays, dayFor, type FileResult } from './state.ts';
 
 // ---------- persistence (IndexedDB with in-memory fallback) ----------
 const DB = 'hungry-heels', STORE = 'days', META = 'meta';
 let memory = new Map<string, MenuDay>();
-let memoryNutrition: string | null = null;
+const memoryMeta = new Map<string, unknown>();
 export let persistence: 'indexeddb' | 'memory' = 'indexeddb';
 
 function openDb(): Promise<IDBDatabase> {
@@ -59,13 +57,13 @@ export async function clearImported(): Promise<void> {
   memory = new Map();
   try { const db = await openDb(); await tx(db, STORE, 'readwrite', s => { s.clear(); }); } catch { /* memory only */ }
 }
-export async function loadOfficialNutrition(): Promise<string | null> {
-  try { const db = await openDb(); return ((await tx<string>(db, META, 'readonly', s => s.get('official-nutrition'))) as string | undefined) ?? null; }
-  catch { return memoryNutrition; }
+async function getMeta<T>(key: string): Promise<T | null> {
+  try { const db = await openDb(); return ((await tx<T>(db, META, 'readonly', s => s.get(key))) as T | undefined) ?? null; }
+  catch { return (memoryMeta.get(key) as T) ?? null; }
 }
-export async function saveOfficialNutrition(text: string | null): Promise<void> {
-  memoryNutrition = text;
-  try { const db = await openDb(); await tx(db, META, 'readwrite', s => { if (text === null) s.delete('official-nutrition'); else s.put(text, 'official-nutrition'); }); } catch { /* memory only */ }
+async function setMeta(key: string, val: unknown): Promise<void> {
+  memoryMeta.set(key, val);
+  try { const db = await openDb(); await tx(db, META, 'readwrite', s => { if (val === null) s.delete(key); else s.put(val, key); }); } catch { /* memory only */ }
 }
 
 // ---------- built-in seed ----------
@@ -83,23 +81,51 @@ export async function loadSeed(): Promise<{ days: MenuDay[]; error: string | nul
   }
 }
 
+// ---------- nutrition layers (official file, entered by you) ----------
+/** Load stored nutrition layers and apply them to every day. Fixes an old bug: a stored official file used to be
+ *  applied only to pages imported later, never to the built-in days. */
+export async function loadLayers(): Promise<void> {
+  const official = await getMeta<{ text: string; label: string } | string>('official-nutrition');
+  if (official) {
+    const o = typeof official === 'string' ? { text: official, label: 'the official Carolina Dining export you imported' } : official;
+    S.official = { ...o, rows: parseOfficial(o.text).rows };
+  }
+  S.manual = (await getMeta<ManualEntry[]>('manual-nutrition')) ?? [];
+  reapplyLayers();
+}
+export function reapplyLayers(): { official: number; manual: number } {
+  return applyNutritionLayers([...S.seed, ...S.imported], { official: S.official ? { rows: S.official.rows, label: S.official.label } : null, manual: S.manual });
+}
+export async function importOfficial(text: string, fileName: string): Promise<string> {
+  const r = parseOfficial(text);
+  if (r.errors.length) return r.errors.join(' ');
+  const label = `the official nutrition file “${fileName.slice(0, 60)}” you imported ${formatSaved(new Date().toISOString())}`;
+  const prev = S.official;
+  S.official = { rows: r.rows, label, text };
+  const n = reapplyLayers();
+  if (!n.official) { S.official = prev; reapplyLayers(); return 'No rows matched any menu item by recipe id or exact name, so nothing was changed.'; }
+  await setMeta('official-nutrition', { text, label });
+  return `Applied official nutrition to ${n.official} menu entries.${r.skipped.length ? ` Skipped ${r.skipped.length} row(s) with implausible values: ${r.skipped.slice(0, 3).join('; ')}${r.skipped.length > 3 ? '…' : ''}` : ''}`;
+}
+export async function removeOfficial(): Promise<void> { S.official = null; await setMeta('official-nutrition', null); reapplyLayers(); }
+export async function saveManual(list: ManualEntry[]): Promise<void> { S.manual = list; await setMeta('manual-nutrition', list); reapplyLayers(); }
+
 // ---------- importing files the student saved ----------
-export async function importFile(file: File): Promise<{ result: FileResult; day: MenuDay | null }> {
-  const res: FileResult = { file: file.name, ok: false, notes: [] };
+async function parseFile(file: File, name: string): Promise<{ result: FileResult; day: MenuDay | null }> {
+  const res: FileResult = { file: name, ok: false, notes: [] };
   try {
-    if (!/\.(webarchive|html?)$/i.test(file.name)) throw new PageError('This file type is not supported. Save the page as a Web Archive (.webarchive) or Page Source (.html).');
+    if (!isMenuFile(name)) throw new PageError('This file type is not supported. Save the page as a Web Archive (.webarchive) or Page Source (.html).');
     const bytes = new Uint8Array(await file.arrayBuffer());
     const html = readPageFile(bytes);
-    const parsed = parseUncPage(html, { source: 'dining.unc.edu page saved by you', retrievedAt: new Date(file.lastModified).toISOString(), fileName: file.name });
+    const parsed = parseUncPage(html, { source: 'dining.unc.edu page saved by you', retrievedAt: new Date(file.lastModified || Date.now()).toISOString(), fileName: name });
     const { unknownClasses, ...day } = parsed as MenuDay & { unknownClasses: string[] };
     borrowNutrition(day as MenuDay, EAT_UNC_SNAPSHOT, EAT_UNC_META);
-    const official = await loadOfficialNutrition();
-    if (official) applyOfficial(day as MenuDay, parseOfficialCsv(official).rows, 'the official Carolina Dining export you imported');
     res.ok = true; res.hall = day.hall; res.date = day.date; res.items = Object.keys(day.items).length; res.periods = day.periods.length; res.noMenu = day.noMenuPosted;
     res.notes.push(...day.notes);
     if (unknownClasses.length) res.notes.push(`Unrecognized labels were ignored, not guessed: ${unknownClasses.join(', ')}.`);
     for (const p of validateDay(day as MenuDay)) res.notes.push(p.text);
-    await saveDay(day as MenuDay);
+    const st = staleness(day as MenuDay);
+    if (st.stale) res.notes.push(st.text + '.');
     return { result: res, day: day as MenuDay };
   } catch (e) {
     res.error = friendly(e);
@@ -112,11 +138,58 @@ function friendly(e: unknown): string {
   return 'The file could not be read: ' + (e instanceof Error ? e.message : String(e));
 }
 
-export async function importOfficialCsv(text: string, days: MenuDay[]): Promise<{ applied: number; errors: string[] }> {
-  const { rows, errors } = parseOfficialCsv(text);
-  if (errors.length) return { applied: 0, errors };
-  let applied = 0;
-  for (const d of days) applied += applyOfficial(d, rows as OfficialRow[], 'the official Carolina Dining export you imported');
-  if (applied) await saveOfficialNutrition(text);
-  return { applied, errors: applied ? [] : ['No rows matched any menu item by recipe id or exact name.'] };
+/** Import a batch (files or a whole folder). Hall and date come from inside each page, so file names don't matter.
+ *  Re-saves of the same day in one batch: the newest is kept. Each day is compared with the version it replaces. */
+export async function importBatch(files: Array<{ file: File; path: string }>, progress: () => void): Promise<{ results: FileResult[]; skipped: number }> {
+  const menu = files.filter(f => isMenuFile(f.path));
+  const skipped = files.length - menu.length;
+  const parsed: Array<{ result: FileResult; day: MenuDay }> = [];
+  const results: FileResult[] = [];
+  for (const f of menu) {
+    const r = await parseFile(f.file, f.path);
+    if (r.day) parsed.push({ result: r.result, day: r.day }); else results.push(r.result);
+    S.importSummary = `Reading ${parsed.length + results.length} of ${menu.length} files…`;
+    progress();
+  }
+  const { keep, dropped } = dedupeBatch(parsed);
+  for (const d of dropped) {
+    d.entry.result.dropped = true;
+    d.entry.result.notes.unshift(`Not used: ${d.keptInstead.result.file} is a newer save of the same hall and date.`);
+    results.push(d.entry.result);
+  }
+  for (const k of keep) {
+    const prev = dayFor(k.day.hall, k.day.date);
+    k.result.replaced = prev ? (S.imported.includes(prev) ? 'import' : 'built-in') : null;
+    k.result.diff = prev ? diffDays(prev, k.day) : null;
+    await saveDay(k.day);
+    S.imported = [...S.imported.filter(d => !(d.hall === k.day.hall && d.date === k.day.date)), k.day];
+    results.push(k.result);
+  }
+  reapplyLayers();
+  void allDays;
+  return { results: results.sort((a, b) => ((a.hall ?? '') + (a.date ?? '') + a.file).localeCompare((b.hall ?? '') + (b.date ?? '') + b.file)), skipped };
+}
+
+/** Collect files from a drop, walking into folders (Safari, Chrome, Firefox support webkitGetAsEntry). */
+export async function filesFromDrop(dt: DataTransfer): Promise<Array<{ file: File; path: string }>> {
+  const out: Array<{ file: File; path: string }> = [];
+  const entries = [...dt.items].map(i => (i.kind === 'file' && typeof (i as any).webkitGetAsEntry === 'function' ? (i as any).webkitGetAsEntry() : null));
+  if (!entries.some(Boolean)) { for (const f of dt.files) out.push({ file: f, path: f.name }); return out; }
+  const walk = async (entry: any, prefix: string): Promise<void> => {
+    if (!entry) return;
+    if (entry.isFile) { const f: File = await new Promise((res, rej) => entry.file(res, rej)); out.push({ file: f, path: prefix + f.name }); return; }
+    if (entry.isDirectory) {
+      const reader = entry.createReader();
+      for (;;) {
+        const batch: any[] = await new Promise((res, rej) => reader.readEntries(res, rej));
+        if (!batch.length) break;
+        for (const e of batch) await walk(e, prefix + entry.name + '/');
+      }
+    }
+  };
+  for (const e of entries) await walk(e, '');
+  return out;
+}
+export function filesFromInput(list: FileList): Array<{ file: File; path: string }> {
+  return [...list].map(f => ({ file: f, path: (f as any).webkitRelativePath || f.name }));
 }

@@ -1,0 +1,11 @@
+{
+  "name": "Hungry Heels (unofficial)",
+  "short_name": "Hungry Heels",
+  "description": "Unofficial, unaffiliated meal picker for dining menus you save yourself.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f4f8",
+  "theme_color": "#13294b",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
