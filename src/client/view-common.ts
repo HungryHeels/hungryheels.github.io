@@ -30,12 +30,22 @@ function dateControl(day: MenuDay | null): HTMLElement {
   const set = (d: string) => go(() => { S.date = d; S.period = null; S.idea = 0; }, `Showing ${formatDate(d)}.`);
   const st = day ? staleness(day) : null;
   const today = nyNow().date;
-  const input = h('input', { type: 'date', id: 'date-pick', value: S.date, min: firstDate(), max: lastDate(), 'aria-label': 'Date',
+  // The native date field is only the picker behind the date button: out of the Tab order and hidden from screen
+  // readers, so the bar has three stops (‹, date, ›) instead of four invisible ones.
+  const input = h('input', { type: 'date', id: 'date-pick', class: 'date-native', value: S.date, min: firstDate(), max: lastDate(), tabindex: '-1', 'aria-hidden': 'true',
     onChange: (e: Event) => { const v = (e.target as HTMLInputElement).value; if (/^\d{4}-\d{2}-\d{2}$/.test(v)) set(v); } });
+  const openPicker = () => {
+    const el = input as HTMLInputElement & { showPicker?: () => void };
+    try { if (typeof el.showPicker === 'function') { el.showPicker(); return; } } catch { /* not allowed here: fall through */ }
+    // Browsers without showPicker: show the field itself, focused, so the date can be typed.
+    el.classList.add('shown'); el.removeAttribute('aria-hidden'); el.tabIndex = 0; el.setAttribute('aria-label', 'Date'); el.focus();
+  };
   return h('div', { class: 'datectl' },
     h('div', { class: 'datebar' },
       h('button', { type: 'button', 'aria-label': 'Previous day', 'data-fk': 'date-prev', disabled: S.date <= firstDate(), onClick: () => set(addDays(S.date, -1)) }, '‹'),
-      h('label', { class: 'date-mid', for: 'date-pick' }, h('strong', null, formatDate(S.date) + (S.date === today ? ' · today' : '')), input),
+      h('div', { class: 'date-mid' },
+        h('button', { type: 'button', class: 'date-btn', 'data-fk': 'date-pick-btn', 'aria-label': `Date: ${formatDate(S.date)}${S.date === today ? ', today' : ''}. Choose a date`, onClick: openPicker },
+          h('strong', null, formatDate(S.date) + (S.date === today ? ' · today' : ''))), input),
       h('button', { type: 'button', 'aria-label': 'Next day', 'data-fk': 'date-next', disabled: S.date >= lastDate(), onClick: () => set(addDays(S.date, 1)) }, '›')),
     h('small', { class: 'saved-at' + (st?.stale ? ' stale' : '') }, !day ? 'No saved page for this day' : st!.stale ? '△ ' + st!.text : st!.text));
 }

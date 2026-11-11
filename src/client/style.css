@@ -109,8 +109,9 @@ summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weig
 .datebar{display:flex;align-items:center;gap:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:3px}
 .datebar button{width:44px;font-size:var(--fs-xl);line-height:1;flex:none;border:none}
 .date-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:var(--s2);min-width:0;position:relative}
-.date-mid input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
-.date-mid:focus-within{outline:3px solid var(--focus);outline-offset:2px;border-radius:var(--r1)}
+.date-btn{flex:1;border:none;background:none;min-width:0;font-size:var(--fs-md)}
+.date-native{position:absolute;left:50%;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
+.date-native.shown{position:static;width:auto;height:44px;opacity:1;pointer-events:auto;border:1px solid var(--line);border-radius:var(--r1);padding:0 var(--s2);background:var(--bg)}
 .saved-at{padding-left:var(--s2)} .saved-at.stale{color:var(--warn);font-weight:600}
 .pills{display:flex;gap:var(--s2);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .pills::-webkit-scrollbar{display:none}
@@ -273,3 +274,11 @@ body.sheet-open{overflow:hidden}
 .faq p{margin-top:0}
 .big[aria-pressed=true]{border:2px solid var(--accent);color:var(--accent)}
 .big[aria-pressed=true]::before{content:"✓ ";font-weight:700}
+
+/* Today on phones: the meal comes first; the intro is hidden and the One meal / Whole day switch moves below */
+@media (max-width:759px){.today .page-head .lede{display:none}.today .mode-switch{order:2}}
+.fc-none{margin:0}
+.day-total{display:grid;gap:var(--s3)}
+.dayplan>li{display:grid;gap:var(--s3)}
+.manual input[aria-invalid=true]{border:2px solid var(--bad)}
+.datebar .date-btn{width:auto;flex:1;font-size:var(--fs-md);padding:var(--s2)}

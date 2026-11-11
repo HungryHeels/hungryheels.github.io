@@ -13,14 +13,23 @@ function manualForm(day: MenuDay, it: MenuItem): HTMLElement {
   const cur = S.manual.find(m => m.hall === day.hall && m.recipeId === it.id);
   const field = (label: string, key: 'calories' | 'protein' | 'fat' | 'carbs', unitTxt: string) =>
     h('label', { class: 'field' }, `${label}${unitTxt}`, h('input', { type: 'number', inputmode: 'decimal', min: 0, step: 'any', name: key, value: cur?.[key] ?? '', placeholder: 'unknown' }));
-  const msg = h('p', { class: 'muted', role: 'status' });
+  const msg = h('p', { class: 'muted', role: 'status', id: 'manual-msg' });
+  const boxes = () => [...form.querySelectorAll<HTMLInputElement>('input[type=number]')];
+  // An error is tied to the boxes it is about (aria-invalid + aria-describedby) and focus moves to the first one.
+  const showError = (text: string) => {
+    msg.textContent = text; msg.className = 'warn-text';
+    const filled = boxes().filter(b => b.value.trim() !== '');
+    const bad = filled.length ? filled : boxes();
+    for (const b of boxes()) { if (bad.includes(b)) { b.setAttribute('aria-invalid', 'true'); b.setAttribute('aria-describedby', 'manual-msg'); } else { b.removeAttribute('aria-invalid'); b.removeAttribute('aria-describedby'); } }
+    bad[0]?.focus();
+  };
   const form = h('form', { class: 'manual', onSubmit: async (e: Event) => {
     e.preventDefault();
     const fd = new FormData(form);
     const val = (k: string) => { const v = String(fd.get(k) ?? '').trim(); return v === '' ? null : Number(v); };
     const entry: ManualEntry = { hall: day.hall, recipeId: it.id, name: it.name, calories: val('calories'), protein: val('protein'), fat: val('fat'), carbs: val('carbs'), enteredAt: new Date().toISOString() };
     const err = checkManual(entry);
-    if (err) { msg.textContent = err; return; }
+    if (err) { showError(err); return; }
     await saveManual([...S.manual.filter(m => !(m.hall === day.hall && m.recipeId === it.id)), entry]);
     render(); announce('Saved. Marked as entered by you.');
   } },

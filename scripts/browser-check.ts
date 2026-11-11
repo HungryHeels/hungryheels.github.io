@@ -77,6 +77,8 @@ for (const name of engines) {
     await p.getByRole('button', { name: 'Vegetarian' }).click();
     await p.waitForSelector('article.meal');
     ok(await p.locator('article.meal').count() === 1, 'one tap from the first question shows a meal');
+    ok(await p.locator('h1').innerText() === 'Meal for Mon, Nov 16', 'heading names the date when it is not today (review fix 1)');
+    ok(await p.evaluate(() => { const b = document.querySelector('[data-fk=idea-next]')!.getBoundingClientRect(); return b.bottom <= innerHeight; }), '"Another idea" is on the first screen (review fix 3)');
     await p.getByRole('link', { name: 'About Hungry Heels' }).click();
     await p.waitForSelector('.landing');
     ok((await p.evaluate(() => location.hash)).includes('about=1') && await p.locator('.quiz [aria-pressed=true]').innerText() === 'Vegetarian', 'footer About link reopens the landing with the current diet marked');
@@ -99,6 +101,14 @@ for (const name of engines) {
     const pills = p.locator('.pills .pill');
     await pills.nth(0).click();
     ok(await pills.nth(0).getAttribute('aria-pressed') === 'true', 'meal switch');
+    await p.locator('[data-fk=date-prev]').focus();
+    await p.keyboard.press('Tab'); const stop2 = await p.evaluate(() => document.activeElement?.getAttribute('data-fk'));
+    const ring2 = await p.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle !== 'none');
+    const wide2 = await p.evaluate(() => document.activeElement!.getBoundingClientRect().width > 120);
+    await p.keyboard.press('Tab'); const stop3 = await p.evaluate(() => document.activeElement?.getAttribute('data-fk'));
+    ok(stop2 === 'date-pick-btn' && stop3 === 'date-next', `date bar has three keyboard stops: ‹, date, › (review fix 2; got ${stop2}, ${stop3})`);
+    ok(ring2, 'the date button shows a focus ring');
+    ok(wide2, 'the date button is laid out across the bar (not squeezed)');
     await p.getByRole('link', { name: 'Menus', exact: true }).click();
     await p.waitForSelector('.item-row');
     ok((await p.evaluate(() => location.hash)).startsWith('#/menus?hall=top-of-lenoir&date=2026-11-17'), 'Menus link keeps the hall and date');
@@ -146,6 +156,10 @@ for (const name of engines) {
     // Update menus: files, folder (with a .txt and an older duplicate), diff, persistence across reload.
     await go('#/menus?view=update');
     ok(await p.locator('.subnav a[aria-current=page]').innerText() === 'Update menus', 'Update menus view');
+    ok((await p.locator('.lede').innerText()).startsWith('Add menu pages you saved'), 'Update menus has its own intro (review fix 6)');
+    ok(await p.locator('h2#data-h').evaluate((e: Element) => e.getBoundingClientRect().width <= 1), 'no repeated visible "Update menus" heading (kept for screen readers only)');
+    const todo = (await p.locator('#next14').innerText()).includes('To do:');
+    ok(await p.locator('#next14-days').evaluate((d: HTMLDetailsElement) => d.open) === todo, 'day-by-day list is open only when something needs saving');
     await p.locator('#pick').setInputFiles(join(dir, 'chase-1112.webarchive'));
     await p.locator('.banner.info', { hasText: /Imported 1 day from 1 saved page/ }).waitFor();
     ok(await p.getByText(/Replaces the built-in copy\. Changed since the earlier save/).isVisible(), 'per-day diff against the built-in copy');
@@ -169,6 +183,11 @@ for (const name of engines) {
     ok(await p.getByText('Nutrition: Official').first().isVisible(), 'official nutrition badge on the meal');
     await p.locator('.plate-row', { hasText: 'Steamed Broccoli' }).click();
     await p.getByText('Enter values from UNC’s item panel').click();
+    await p.locator('.manual input[name=calories]').fill('100'); await p.locator('.manual input[name=protein]').fill('60');
+    await p.getByRole('button', { name: 'Save', exact: true }).click();
+    ok(await p.locator('.manual input[aria-invalid=true][aria-describedby=manual-msg]').count() === 2 && await p.evaluate(() => (document.activeElement as HTMLInputElement)?.name === 'calories'),
+      'a rejected entry marks the boxes invalid, links the message and focuses the first box (review fix 7)');
+    await p.locator('.manual input[name=calories]').fill(''); await p.locator('.manual input[name=protein]').fill('');
     await p.locator('.manual input[name=calories]').fill('35'); await p.locator('.manual input[name=protein]').fill('3');
     await p.getByRole('button', { name: 'Save', exact: true }).click();
     await p.getByText('Nutrition: Entered by you').first().waitFor();
@@ -183,6 +202,10 @@ for (const name of engines) {
     await p.getByRole('button', { name: 'Whole day' }).click();
     ok((await p.evaluate(() => location.hash)).includes('mode=day'), 'whole-day view is in the address');
     ok(await p.locator('.dayplan > li').count() >= 1, 'whole-day plan shows meals');
+    ok(await p.locator('.dayplan .plate-row').count() >= 1, 'whole-day meals use the same dish rows as one meal (review fix 5)');
+    ok(await p.locator('.card.day-total .totals').count() === 1, 'day total sits in a card (review fix 4)');
+    const fc = await p.locator('.day-total').innerText();
+    ok(!/unknown · unknown/.test(fc), 'no "unknown · unknown" in the day total');
     await p.getByRole('link', { name: 'Me', exact: true }).click();
     await p.waitForSelector('#me-diet');
     ok(await p.getByText(/Saved meals \(1\)/).isVisible(), 'saved meal listed on Me');

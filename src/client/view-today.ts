@@ -12,7 +12,7 @@ import { gapReadout, hitsTargets, planDay, toSaved, totalText } from '../core/pl
 import { mealChecklist, reportIssueUrl, staffFlags } from '../core/trust.ts';
 import { compareHalls, plateText, rankHalls } from '../core/discover.ts';
 import { HALL_NAMES, type MenuDay, type MenuItem } from '../core/types.ts';
-import { addDays, formatDate, nyNow } from '../core/schedule.ts';
+import { addDays, formatDate, mealHeading, nyNow } from '../core/schedule.ts';
 
 const kcalLine = (it: MenuItem, k: number) => {
   const n = it.nutrition;
@@ -27,9 +27,33 @@ export function staffBox(m: Meal, skipGeneral = false): HTMLElement | null {
   return h('div', { class: 'staff', role: 'note' }, h('strong', null, '⚠ Confirm with staff'), h('ul', null, f.map(x => h('li', null, x))));
 }
 
+/** The dishes of a meal as rows (name, role, station, calories, source, allergens). Used by one meal and by each meal of the day. */
+function plateList(m: Meal, day: MenuDay, prefix: string): HTMLElement {
+  const open = openItem(day, prefix);
+  const roleOf = (p: Meal['parts'][number]) => (m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : 'Side');
+  return h('ul', { class: 'plate' }, m.parts.map(p => h('li', null,
+    h('button', { type: 'button', class: 'plate-row', 'data-fk': prefix + p.item.id, onClick: () => open(p.item.id) },
+      h('span', { class: 'plate-main' },
+        h('span', { class: 'plate-name' }, p.item.name, p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}×`) : null),
+        h('small', null, `${roleOf(p)} · ${p.station} · ${kcalLine(p.item, p.portions)}`),
+        h('small', null, sourceBadge(p.item), p.item.allergens.length ? h('span', { class: 'plate-allergen' }, ' · Contains ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : null)),
+      h('span', { class: 'chev', 'aria-hidden': 'true' }, '›')))));
+}
+/** Calories and protein tiles, plus fat and carbs: a tile when any value is known, otherwise one short line. */
+function totalsBlock(t: Meal['totals'], prefix: string, alwaysFatCarbs: boolean): Array<HTMLElement | null> {
+  const fcKnown = t.fat.complete || t.fat.min > 0 || t.carbs.complete || t.carbs.min > 0;
+  const showFc = alwaysFatCarbs || !!S.profile.targets.fat || !!S.profile.targets.carbs;
+  return [
+    h('dl', { class: 'totals' },
+      h('div', null, h('dt', null, prefix ? prefix + 'calories' : 'Calories'), h('dd', null, totalText(t.calories, 'calories'))),
+      h('div', null, h('dt', null, prefix ? prefix + 'protein' : 'Protein'), h('dd', null, totalText(t.protein, 'protein'))),
+      showFc && fcKnown ? h('div', null, h('dt', null, 'Fat · Carbs'), h('dd', null, `${totalText(t.fat, 'fat')} · ${totalText(t.carbs, 'carbs')}`)) : null),
+    showFc && !fcKnown ? h('p', { class: 'muted fc-none' }, 'Fat and carbs: not published for these dishes.') : null,
+  ];
+}
+
 function mealCard(m: Meal, day: MenuDay, r: BuildResult, idx: number): HTMLElement {
   const open = openItem(day, 'part:');
-  const roleOf = (p: Meal['parts'][number]) => (m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : 'Side');
   const saved = S.saved.some(s => s.id === savedId(m, day));
   const share = async () => {
     const t = plateText(m, day, S.profile, DISCLAIMER);
@@ -42,17 +66,8 @@ function mealCard(m: Meal, day: MenuDay, r: BuildResult, idx: number): HTMLEleme
   return h('article', { class: 'meal card', 'aria-labelledby': 'meal-h' },
     h('header', { class: 'meal-head' }, h('h2', { id: 'meal-h' }, `${m.period} at ${HALL_NAMES[day.hall]}`),
       m.tier === 'confirmed' ? chip('Fits your rules', 'ok') : chip('Mostly confirmed', 'warn')),
-    h('ul', { class: 'plate' }, m.parts.map(p => h('li', null,
-      h('button', { type: 'button', class: 'plate-row', 'data-fk': 'part:' + p.item.id, onClick: () => open(p.item.id) },
-        h('span', { class: 'plate-main' },
-          h('span', { class: 'plate-name' }, p.item.name, p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}×`) : null),
-          h('small', null, `${roleOf(p)} · ${p.station} · ${kcalLine(p.item, p.portions)}`),
-          h('small', null, sourceBadge(p.item), p.item.allergens.length ? h('span', { class: 'plate-allergen' }, ' · Contains ' + p.item.allergens.map(a => a.replace('_', ' ')).join(', ')) : null)),
-        h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'))))),
-    h('dl', { class: 'totals' },
-      h('div', null, h('dt', null, 'Calories'), h('dd', null, totalText(m.totals.calories, 'calories'))),
-      h('div', null, h('dt', null, 'Protein'), h('dd', null, totalText(m.totals.protein, 'protein'))),
-      S.profile.targets.fat || S.profile.targets.carbs ? h('div', null, h('dt', null, 'Fat · Carbs'), h('dd', null, `${totalText(m.totals.fat, 'fat')} · ${totalText(m.totals.carbs, 'carbs')}`)) : null),
+    plateList(m, day, 'part:'),
+    totalsBlock(m.totals, '', false),
     gapList(gapReadout(m.totals, S.profile.targets)),
     m.unknownNutrition.length ? h('p', { class: 'muted' }, `No published nutrition for ${m.unknownNutrition.join(', ')}, so “+” totals are minimums.`) : null,
     staffBox(m),
@@ -86,10 +101,11 @@ function oneMeal(day: MenuDay): HTMLElement {
     wrap.appendChild(h('p', { class: 'banner info', role: 'status' }, 'No idea meets all your targets with known values, so the closest is shown first. The gaps are listed on the card.'));
   }
   const n = r.meals.length, i = S.idea % n;
-  wrap.appendChild(mealCard(r.meals[i], day, r, i));
-  wrap.appendChild(h('div', { class: 'actions' },
+  // Idea controls sit above the card so "Another idea" is on the first screen of a phone.
+  wrap.appendChild(h('div', { class: 'actions idea-nav' },
     n > 1 ? h('button', { type: 'button', 'aria-label': 'Previous idea', 'data-fk': 'idea-prev', onClick: () => go(() => { S.idea = (i - 1 + n) % n; }, `Idea ${((i - 1 + n) % n) + 1} of ${n}.`) }, '‹ Back') : null,
     h('button', { class: 'primary grow', type: 'button', disabled: n < 2, 'data-fk': 'idea-next', onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, n < 2 ? 'Only idea' : `Another idea (${i + 1} of ${n})`)));
+  wrap.appendChild(mealCard(r.meals[i], day, r, i));
   return wrap;
 }
 
@@ -105,15 +121,13 @@ function wholeDay(day: MenuDay): HTMLElement {
   sec.appendChild(h('ol', { class: 'dayplan' }, plan.slots.map(s => h('li', { class: 'card' },
     h('h2', null, (s.result.period ?? s.period) === s.slot ? s.slot : `${s.slot} · ${s.result.period ?? s.period}`),
     s.meal ? [
-      h('ul', { class: 'mini' }, s.meal.parts.map(x => h('li', null, h('button', { type: 'button', class: 'tlink', 'data-fk': 'plan:' + x.item.id, onClick: () => openItem(day, 'plan:')(x.item.id) }, x.item.name + (x.portions > 1 ? ` ×${x.portions}` : ''))))),
-      h('small', null, `${totalText(s.meal.totals.calories, 'calories')} · ${totalText(s.meal.totals.protein, 'protein')} protein · ${s.meal.tier === 'confirmed' ? '✓ fits' : '△ mostly confirmed'}`),
+      plateList(s.meal, day, 'plan:'),
+      h('p', { class: 'muted' }, `${totalText(s.meal.totals.calories, 'calories')} · ${totalText(s.meal.totals.protein, 'protein')} protein · ${s.meal.tier === 'confirmed' ? '✓ fits your rules' : '△ mostly confirmed'}`),
       staffBox(s.meal, true),
     ] : h('p', { class: 'muted' }, 'Nothing fits your rules for this meal.')))));
-  sec.appendChild(h('dl', { class: 'totals' },
-    h('div', null, h('dt', null, 'Day calories'), h('dd', null, totalText(plan.totals.calories, 'calories'))),
-    h('div', null, h('dt', null, 'Day protein'), h('dd', null, totalText(plan.totals.protein, 'protein'))),
-    h('div', null, h('dt', null, 'Fat · Carbs'), h('dd', null, `${totalText(plan.totals.fat, 'fat')} · ${totalText(plan.totals.carbs, 'carbs')}`))));
-  const g = gapList(plan.gaps); if (g) sec.appendChild(g);
+  sec.appendChild(h('section', { class: 'card day-total', 'aria-labelledby': 'day-total-h' }, h('h2', { id: 'day-total-h' }, 'Day total'),
+    totalsBlock(plan.totals, 'Day ', true), gapList(plan.gaps),
+    plan.totals.calories.complete ? null : h('p', { class: 'muted' }, '“+” means at least: some dishes have no published nutrition.')));
   return sec;
 }
 
@@ -136,7 +150,7 @@ function otherHalls(): HTMLElement {
 export function todayView(): HTMLElement {
   if (!S.onboarded || S.about) return landingView();
   const v = h('div', { class: 'page today' });
-  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, 'Today’s meal'),
+  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, mealHeading(S.date, nyNow().date)),
     h('p', { class: 'lede' }, 'A meal from Chase or Top of Lenoir that fits your rules.')));
   if (S.loading) { v.appendChild(h('p', { class: 'muted', role: 'status' }, 'Loading menus…')); return v; }
   const { el, day } = pickerBar();
@@ -144,7 +158,7 @@ export function todayView(): HTMLElement {
   if (S.seedError) v.appendChild(h('div', { class: 'banner warn' }, S.seedError));
   if (!day || day.noMenuPosted) { v.appendChild(noMenuNotice(day)); return v; }
   const main = h('div', { class: 'main-col' },
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'Show' },
+    h('div', { class: 'seg mode-switch', role: 'group', 'aria-label': 'Show' },
       h('button', { type: 'button', class: S.mode === 'meal' ? 'on' : '', 'aria-pressed': S.mode === 'meal', 'data-fk': 'mode-meal', onClick: () => go(() => { S.mode = 'meal'; }) }, 'One meal'),
       h('button', { type: 'button', class: S.mode === 'day' ? 'on' : '', 'aria-pressed': S.mode === 'day', 'data-fk': 'mode-day', onClick: () => go(() => { S.mode = 'day'; }) }, 'Whole day')),
     S.mode === 'meal' ? oneMeal(day) : wholeDay(day));

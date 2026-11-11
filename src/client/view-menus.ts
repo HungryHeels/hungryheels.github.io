@@ -74,7 +74,9 @@ function browse(day: MenuDay): HTMLElement {
 export function menusView(): HTMLElement {
   const v = h('div', { class: 'page menus' });
   v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, 'Menus'),
-    h('p', { class: 'lede' }, 'Every item on the saved menu, checked against your rules. Tap an item for ingredients, allergens and why.')));
+    h('p', { class: 'lede' }, S.menusView === 'update'
+      ? 'Add menu pages you saved in Safari, see what changed, and check which days still need saving.'
+      : 'Every item on the saved menu, checked against your rules. Tap an item for ingredients, allergens and why.')));
   v.appendChild(h('nav', { class: 'subnav', 'aria-label': 'Menus' },
     h('a', { href: href('menus'), 'aria-current': S.menusView === 'browse' ? 'page' : null }, 'Browse'),
     h('a', { href: href('menus', { view: 'update' }), 'aria-current': S.menusView === 'update' ? 'page' : null }, 'Update menus')));

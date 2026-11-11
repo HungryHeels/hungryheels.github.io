@@ -30,3 +30,12 @@ test('date helpers and coverage (imported / no menu / missing)', () => {
   assert.deepEqual([c.imported, c.noMenu, c.missing], [1, 1, 1]);
   assert.equal(computeMissing([a], 'top-of-lenoir', '2026-11-09', '2026-11-09').missing, 1);
 });
+
+// Bug fixed Nov 11: the Today page said "Today's meal" while showing another day's menu.
+test('BUG: the meal heading names the date unless it really is today (America/New_York)', async () => {
+  const { mealHeading } = await import('../src/core/schedule.ts');
+  assert.equal(mealHeading('2026-11-10', '2026-11-10'), 'Today’s meal');
+  assert.equal(mealHeading('2026-11-11', '2026-11-10'), 'Tomorrow’s meal · Wed, Nov 11');
+  assert.equal(mealHeading('2026-11-16', '2026-11-10'), 'Meal for Mon, Nov 16');
+  assert.equal(mealHeading('2026-11-09', '2026-11-10'), 'Meal for Mon, Nov 9');
+});

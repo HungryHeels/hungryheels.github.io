@@ -59,3 +59,11 @@ export function formatSaved(iso: string | null): string {
   if (!iso) return 'unknown time';
   return new Intl.DateTimeFormat('en-US', { timeZone: TZ, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(iso)) + ' ET';
 }
+
+/** Heading for the meal page. "Today's meal" only when the date really is today in New York; otherwise the date,
+ *  so another day's menu is never mistaken for today's. */
+export function mealHeading(date: string, today: string): string {
+  if (date === today) return 'Today’s meal';
+  if (date === addDays(today, 1)) return `Tomorrow’s meal · ${formatDate(date)}`;
+  return `Meal for ${formatDate(date)}`;
+}

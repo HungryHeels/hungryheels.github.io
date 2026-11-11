@@ -49,15 +49,17 @@ function checklist(): HTMLElement {
   for (const r of rows) (by.get(r.date) ?? by.set(r.date, []).get(r.date)!).push(r);
   return h('div', { class: 'group pad', id: 'next14' }, h('h3', null, 'Next 14 days'),
     h('p', null, need.length ? `${c.ok} of ${rows.length} hall-days are saved and current. To do: ${c.missing} missing, ${c.stale} stale, ${c.no_menu} with no menu posted.` : `All ${rows.length} hall-days for the next two weeks are saved and current.`),
+    // The day-by-day table opens by itself only when something needs saving; otherwise it is one line.
+    h('details', { class: 'more', id: 'next14-days', ...(need.length ? { open: true } : {}) }, h('summary', null, 'Day by day'),
     h('div', { class: 'tablewrap' }, h('table', null, h('caption', null, `What to save, ${formatDate(today)} to ${formatDate(rows[rows.length - 1].date)}`),
       h('thead', null, h('tr', null, h('th', { scope: 'col' }, 'Date'), h('th', { scope: 'col' }, 'Chase'), h('th', { scope: 'col' }, 'Top of Lenoir'))),
       h('tbody', null, [...by.entries()].map(([date, rs]) => h('tr', null, h('th', { scope: 'row' }, formatDate(date)),
-        rs.map(r => h('td', { title: r.text }, statusChip(r), r.status === 'stale' ? h('small', { class: 'block' }, r.text.split(';')[0]) : null))))))),
+        rs.map(r => h('td', { title: r.text }, statusChip(r), r.status === 'stale' ? h('small', { class: 'block' }, r.text.split(';')[0]) : null)))))))),
     h('p', { class: 'muted' }, 'Stale = saved 7 or more days before a date that hasn’t happened yet; menus can change, so re-save it. Dates come from inside each page (America/New_York).'));
 }
 
 export function dataSection(): HTMLElement {
-  const sec = h('section', { class: 'update', 'aria-labelledby': 'data-h' }, h('h2', { id: 'data-h' }, 'Update menus'));
+  const sec = h('section', { class: 'update', 'aria-labelledby': 'data-h' }, h('h2', { id: 'data-h', class: 'sr' }, 'Update menus'));
   const fileInput = h('input', { type: 'file', id: 'pick', multiple: true, accept: '.webarchive,.html,.htm', class: 'sr', onChange: (e: Event) => { const el = e.target as HTMLInputElement; if (el.files) void handle(filesFromInput(el.files)); } });
   const dirInput = h('input', { type: 'file', id: 'pick-dir', multiple: true, class: 'sr', onChange: (e: Event) => { const el = e.target as HTMLInputElement; if (el.files) void handle(filesFromInput(el.files)); } });
   dirInput.setAttribute('webkitdirectory', ''); dirInput.setAttribute('directory', '');
