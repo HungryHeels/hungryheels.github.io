@@ -10,5 +10,7 @@ Hard rules (never break):
 - UNC's own labels can contradict its allergen list (real examples exist). Allergen declarations and ingredient lists override labels.
 - All dates/times are America/New_York.
 
-Workflow: `npm install`, `npm run check` (typecheck + tests), `npm run build` (regenerates index.html and HungryHeels.html; commit them). `npm run build:seed -- <folder of saved pages>` regenerates src/client/seed-data.ts.
+Workflow: `npm install`, `npm run check` (typecheck + tests), `npm run build` (regenerates index.html, HungryHeels.html, web/, sw.js, manifest.webmanifest, icon.svg; commit them), `npm run e2e` (Playwright browser checks; Chromium by default). `npm run build:seed -- <folder of saved pages>` regenerates src/client/seed-data.ts.
 Add a test for every bug you fix.
+Safe phrases in src/core/foods.ts are scoped per food category; never make one apply to an allergen it contains.
+Layout: src/core (engine, meals, plan, trust, refresh, discover, profile-io), src/sources (page + nutrition parsing), src/client (app.ts shell, view-*.ts per screen).
