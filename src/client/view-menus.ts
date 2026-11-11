@@ -6,6 +6,8 @@ import { chip, kcalLine, provenanceLine, useEst } from './ui.ts';
 import { effective } from '../core/estimate.ts';
 import { dataSection } from './view-data.ts';
 import { href, noMenuNotice, openItem, pickerBar } from './view-common.ts';
+import { sprite } from './mascot.ts';
+import { keywordSprite } from './art.ts';
 import { evaluateItem } from '../core/engine.ts';
 import { nutritionBadge } from '../sources/nutrition-import.ts';
 import type { MenuDay, MenuItem } from '../core/types.ts';
@@ -44,9 +46,12 @@ function browse(day: MenuDay): HTMLElement {
     if (S.sortBy === 'station') {
       const groups = new Map<string, Row[]>();
       for (const r of rows) (groups.get(r.st) ?? groups.set(r.st, []).get(r.st)!).push(r);
-      for (const [st, rs] of groups) list.appendChild(h('section', { class: 'station-group' }, h('h2', { class: 'station' }, st), h('ul', { class: 'list' }, rs.map(rowEl))));
+      for (const [st, rs] of groups) {
+        const g = keywordSprite(st);   // a picture only when the station name clearly names the food
+        list.appendChild(h('section', { class: 'station-group' }, h('h2', { class: 'station' }, g ? sprite(g, 'glyph glyph-sm') : null, st), h('ul', { class: 'list' }, rs.map(rowEl))));
+      }
     } else if (rows.length) list.appendChild(h('ul', { class: 'list' }, rows.map(rowEl)));
-    if (!rows.length) list.appendChild(h('p', { class: 'muted' }, 'Nothing matches these filters.'));
+    if (!rows.length) list.appendChild(h('div', { class: 'empty-list' }, sprite('plate', 'glyph glyph-lg'), h('p', { class: 'muted' }, 'Nothing matches these filters.')));
   };
   const q = h('input', { type: 'search', id: 'item-search', placeholder: 'e.g. tofu, chicken, rice', value: S.search });
   q.addEventListener('input', () => { S.search = q.value; draw(); });

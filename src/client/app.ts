@@ -11,6 +11,8 @@ import { meView } from './view-me.ts';
 import { sheetView } from './view-sheet.ts';
 import { profileSummary } from './views.ts';
 import { DISCLAIMER } from './ui.ts';
+import { headerMascot } from './mascot.ts';
+import { quadSvg } from './art.ts';
 import { profileFromHash } from '../core/profile-io.ts';
 import { REPO_ISSUES } from '../core/trust.ts';
 import { nyNow } from '../core/schedule.ts';
@@ -77,7 +79,8 @@ function closeSheetImpl() {
 function header(): HTMLElement {
   const link = (p: Page) => h('a', { href: routeHash({ ...stateRoute(), page: p, item: undefined, view: undefined, mode: undefined, about: undefined }), class: 'nav-link', 'aria-current': S.page === p ? 'page' : null, 'data-fk': 'nav:' + p }, PAGE_TITLES[p]);
   return h('header', { class: 'site-header' }, h('div', { class: 'wrap header-in' },
-    h('a', { class: 'brand', href: routeHash({ page: 'today' }) }, h('span', { class: 'brand-name' }, 'Hungry Heels'), h('span', { class: 'brand-tag' }, 'Unofficial')),
+    h('div', { class: 'brand-row' }, headerMascot(S.loading ? 'think' : 'idle'),
+      h('a', { class: 'brand', href: routeHash({ page: 'today' }) }, h('span', { class: 'brand-name' }, 'Hungry Heels'), h('span', { class: 'brand-tag' }, 'Unofficial'))),
     h('nav', { class: 'site-nav', 'aria-label': 'Main' }, link('today'), link('menus'), link('me'))));
 }
 function footer(): HTMLElement {
@@ -90,6 +93,12 @@ function footer(): HTMLElement {
       h('li', null, h('a', { href: routeHash({ page: 'menus', view: 'update' }) }, 'Update menus')),
       h('li', null, h('a', { href: REPO_ISSUES, target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem')),
       h('li', null, h('a', { href: REPO, target: '_blank', rel: 'noopener noreferrer' }, 'Source code')))));
+}
+/** Decorative campus-quad band under the header (built once; a thin strip on phones). */
+let quadEl: HTMLElement | null = null;
+function quad(): HTMLElement {
+  if (!quadEl) { quadEl = h('div', { class: 'quad', 'aria-hidden': 'true' }); quadEl.innerHTML = quadSvg(); }
+  return quadEl;
 }
 function banners(): Array<HTMLElement | null> {
   const inc = S.incoming;
@@ -113,7 +122,7 @@ function render() {
   clear(root);
   const main = h('main', { id: 'main', class: 'wrap', tabindex: '-1' }, ...banners(), S.page === 'today' ? todayView() : S.page === 'menus' ? menusView() : meView());
   const head = header(), foot = footer();
-  root.append(head, main, foot);
+  root.append(head, quad(), main, foot);
   document.title = S.page === 'today' && (S.about || !S.onboarded) ? 'Hungry Heels (unofficial): one dining-hall meal that fits how you eat' : `${PAGE_TITLES[S.page]} · Hungry Heels (unofficial)`;
   const pill = root.querySelector('.pills .pill.on') as HTMLElement | null;   // keep the chosen meal visible in the scrolling row
   if (pill?.parentElement && pill.parentElement.scrollWidth > pill.parentElement.clientWidth) { const lead = (pill.previousElementSibling as HTMLElement | null) ?? pill; pill.parentElement.scrollLeft = lead.offsetLeft - pill.parentElement.offsetLeft; }

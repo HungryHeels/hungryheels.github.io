@@ -6,6 +6,7 @@ import { S, allDays, setPattern } from './state.ts';
 import { go } from './nav.ts';
 import { DISCLAIMER } from './ui.ts';
 import { href } from './view-common.ts';
+import { figure } from './mascot.ts';
 import { routeHash } from './router.ts';
 import { computeMissing } from '../core/validate.ts';
 import { PATTERN_DEFINITIONS, PATTERN_LABELS, type PatternId } from '../core/profile.ts';
@@ -71,7 +72,8 @@ export function landingView(): HTMLElement {
             ? h('a', { class: 'btn primary', href: routeHash({ page: 'today' }) }, 'Back to my meal')
             : h('button', { type: 'button', class: 'primary', onClick: findMeal }, 'Find my meal'),
           h('a', { class: 'btn', href: href('menus') }, 'Browse the full menu')),
-        h('p', { class: 'muted' }, 'Unofficial. Not affiliated with UNC or Carolina Dining Services.')),
+        h('p', { class: 'muted unofficial-note' }, 'Unofficial. Not affiliated with UNC or Carolina Dining Services.'),
+        figure('wave', 'hero-fig')),
       dietQuestion()),
 
     h('section', { class: 'band', 'aria-labelledby': 'how-h' }, h('h2', { id: 'how-h' }, 'How it works'),

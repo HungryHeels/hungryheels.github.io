@@ -6,18 +6,30 @@
   --bg:#f4f5f7; --card:#ffffff; --text:#13294b; --muted:#4f5b6e; --line:#d5dbe6; --accent:#1b5c8c; --accent-text:#ffffff; --carolina:#7bafd4;
   --ok-bg:#e3f3e8; --ok:#14612f; --warn-bg:#fff1d6; --warn:#6e4300; --bad-bg:#fde6e6; --bad:#8c1d1d; --info-bg:#e6eff8; --info:#13294b;
   --focus:#0b57d0; --shadow:0 1px 2px rgba(19,41,75,.12); --row-hi:#eaf2fb;
+  /* Carolina-blue-style theme (generic colors, no marks): light blue fills with navy text; deeper blue for edges. */
+  --navy:#13294b; --carolina-edge:#4a86b8; --warm:#f6f1e8; --primary:#7bafd4; --primary-text:#13294b; --primary-hover:#6aa3cc;
+  --say-bg:#13294b; --say-text:#ffffff;
+  /* Art (decorative, aria-hidden): mascot, food sprites, quad band */
+  --m-ink:#13294b; --m-limb:#13294b; --m-fork:#7d8796; --m-sole:#ffffff; --m-cheek:#f2a7a0; --s-ink:#13294b;
+  --q-sky:#d3e6f4; --q-cloud:#ffffff; --q-grass:#86b36f; --q-oak:#3f7a4a; --q-oak2:#2f6340; --q-trunk:#6b4a33; --q-brick:#b5523b; --q-joint:#e8c4b5; --q-post:#13294b; --q-light:#fff4d0;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme=light]){ --bg:#0b1322; --card:#16233b; --text:#eef3fa; --muted:#aab8cd; --line:#2c3d5c; --accent:#7bafd4; --accent-text:#0b1322;
-    --ok-bg:#12351f; --ok:#9ee0b4; --warn-bg:#40300d; --warn:#ffd88a; --bad-bg:#431818; --bad:#ffb4b4; --info-bg:#1b2c48; --info:#dce8f7; --focus:#9cc3ff; --shadow:none; --row-hi:#1d3150; color-scheme: dark; }
+    --ok-bg:#12351f; --ok:#9ee0b4; --warn-bg:#40300d; --warn:#ffd88a; --bad-bg:#431818; --bad:#ffb4b4; --info-bg:#1b2c48; --info:#dce8f7; --focus:#9cc3ff; --shadow:none; --row-hi:#1d3150; color-scheme: dark;
+    --carolina-edge:#7bafd4; --warm:#1f2a3d; --primary:#7bafd4; --primary-text:#0b1322; --primary-hover:#8fbcdc; --say-bg:#dce8f7; --say-text:#13294b;
+    --m-ink:#0b1322; --m-limb:#dce8f7; --m-fork:#c3cddb; --m-sole:#eef3fa; --s-ink:#dce8f7;
+    --q-sky:#1b2c48; --q-cloud:#2a3f61; --q-grass:#1f3d2b; --q-oak:#2f5e3d; --q-oak2:#244a31; --q-trunk:#4a3426; --q-brick:#7a3b2c; --q-joint:#a2614f; --q-post:#aab8cd; --q-light:#ffd88a; }
 }
 :root[data-theme=dark]{ --bg:#0b1322; --card:#16233b; --text:#eef3fa; --muted:#aab8cd; --line:#2c3d5c; --accent:#7bafd4; --accent-text:#0b1322;
-  --ok-bg:#12351f; --ok:#9ee0b4; --warn-bg:#40300d; --warn:#ffd88a; --bad-bg:#431818; --bad:#ffb4b4; --info-bg:#1b2c48; --info:#dce8f7; --focus:#9cc3ff; --shadow:none; --row-hi:#1d3150; color-scheme: dark; }
+  --ok-bg:#12351f; --ok:#9ee0b4; --warn-bg:#40300d; --warn:#ffd88a; --bad-bg:#431818; --bad:#ffb4b4; --info-bg:#1b2c48; --info:#dce8f7; --focus:#9cc3ff; --shadow:none; --row-hi:#1d3150; color-scheme: dark;
+   --carolina-edge:#7bafd4; --warm:#1f2a3d; --primary:#7bafd4; --primary-text:#0b1322; --primary-hover:#8fbcdc; --say-bg:#dce8f7; --say-text:#13294b;
+    --m-ink:#0b1322; --m-limb:#dce8f7; --m-fork:#c3cddb; --m-sole:#eef3fa; --s-ink:#dce8f7;
+    --q-sky:#1b2c48; --q-cloud:#2a3f61; --q-grass:#1f3d2b; --q-oak:#2f5e3d; --q-oak2:#244a31; --q-trunk:#4a3426; --q-brick:#7a3b2c; --q-joint:#a2614f; --q-post:#aab8cd; --q-light:#ffd88a; }
 /* High contrast, both themes: darker text, stronger borders, no soft greys. */
-:root[data-contrast=high]{ --muted:#1f2a3a; --line:#5b6b84; --text:#000000; --accent:#0a3d66; --ok:#0b4a22; --warn:#4d2f00; --bad:#6b0f0f; --focus:#000000; }
-@media (prefers-color-scheme: dark){ :root[data-contrast=high]:not([data-theme=light]){ --bg:#000000; --card:#0b0f17; --text:#ffffff; --muted:#e6edf7; --line:#9fb3cf; --accent:#a9d1f0; --ok:#c4f5d4; --warn:#ffe7b0; --bad:#ffd0d0; --focus:#ffffff; } }
-:root[data-theme=dark][data-contrast=high]{ --bg:#000000; --card:#0b0f17; --text:#ffffff; --muted:#e6edf7; --line:#9fb3cf; --accent:#a9d1f0; --ok:#c4f5d4; --warn:#ffe7b0; --bad:#ffd0d0; --focus:#ffffff; }
+:root[data-contrast=high]{ --muted:#1f2a3a; --line:#5b6b84; --text:#000000; --accent:#0a3d66; --ok:#0b4a22; --warn:#4d2f00; --bad:#6b0f0f; --focus:#000000; --primary:#0a3d66; --primary-text:#ffffff; --primary-hover:#082f4f; --carolina-edge:#0a3d66; --warm:#ffffff; }
+@media (prefers-color-scheme: dark){ :root[data-contrast=high]:not([data-theme=light]){ --bg:#000000; --card:#0b0f17; --text:#ffffff; --muted:#e6edf7; --line:#9fb3cf; --accent:#a9d1f0; --ok:#c4f5d4; --warn:#ffe7b0; --bad:#ffd0d0; --focus:#ffffff; --primary:#a9d1f0; --primary-text:#000000; --primary-hover:#c6e1f5; --carolina-edge:#a9d1f0; --warm:#0b0f17; } }
+:root[data-theme=dark][data-contrast=high]{ --bg:#000000; --card:#0b0f17; --text:#ffffff; --muted:#e6edf7; --line:#9fb3cf; --accent:#a9d1f0; --ok:#c4f5d4; --warn:#ffe7b0; --bad:#ffd0d0; --focus:#ffffff; --primary:#a9d1f0; --primary-text:#000000; --primary-hover:#c6e1f5; --carolina-edge:#a9d1f0; --warm:#0b0f17; }
 :root[data-contrast=high] button,:root[data-contrast=high] .btn,:root[data-contrast=high] input,:root[data-contrast=high] select{border-width:2px}
 :root[data-text=large]{zoom:1.18}
 
@@ -246,7 +258,7 @@ body.sheet-open{overflow:hidden}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 @media print{
   body{background:#fff;color:#000}
-  .site-header,.site-footer .footer-links,.picker,.meal-actions,.actions,.more,.filters,.subnav,.toc,.flash{display:none!important}
+  .site-header,.quad,.site-footer .footer-links,.picker,.meal-actions,.actions,.more,.filters,.subnav,.toc,.flash{display:none!important}
   .card{box-shadow:none;border-color:#999}
   :root{--bg:#fff;--card:#fff;--text:#000;--muted:#333;--line:#999}
 }
@@ -307,3 +319,92 @@ body.sheet-open{overflow:hidden}
 .nutri div.est dd{font-weight:600}
 .contrib td.est{font-style:italic}
 .est-note{font-size:var(--fs-sm);background:var(--info-bg);color:var(--info);border-radius:var(--r2);padding:var(--s2) var(--s3);margin:0}
+
+/* ---------- Carolina-blue theme and original art (DESIGN.md › Imagery) ---------- */
+/* Primary actions: light-blue fill, navy text (6.2:1), deeper-blue edge so the shape reads on white (3.9:1). */
+.primary{background:var(--primary);color:var(--primary-text);border-color:var(--carolina-edge)}
+.primary:hover{background:var(--primary-hover);border-color:var(--text)}
+.nav-link[aria-current=page]{border-bottom-color:var(--carolina-edge);font-weight:700}
+.brand-row{display:flex;align-items:center;gap:var(--s1)}
+@media (max-width:759px){.header-in{row-gap:0}}   /* the mascot makes the brand row 44px; keep the meal as high as before */
+.brand-tag{color:var(--text);background:var(--warm);border-color:var(--carolina-edge)}
+.meal.card{border-top:4px solid var(--carolina)}
+.totals div,.nutri div{background:var(--warm)}
+.nutri div.est{background:transparent}
+.site-footer{background:var(--warm)}
+
+/* Mascot: a real button in the header. Poses swap instantly; movement is extra and off with reduced motion. */
+.mascot{position:relative;display:inline-flex;flex:none}
+.mascot-btn{width:44px;height:44px;min-height:44px;padding:0;border:none;border-radius:50%;background:transparent}
+.mascot-btn:hover{background:var(--sel-bg)}
+.mascot-fig{display:block;width:40px;height:40px;transition:transform .12s ease-out}
+.mascot-btn:active .mascot-fig{transform:scale(.9)}
+.mascot-fig svg,.empty-fig svg,.loading-fig svg,.hero-fig svg,.glyph svg{display:block;width:100%;height:100%;overflow:visible}
+.mascot-say{position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:max-content;max-width:min(260px,calc(100vw - 32px));background:var(--say-bg);color:var(--say-text);
+  font-size:var(--fs-sm);font-weight:600;line-height:1.35;padding:var(--s2) var(--s3);border-radius:var(--r2);pointer-events:none}
+.mascot-say::before{content:"";position:absolute;left:16px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:var(--say-bg)}
+.mascot-say[hidden]{display:none}
+@keyframes hh-hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-7px) rotate(-5deg)}55%{transform:translateY(0)}75%{transform:translateY(-3px) rotate(3deg)}}
+@keyframes hh-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-20deg)}50%{transform:rotate(12deg)}75%{transform:rotate(-14deg)}}
+@keyframes hh-think{0%,100%{opacity:.3}50%{opacity:1}}
+.mascot.is-hop .mascot-svg{animation:hh-hop .8s ease-out}
+.m-wave-arm{transform-box:view-box;transform-origin:12px 29px}
+.mascot.is-wave .m-wave-arm{animation:hh-wave .55s ease-in-out 2}
+.pose-think .m-dot{animation:hh-think 1.2s ease-in-out infinite}
+.pose-think .m-dot:nth-child(2){animation-delay:.2s} .pose-think .m-dot:nth-child(3){animation-delay:.4s}
+
+.m-sole,.m-toe{fill:var(--m-sole);stroke:var(--m-ink);stroke-width:1.4;stroke-linejoin:round}
+.m-upper{fill:var(--carolina);stroke:var(--m-ink);stroke-width:1.6;stroke-linejoin:round}
+.m-band,.m-ink{fill:var(--m-ink)}
+.m-shine{fill:#fff}
+.m-line,.m-lace,.m-mouth{fill:none;stroke:var(--m-ink);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.m-mouth.m-open{fill:var(--m-ink)}
+.m-cheek{fill:var(--m-cheek);opacity:.85}
+.m-limb{fill:none;stroke:var(--m-limb);stroke-width:2.2;stroke-linecap:round}
+.m-hand,.m-foot,.m-dot{fill:var(--m-limb)}
+.m-fork{fill:none;stroke:var(--m-fork);stroke-width:1.6;stroke-linecap:round}
+
+/* Food sprites: course and station glyphs, always next to words, always aria-hidden. Subtle press feedback. */
+.glyph{flex:none;display:inline-block;width:32px;height:32px}
+.glyph svg{transition:transform .12s ease-out}
+.glyph-sm{width:20px;height:20px}
+.glyph-lg{width:56px;height:56px}
+.plate-row{gap:var(--s3)}
+.plate-row:active .glyph svg{transform:scale(.86) rotate(-6deg)}
+.station{display:flex;align-items:center;gap:var(--s2)}
+.sprite *{stroke-linejoin:round;stroke-linecap:round}
+.s-ink{fill:none;stroke:var(--s-ink);stroke-width:1.8}
+.s-plate,.s-cup{fill:#fff;stroke:var(--s-ink);stroke-width:1.5}
+.s-plate-in{fill:none;stroke:var(--carolina);stroke-width:1.5}
+.s-bowl{fill:var(--carolina);stroke:var(--s-ink);stroke-width:1.5}
+.s-band{fill:var(--carolina)}
+.s-food{fill:#f3d9a4;stroke:var(--s-ink);stroke-width:1.2}
+.s-steam{fill:none;stroke:var(--muted);stroke-width:1.5}
+.s-apple{fill:#d9534f;stroke:var(--s-ink);stroke-width:1.4}
+.s-leaf{fill:#5c9e4e;stroke:var(--s-ink);stroke-width:1.2} .s-leaf2{fill:#7dbb5f;stroke:var(--s-ink);stroke-width:1.2}
+.s-shine{fill:#fff;opacity:.6} .s-tomato{fill:#e0574a}
+.s-bun{fill:#e2a95a;stroke:var(--s-ink);stroke-width:1.4} .s-patty{fill:#7a4a2b;stroke:var(--s-ink);stroke-width:1.4} .s-seed{fill:none;stroke:#fff6e0;stroke-width:1.2}
+.s-cheese{fill:#f6d06b;stroke:var(--s-ink);stroke-width:1.4} .s-crust{fill:#d99a4e;stroke:var(--s-ink);stroke-width:1.2} .s-pep{fill:#c9473a}
+
+/* Landing: the notice stays readable at full strength; a static mascot fills the hero's spare space on desktop only. */
+.unofficial-note{color:var(--text);font-weight:600}
+.hero-fig{display:none}
+@media (min-width:960px){.hero-fig{display:block;width:120px;height:128px;margin-top:var(--s3)}}
+
+/* Empty and loading states */
+.empty{display:grid;justify-items:start;gap:var(--s2)}
+.empty-fig{display:block;width:88px;height:88px}
+.loading{display:flex;align-items:center;gap:var(--s3)}
+.loading-fig{display:block;width:56px;height:56px;flex:none}
+.empty-list{display:grid;justify-items:center;text-align:center;padding:var(--s5) var(--s4)}
+
+/* Campus quad band: generic (trees, lawn, brick walk, no buildings). A thin strip on phones. */
+.quad{height:64px;overflow:hidden;line-height:0;border-bottom:1px solid var(--line)}
+.quad svg{display:block;width:100%;height:100%}
+@media (max-width:959px){.quad{height:40px}}
+@media (max-width:759px){.quad{height:14px}}
+.q-sky{fill:var(--q-sky)} .q-cloud{fill:var(--q-cloud)} .q-grass{fill:var(--q-grass)} .q-oak{fill:var(--q-oak)} .q-oak2{fill:var(--q-oak2)} .q-trunk{fill:var(--q-trunk)}
+.q-brick{fill:var(--q-brick)} .q-joint{fill:none;stroke:var(--q-joint);stroke-width:1.5;stroke-dasharray:14 8}
+.q-post{stroke:var(--q-post);stroke-width:2.5} .q-light{fill:var(--q-light)}
+:root[data-contrast=high] .quad{display:none}
+@media print{.mascot,.quad{display:none!important}}

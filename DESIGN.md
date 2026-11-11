@@ -12,9 +12,14 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. Navy and 
 | `--text` | `#13294b` | `#eef3fa` | Body text and headings |
 | `--muted` | `#4f5b6e` | `#aab8cd` | Secondary text (≥ 4.5:1 on `--card` and `--bg`) |
 | `--line` | `#d5dbe6` | `#2c3d5c` | Borders and dividers |
-| `--accent` | `#1b5c8c` | `#7bafd4` | **Primary:** buttons, links, selected state |
-| `--accent-text` | `#ffffff` | `#0b1322` | Text on primary |
-| `--carolina` | `#7bafd4` | `#7bafd4` | **The one accent:** portion badges and the active-nav underline only |
+| `--accent` | `#1b5c8c` | `#7bafd4` | Links, selected-option outline, switches |
+| `--accent-text` | `#ffffff` | `#0b1322` | Text on `--accent` |
+| `--carolina` | `#7bafd4` | `#7bafd4` | **Brand light blue:** portion badges, meal-card top stripe, art fills. Never text on white (2.35:1) |
+| `--carolina-edge` | `#4a86b8` | `#7bafd4` | Deeper light blue for marks and edges that must read on white: active-nav underline, primary button border, "Unofficial" tag border (3.89:1 on white, 3.57:1 on `--bg`) |
+| `--primary` / `--primary-text` | `#7bafd4` / `#13294b` | `#7bafd4` / `#0b1322` | **Primary action:** light-blue fill with navy text (6.17:1 light, 7.89:1 dark). Hover `--primary-hover` `#6aa3cc` / `#8fbcdc` (5.34:1 / 9.19:1) |
+| `--navy` | `#13294b` | `#13294b` | Fixed deep navy (same value as light `--text`) |
+| `--warm` | `#f6f1e8` | `#1f2a3d` | Warm neutral: total and nutrition tiles, footer, "Unofficial" tag. `--text` 12.90:1 / 12.93:1, `--muted` 6.11:1 / 7.17:1 |
+| `--say-bg` / `--say-text` | `#13294b` / `#ffffff` | `#dce8f7` / `#13294b` | Mascot speech bubble (14.52:1 / 11.70:1) |
 | `--badge-text` | `#13294b` | `#13294b` | Text on `--carolina` (stays dark in both themes for contrast) |
 | `--overlay` | `rgba(0,0,0,.45)` | same | Dims the page behind dish details |
 | `--ok` / `--ok-bg` | `#14612f` / `#e3f3e8` | `#9ee0b4` / `#12351f` | Fits, passed |
@@ -23,7 +28,9 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. Navy and 
 | `--bad` / `--bad-bg` | `#8c1d1d` / `#fde6e6` | `#ffb4b4` / `#431818` | Not for you, removed |
 | `--focus` | `#0b57d0` | `#9cc3ff` | Focus ring |
 
-High contrast (`data-contrast=high`) darkens `--muted`, `--line` and the status colors and doubles control borders, in both themes. Status is never color alone: every status also has a symbol (✓ △ ✕ ?) and a word.
+High contrast (`data-contrast=high`) darkens `--muted`, `--line` and the status colors, doubles control borders, turns primary buttons solid (`#0a3d66`/white 11.2:1; dark `#a9d1f0`/black 13.1:1) and hides the campus band, in both themes.
+Art colors (`--m-*` mascot, `--s-ink` sprites, `--q-*` campus band) are tokens too, with dark values; they are decorative and carry no meaning.
+Every text pair above was checked for WCAG AA, and a computed sweep of all visible text on Landing, Today, Menus, Me and dish details passes in both themes (lowest 6.09:1 light, 5.55:1 dark). Status is never color alone: every status also has a symbol (✓ △ ✕ ?) and a word.
 
 ## Typography
 System UI stack only (no web fonts, no outbound requests): `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`. Tabular numbers in tables.
@@ -50,8 +57,8 @@ Weights: 400 body, 600 labels and buttons, 700 headings and dish names. Paragrap
 Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segmented control uses `--r2` minus its 3px inset), `--r3` 14 (cards, panels), pill (999px) for chips, pills and badges. One shadow, `--shadow: 0 1px 2px rgba(19,41,75,.12)`, cards only; none in dark mode.
 
 ## Components
-- **Header:** white bar, sticky; the name "Hungry Heels" + "Unofficial" tag on the left, three text links (Today, Menus, Me) on the right. The active link is bold with a 3px `--carolina` underline and `aria-current="page"`. No bottom tab bar.
-- **Buttons:** primary (filled `--accent`; at most one per view, and not used for “Another idea”), secondary (card background, `--line` border), quiet (text link style). Min 44px tall. Hover darkens the border; focus shows the 3px `--focus` ring; disabled is 55% opacity with a not-allowed cursor.
+- **Header:** white bar, sticky; the mascot button, the name "Hungry Heels" + "Unofficial" tag on the left, three text links (Today, Menus, Me) on the right. The active link is bold with a 3px `--carolina-edge` underline and `aria-current="page"`. No bottom tab bar. Under it, the decorative campus band (64px desktop, 40px tablet, a 14px strip on phones; not sticky).
+- **Buttons:** primary (`--primary` light-blue fill, navy text, `--carolina-edge` border; at most one per view, and not used for “Another idea”), secondary (card background, `--line` border), quiet (text link style). Min 44px tall. Hover darkens the border; focus shows the 3px `--focus` ring; disabled is 55% opacity with a not-allowed cursor.
 - **Selected options** (segmented controls, meal pills): `--sel-bg` tint, 2px `--accent` inset outline and a ✓, never the filled primary style.
 - **Links:** `--accent`, underlined in body text; nav links not underlined until hover.
 - **Inputs and selects:** 44px, `--r1`, `--line` border, `--bg` fill, visible label above.
@@ -63,4 +70,11 @@ Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segm
 An estimated number always starts with “~” and sits next to the word “estimate” (cell label, list line or total label). Estimated nutrition cells use a dashed `--muted` border and no fill, so they never look like published numbers. The dish details explain the basis in an `--info-bg` note. Totals that include an estimate use “~”; totals of published numbers only never do.
 
 ## Imagery and icons
-No photos, illustrations or emoji icons. Text symbols only where they carry meaning (✓ △ ✕ ? ‹ › ★ ☆), always with a text label nearby. The site icon (`src/pwa/icon.svg`) is a plain fork-and-plate mark, not a UNC mark.
+No photos or emoji icons. Text symbols only where they carry meaning (✓ △ ✕ ? ‹ › ★ ☆), always with a text label nearby. The site icon (`src/pwa/icon.svg`) is a plain fork-and-plate mark, not a UNC mark.
+
+Original inline SVG art lives in `src/client/art.ts` (drawn for this project; colors from tokens; no lettering, no external references; `test/art.test.ts` guards this). **Never** add or imitate a UNC mark: no Old Well or any domed or columned campus landmark, no ram, no Tar Heel foot or footprint, no interlocking monogram, no wordmark or official font, nothing traced from unc.edu.
+- **Mascot, the "Hungry Heel":** a high-top sneaker (not a foot) with a face, stick legs and a fork. Poses: idle, wave, think (loading), happy (a new meal was built), sad/shrug ("No meal fits today"). In the header it is a real `button` ("Hungry Heel mascot: tap to say hello"): a tap waves and shows a short line, also announced in the live region. It hops once per new meal and shows the thinking pose while menus load. Elsewhere (loading, empty state, landing hero on desktop) it is `aria-hidden`.
+- **Food sprites:** plate, bowl, fruit, salad, burger, pizza slice, coffee. Course glyphs on dish rows (by dish name, then station, else plate for a main and bowl for a side), station glyphs on Menus only when the station name names that food, and the empty-list picture. Always `aria-hidden`, always beside words, never meaning on their own. A dish row press scales its glyph slightly.
+- **Campus band:** sky, round oaks, lamp posts, lawn and a brick walk. Generic: no buildings, no landmark.
+- **Motion:** wave, hop, thinking dots and press feedback only, all under 1.2 s. Nothing waits for an animation. With `prefers-reduced-motion` the poses still change but nothing moves.
+- **Copy:** friendly and local through the hall names already used (Chase, Lenoir). No university slogans, and the mascot never says anything about safety or allergies.
