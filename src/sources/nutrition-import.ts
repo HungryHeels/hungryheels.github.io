@@ -3,7 +3,8 @@ import { implausible, normalizeName } from '../core/borrow.ts';
 
 // Nutrition from sources other than the saved page, applied in layers on top of what the page (plus the
 // Eat UNC borrow) gave us. Highest wins: official export > entered by you > Eat UNC (third party).
-// Nothing is ever estimated: a value is either copied from one of these sources or stays null ("unknown").
+// Published values only: a value is copied from one of these sources or stays null. Estimates live separately in
+// nutrition.estimate (core/estimate.ts) and never overwrite these fields.
 
 export interface OfficialRow { hall: HallId | null; name: string; recipeId: string | null; calories: number | null; protein: number | null; fat: number | null; carbs: number | null }
 
@@ -157,9 +158,10 @@ export function applyOfficial(day: MenuDay, rows: OfficialRow[], sourceLabel: st
 
 export type NutritionBadge = { text: string; kind: 'ok' | 'warn' | 'info' };
 /** Per-item source badge text. */
-export function nutritionBadge(n: Nutrition): NutritionBadge {
+export function nutritionBadge(n: Nutrition, useEstimates = false): NutritionBadge {
   if (n.source === 'official') return { text: 'Official', kind: 'ok' };
   if (n.source === 'user') return { text: 'Entered by you', kind: 'info' };
   if (n.source === 'third_party' || n.borrowed) return { text: 'Eat UNC (3rd party)', kind: 'warn' };
+  if (useEstimates && n.estimate) return { text: 'Estimate (not published)', kind: 'info' };
   return { text: 'Not published', kind: 'info' };
 }

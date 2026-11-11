@@ -1,7 +1,7 @@
 import { h } from './dom.ts';
 import { S, allDays } from './state.ts';
 import { closeSheet, render, announce } from './nav.ts';
-import { chip, DISCLAIMER, nutritionGrid, provenanceLine, sourceBadge } from './ui.ts';
+import { chip, DISCLAIMER, nutritionGrid, provenanceLine, sourceBadge, useEst } from './ui.ts';
 import { checkList, profileSummary } from './views.ts';
 import { saveManual } from './imports.ts';
 import { evaluateItem, explainChecks } from '../core/engine.ts';
@@ -61,7 +61,11 @@ export function sheetView(): HTMLElement | null {
     conflict || ev.status !== 'match' || S.profile.allergens.length ? h('p', { class: 'staff' }, h('strong', null, '⚠ Confirm with staff. '),
       conflict ? `UNC’s labels conflict with its allergen list (${conflict}); the app believes the allergen list. ` : '', S.profile.allergens.length ? 'You have an allergy set.' : ev.status !== 'match' ? 'Not everything could be confirmed.' : '') : null,
     h('h3', null, 'Nutrition (one serving)'), nutritionGrid(it),
-    h('p', { class: 'muted' }, sourceBadge(it), ' ', n.sourceLabel ? `(${n.sourceLabel})` : '(not in the saved page)', n.fat === null || n.carbs === null ? ' Unknown values are never guessed.' : ''),
+    h('p', { class: 'muted' }, sourceBadge(it), ' ', n.sourceLabel ? `(${n.sourceLabel})` : '(not in the saved page)'),
+    n.estimate && useEst() && [n.calories, n.protein, n.fat, n.carbs].some(v => v === null || v === undefined)
+      ? h('p', { class: 'est-note' }, h('strong', null, '~ Estimate. '), n.estimate.basis, ' Values marked “~” are estimates; published numbers are always used when they exist. ',
+          h('a', { href: '#/me?section=goals' }, 'Turn estimates off'))
+      : [n.calories, n.fat, n.carbs].some(v => v === null || v === undefined) ? h('p', { class: 'muted' }, 'Missing values are shown as unknown.') : null,
     it.warnings.filter(w => /not plausible/.test(w)).map(w => h('p', { class: 'warn-text' }, w)),
     h('details', { class: 'more' }, h('summary', null, n.source === 'user' ? 'Edit the values you entered' : 'Enter values from UNC’s item panel'), manualForm(day, it)),
     h('h3', null, 'Allergens'),

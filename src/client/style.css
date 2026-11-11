@@ -301,3 +301,9 @@ body.sheet-open{overflow:hidden}
   .menus .page-head .lede{display:none}
   .pills{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 24px),transparent);padding-left:6px}
 }
+
+/* Estimates: marked with "~" and the word "estimate"; a dashed cell so they never look like published numbers */
+.nutri div.est{border:1px dashed var(--muted);background:transparent}
+.nutri div.est dd{font-weight:600}
+.contrib td.est{font-style:italic}
+.est-note{font-size:var(--fs-sm);background:var(--info-bg);color:var(--info);border-radius:var(--r2);padding:var(--s2) var(--s3);margin:0}

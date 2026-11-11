@@ -27,6 +27,7 @@ export function sanitizeProfile(x: unknown): Profile | null {
     p.targets = out;
   }
   if (o.maxPortion === 1 || o.maxPortion === 2 || o.maxPortion === 3) p.maxPortion = o.maxPortion;
+  if (typeof o.useEstimates === 'boolean') p.useEstimates = o.useEstimates;
   if (o.daily && typeof o.daily === 'object') {
     const t = o.daily as Record<string, unknown>; const out: MacroTargets = {};
     const c = num(t.calories, 200, 10000), pr = num(t.protein, 1, 800), f = num(t.fat, 1, 600), cb = num(t.carbs, 1, 1500);

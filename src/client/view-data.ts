@@ -102,7 +102,7 @@ export function dataSection(): HTMLElement {
     S.nutritionMsg = await importOfficial(await f.text(), f.name); S.idea = 0; render(); announce(S.nutritionMsg);
   } });
   sec.appendChild(h('div', { class: 'group pad' }, h('h3', null, 'Nutrition sources'),
-    h('p', { class: 'muted' }, 'Order of trust: an official file you import > numbers you entered > Eat UNC’s third-party listing. Missing values stay unknown; nothing is estimated.'),
+    h('p', { class: 'muted' }, 'Order of trust: an official file you import > numbers you entered > Eat UNC’s third-party listing > a labeled estimate (marked “~”, can be turned off on the Me page). Estimates never replace a published number.'),
     h('p', null, S.official ? `Official file: ${S.official.rows.length} rows (${S.official.label}).` : 'No official nutrition file imported.'),
     h('p', { class: 'muted' }, 'If Carolina Dining sends an export (CSV or JSON; a PDF converted to CSV works), import it here. Columns can be named like name / recipe name, recipe id, location, calories, protein, total fat, total carbohydrate; units such as “12 g” are fine.'),
     csv, h('div', { class: 'actions' }, h('label', { for: 'csv', class: 'btn' }, 'Choose nutrition file'),

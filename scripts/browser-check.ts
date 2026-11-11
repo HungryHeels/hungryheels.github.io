@@ -241,6 +241,21 @@ for (const name of engines) {
     await go('#/?hall=chase&date=2026-11-16&period=Dinner');
     ok((await p.locator('#rules-h + p').innerText()).includes('Vegan · Peanut allergy'), 'shared profile (old #profile= link) added and active');
 
+    // Estimates: marked with "~" and explained; never shown when switched off.
+    await go('#/menus?hall=chase&date=2026-11-16&period=Dinner'); await asNone();
+    await p.locator('.item-row', { hasText: 'Waffle' }).first().click();
+    await p.waitForSelector('[role=dialog]');
+    const sheetTxt = await p.locator('[role=dialog]').innerText();
+    ok(/~\d+/.test(sheetTxt) && /estimate/i.test(sheetTxt) && /Estimated from typical values for waffles/.test(sheetTxt) && /Not from UNC/.test(sheetTxt), 'a dish with no published nutrition shows a labeled estimate and how it was made');
+    ok(await p.locator('.nutri div.est').count() === 4, 'all four estimated cells are marked as estimates');
+    await p.keyboard.press('Escape');
+    ok((await p.locator('.item-row', { hasText: 'Waffle' }).first().innerText()).includes('(estimate)'), 'the menu list marks estimated numbers');
+    await go('#/me?section=goals');
+    await p.locator('[data-fk=g-est]').click();
+    await go('#/menus?hall=chase&date=2026-11-16&period=Dinner'); await asNone();
+    ok((await p.locator('.item-row', { hasText: 'Waffle' }).first().innerText()).includes('nutrition unknown'), 'with estimates off, unpublished numbers show as unknown again');
+    await go('#/me?section=goals');
+    await p.locator('[data-fk=g-est]').click();
     // Display settings.
     await go('#/me?section=display');
     await p.getByRole('button', { name: 'High' }).click();

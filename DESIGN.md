@@ -59,5 +59,8 @@ Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segm
 - **Chips:** status words with a symbol, `--fs-xs`, pill radius.
 - **Footer:** full width, `--muted` text: the allergy disclaimer, the unaffiliated notice, and links to Privacy, How to update menus, Report a problem and Source code.
 
+## Estimates
+An estimated number always starts with “~” and sits next to the word “estimate” (cell label, list line or total label). Estimated nutrition cells use a dashed `--muted` border and no fill, so they never look like published numbers. The dish details explain the basis in an `--info-bg` note. Totals that include an estimate use “~”; totals of published numbers only never do.
+
 ## Imagery and icons
 No photos, illustrations or emoji icons. Text symbols only where they carry meaning (✓ △ ✕ ? ‹ › ★ ☆), always with a text label nearby. The site icon (`src/pwa/icon.svg`) is a plain fork-and-plate mark, not a UNC mark.

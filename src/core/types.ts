@@ -25,6 +25,8 @@ export interface Nutrition {
   borrowed?: boolean;       // true if copied from a third-party listing
   source?: NutritionSource; // where the values came from; absent/null = none published
   sourceLabel?: string;     // plain-language source, e.g. "official Carolina Dining export (imported Nov 12)"
+  /** A labeled estimate used only where a published value is missing (see core/estimate.ts). Never a published value. */
+  estimate?: import('./estimate.ts').Estimate | null;
 }
 /** official = an official export; user = typed in by the student from UNC's item panel ("entered by you");
  *  third_party = Eat UNC's listing (borrowed). */

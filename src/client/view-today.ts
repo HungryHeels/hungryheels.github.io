@@ -2,23 +2,18 @@
 import { h } from './dom.ts';
 import { S, activeName, dayFor, saveSaved } from './state.ts';
 import { go } from './nav.ts';
-import { chip, copyText, DISCLAIMER, provenanceLine, sourceBadge } from './ui.ts';
+import { chip, copyText, DISCLAIMER, kcalLine, provenanceLine, sourceBadge, tt, ttEst, useEst } from './ui.ts';
 import { contributionTable, gapList, ideasTable, profileSummary, ruleTable } from './views.ts';
 import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.ts';
 import { landingView } from './view-landing.ts';
 import { buildMeals, type BuildResult, type Meal } from '../core/meals.ts';
 import { explainChecks } from '../core/engine.ts';
-import { gapReadout, hitsTargets, planDay, toSaved, totalText } from '../core/plan.ts';
+import { gapReadout, hitsTargets, planDay, toSaved } from '../core/plan.ts';
 import { mealChecklist, reportIssueUrl, staffFlags } from '../core/trust.ts';
 import { compareHalls, plateText, rankHalls } from '../core/discover.ts';
 import { HALL_NAMES, type MenuDay, type MenuItem } from '../core/types.ts';
 import { addDays, formatDate, mealHeading, nyNow } from '../core/schedule.ts';
 
-const kcalLine = (it: MenuItem, k: number) => {
-  const n = it.nutrition;
-  if (n.calories === null && n.protein === null) return 'nutrition unknown';
-  return [n.calories !== null ? `${Math.round(n.calories * k)} kcal` : 'kcal unknown', n.protein !== null ? `${Math.round(n.protein * k)} g protein` : 'protein unknown'].join(' · ');
-};
 const savedId = (m: Meal, day: MenuDay) => `${day.hall}:${day.date}:${m.id}`;
 
 export function staffBox(m: Meal, skipGeneral = false): HTMLElement | null {
@@ -42,13 +37,14 @@ function plateList(m: Meal, day: MenuDay, prefix: string): HTMLElement {
 }
 /** Calories and protein tiles, plus fat and carbs: a tile when any value is known, otherwise one short line. */
 function totalsBlock(t: Meal['totals'], prefix: string, alwaysFatCarbs: boolean): Array<HTMLElement | null> {
-  const fcKnown = t.fat.complete || t.fat.min > 0 || t.carbs.complete || t.carbs.min > 0;
+  const fcKnown = t.fat.complete || t.fat.min > 0 || t.carbs.complete || t.carbs.min > 0 || (useEst() && (t.fat.est !== null || t.carbs.est !== null));
+  const lab = (base: string, x: Meal['totals']['calories']) => base + (ttEst(x) ? ' (estimate)' : '');
   const showFc = alwaysFatCarbs || !!S.profile.targets.fat || !!S.profile.targets.carbs;
   return [
     h('dl', { class: 'totals' },
-      h('div', null, h('dt', null, prefix ? prefix + 'calories' : 'Calories'), h('dd', null, totalText(t.calories, 'calories'))),
-      h('div', null, h('dt', null, prefix ? prefix + 'protein' : 'Protein'), h('dd', null, totalText(t.protein, 'protein'))),
-      showFc && fcKnown ? h('div', null, h('dt', null, 'Fat · Carbs'), h('dd', null, `${totalText(t.fat, 'fat')} · ${totalText(t.carbs, 'carbs')}`)) : null),
+      h('div', null, h('dt', null, lab(prefix ? prefix + 'calories' : 'Calories', t.calories)), h('dd', null, tt(t.calories, 'calories'))),
+      h('div', null, h('dt', null, lab(prefix ? prefix + 'protein' : 'Protein', t.protein)), h('dd', null, tt(t.protein, 'protein'))),
+      showFc && fcKnown ? h('div', null, h('dt', null, lab('Fat · Carbs', t.fat)), h('dd', null, `${tt(t.fat, 'fat')} · ${tt(t.carbs, 'carbs')}`)) : null),
     showFc && !fcKnown ? h('p', { class: 'muted fc-none' }, 'Fat and carbs: not published for these dishes.') : null,
   ];
 }
@@ -69,8 +65,10 @@ function mealCard(m: Meal, day: MenuDay, r: BuildResult, idx: number): HTMLEleme
       m.tier === 'confirmed' ? chip('Fits your rules', 'ok') : chip('Mostly confirmed', 'warn')),
     plateList(m, day, 'part:'),
     totalsBlock(m.totals, '', false),
-    gapList(gapReadout(m.totals, S.profile.targets)),
-    m.unknownNutrition.length ? h('p', { class: 'muted' }, `No published nutrition for ${m.unknownNutrition.join(', ')}, so “+” totals are minimums.`) : null,
+    gapList(gapReadout(m.totals, S.profile.targets, null, useEst())),
+    m.unknownNutrition.length ? h('p', { class: 'muted' }, useEst() && m.totals.calories.est !== null
+      ? `No published nutrition for ${m.unknownNutrition.join(', ')}, so “~” numbers include estimates (typical values for similar foods, not UNC’s numbers). Tap a dish to see how.`
+      : `No published nutrition for ${m.unknownNutrition.join(', ')}, so “+” totals are minimums.`) : null,
     staffBox(m),
     h('div', { class: 'meal-actions' },
       h('button', { type: 'button', 'aria-pressed': saved, 'data-fk': 'save-meal', onClick: () => go(() => {
@@ -99,7 +97,9 @@ function oneMeal(day: MenuDay): HTMLElement {
   }
   const t = S.profile.targets;
   if ((t.protein || t.fat || t.carbs || t.calories) && !r.meals.some(m => hitsTargets(m.totals, t))) {
-    wrap.appendChild(h('p', { class: 'banner info', role: 'status' }, 'No idea meets all your targets with known values, so the closest is shown first. The gaps are listed on the card.'));
+    wrap.appendChild(h('p', { class: 'banner info', role: 'status' }, useEst()
+      ? 'No idea meets all your targets with published numbers alone, so ideas are ranked closest first, using estimates (marked ~) where numbers are missing. The gaps are listed on the card.'
+      : 'No idea meets all your targets with known values, so the closest is shown first. The gaps are listed on the card.'));
   }
   const n = r.meals.length, i = S.idea % n;
   // Idea controls sit above the card so "Another idea" is on the first screen of a phone.
@@ -123,12 +123,12 @@ function wholeDay(day: MenuDay): HTMLElement {
     h('h2', null, (s.result.period ?? s.period) === s.slot ? s.slot : `${s.slot} · ${s.result.period ?? s.period}`),
     s.meal ? [
       plateList(s.meal, day, 'plan:'),
-      h('p', { class: 'muted' }, `${totalText(s.meal.totals.calories, 'calories')} · ${totalText(s.meal.totals.protein, 'protein')} protein · ${s.meal.tier === 'confirmed' ? '✓ fits your rules' : '△ mostly confirmed'}`),
+      h('p', { class: 'muted' }, `${tt(s.meal.totals.calories, 'calories')} · ${tt(s.meal.totals.protein, 'protein')} protein · ${s.meal.tier === 'confirmed' ? '✓ fits your rules' : '△ mostly confirmed'}`),
       staffBox(s.meal, true),
     ] : h('p', { class: 'muted' }, 'Nothing fits your rules for this meal.')))));
   sec.appendChild(h('section', { class: 'card day-total', 'aria-labelledby': 'day-total-h' }, h('h2', { id: 'day-total-h' }, 'Day total'),
     totalsBlock(plan.totals, 'Day ', true), gapList(plan.gaps),
-    plan.totals.calories.complete ? null : h('p', { class: 'muted' }, '“+” means at least: some dishes have no published nutrition.')));
+    plan.totals.calories.complete ? null : h('p', { class: 'muted' }, useEst() && plan.totals.calories.est !== null ? '“~” means the total includes estimates for dishes with no published nutrition.' : '“+” means at least: some dishes have no published nutrition.')));
   return sec;
 }
 
@@ -143,7 +143,7 @@ function otherHalls(): HTMLElement {
       h('div', { class: 'cmp-head' }, h('strong', null, HALL_NAMES[p.hall]), p.best ? (p.best.tier === 'confirmed' ? chip('Fits', 'ok') : chip('Mostly confirmed', 'warn')) : chip('No meal', 'bad')),
       p.best ? [
         h('p', null, p.best.parts.map(x => x.item.name).join(' + ')),
-        h('small', null, `${p.period} · ${totalText(p.best.totals.calories, 'calories')} · ${totalText(p.best.totals.protein, 'protein')} protein`),
+        h('small', null, `${p.period} · ${tt(p.best.totals.calories, 'calories')} · ${tt(p.best.totals.protein, 'protein')} protein`),
         p.hall !== S.hall ? h('div', null, h('button', { type: 'button', class: 'quiet', 'data-fk': 'cmp:' + p.hall, onClick: () => go(() => { S.hall = p.hall; S.period = p.result?.period ?? p.period; S.idea = 0; }, `Showing ${HALL_NAMES[p.hall]}.`) }, `Switch to ${HALL_NAMES[p.hall]}`)) : h('small', { class: 'block' }, 'You are looking at this hall.'),
       ] : h('small', null, p.why)))));
 }

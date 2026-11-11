@@ -12,17 +12,20 @@ const unitOf = (k: MacroKey) => (k === 'calories' ? ' cal' : ' g');
 const r = (n: number) => Math.round(n);
 
 /** "640 cal", "280+ cal" (some parts unknown), or "unknown". */
-export function totalText(t: MacroTotal, k: MacroKey): string {
+export function totalText(t: MacroTotal, k: MacroKey, useEstimates = false): string {
   if (t.complete && t.value !== null) return `${r(t.value)}${unitOf(k)}`;
+  if (useEstimates && t.est !== null) return `~${r(t.est)}${unitOf(k)}`;
   return t.min > 0 ? `${r(t.min)}+${unitOf(k)}` : 'unknown';
 }
+/** True when a total shown with useEstimates includes at least one estimate. */
+export function isEstimated(t: MacroTotal, useEstimates: boolean): boolean { return useEstimates && !t.complete && t.est !== null; }
 
 export type GapStatus = 'on_target' | 'under' | 'over' | 'at_least_target' | 'cannot_tell' | 'within_cap' | 'over_cap';
-export interface GapRow { key: MacroKey; target: number; value: number | null; min: number; complete: boolean; status: GapStatus; text: string }
+export interface GapRow { key: MacroKey; target: number; value: number | null; min: number; complete: boolean; status: GapStatus; text: string; estimated?: boolean }
 const TOL = 0.1;
 
 /** One row per macro the student set a target for (plus the calorie cap). Plain language; never pretends to know. */
-export function gapReadout(t: MealTotals, targets: MacroTargets, cap?: number | null): GapRow[] {
+export function gapReadout(t: MealTotals, targets: MacroTargets, cap?: number | null, useEstimates = false): GapRow[] {
   const rows: GapRow[] = [];
   for (const k of MACRO_KEYS) {
     const goal = targets[k];
@@ -34,6 +37,12 @@ export function gapReadout(t: MealTotals, targets: MacroTargets, cap?: number | 
       if (Math.abs(diff) / goal <= TOL) { status = 'on_target'; text = `${MACRO_NAME[k]} ${r(v)}${u} of ${goal}${u}: on target`; }
       else if (diff < 0) { status = 'under'; text = `${MACRO_NAME[k]} ${r(v)}${u} of ${goal}${u}: ${r(-diff)}${u} short`; }
       else { status = 'over'; text = `${MACRO_NAME[k]} ${r(v)}${u} of ${goal}${u}: ${r(diff)}${u} over`; }
+    } else if (useEstimates && x.est !== null) {
+      const v = x.est, diff = v - goal;
+      status = Math.abs(diff) / goal <= TOL ? 'on_target' : diff < 0 ? 'under' : 'over';
+      text = `${MACRO_NAME[k]} about ${r(v)}${u} of ${goal}${u} (estimate): ${status === 'on_target' ? 'about on target' : status === 'under' ? `about ${r(-diff)}${u} short` : `about ${r(diff)}${u} over`}`;
+      rows.push({ key: k, target: goal, value: null, min: x.min, complete: false, status, text, estimated: true });
+      continue;
     } else if (x.min >= goal * (1 - TOL)) {
       status = k === 'protein' ? 'at_least_target' : x.min > goal * (1 + TOL) ? 'over' : 'cannot_tell';
       text = `${MACRO_NAME[k]} at least ${r(x.min)}${u} of ${goal}${u}: ${status === 'at_least_target' ? 'reaches the target even before the unknown parts' : status === 'over' ? 'already over, before counting the unknown parts' : 'some parts unknown, so the total could be higher'}`;
@@ -58,12 +67,13 @@ export function hitsTargets(t: MealTotals, targets: MacroTargets): boolean {
 }
 
 /** Error score for ranking against targets. Known values only; an unknown part costs a fixed penalty. Lower is better. */
-export function targetError(t: MealTotals, targets: MacroTargets): number {
+export function targetError(t: MealTotals, targets: MacroTargets, useEstimates = false): number {
   let s = 0;
   for (const k of MACRO_KEYS) {
     const goal = targets[k]; if (!goal) continue;
     const x = t[k];
     if (x.complete && x.value !== null) s += Math.abs(x.value - goal) / goal;
+    else if (useEstimates && x.est !== null) s += Math.abs(x.est - goal) / goal + 0.15;
     else { s += 0.75; if (x.min > goal * 1.1) s += 1; }
   }
   return s;
@@ -100,7 +110,7 @@ export function planDay(day: MenuDay, p: Profile, daily: MacroTargets, opts: { r
       const meals = idx.map((j, s) => (j < 0 ? null : results[s].result.meals[j]));
       const parts = meals.flatMap(m => (m ? m.parts.map(x => ({ item: x.item, portions: x.portions })) : []));
       const tot = totalsFor(parts);
-      let score = hasTargets ? targetError(tot, daily) : 0;
+      let score = hasTargets ? targetError(tot, daily, p.useEstimates !== false) : 0;
       const mains = meals.filter(Boolean).map(m => m!.parts[0].item.name.toLowerCase());
       score += (mains.length - new Set(mains).size) * 0.3;                            // variety inside the day
       score += meals.reduce((a, m) => a + (m ? (m.tier === 'confirmed' ? 0 : 0.05) + m.score * 0.01 : 0), 0);
@@ -120,7 +130,7 @@ export function planDay(day: MenuDay, p: Profile, daily: MacroTargets, opts: { r
   }
   if (k < 3) notes.push(`This day's saved page has ${k === 1 ? 'only one meal period' : 'only two meal periods'} (${picks.map(x => x.period).join(', ')}), so the plan has ${k} meal${k === 1 ? '' : 's'}.`);
   const totals = totalsFor(slots.flatMap(s => (s.meal ? s.meal.parts.map(x => ({ item: x.item, portions: x.portions })) : [])));
-  return { slots, totals, gaps: gapReadout(totals, daily), notes };
+  return { slots, totals, gaps: gapReadout(totals, daily, null, p.useEstimates !== false), notes };
 }
 
 // ---------------- Saved meals ----------------

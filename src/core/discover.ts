@@ -86,8 +86,9 @@ export function recentMains(history: HistoryEntry[], date: string, days = 7): Se
 export function plateText(m: Meal, day: MenuDay, p: Profile, disclaimer: string): string {
   const lines = [`${m.period} at ${HALL_NAMES[day.hall]}, ${formatDate(day.date)}`];
   for (const x of m.parts) lines.push(`• ${x.item.name}${x.portions > 1 ? ` ×${x.portions}` : ''} (${x.station})`);
-  lines.push(`Calories ${totalText(m.totals.calories, 'calories')} · Protein ${totalText(m.totals.protein, 'protein')}`);
-  for (const g of gapReadout(m.totals, p.targets)) lines.push(g.text);
+  const est = p.useEstimates !== false;
+  lines.push(`Calories ${totalText(m.totals.calories, 'calories', est)} · Protein ${totalText(m.totals.protein, 'protein', est)}${m.totals.calories.estParts && est && !m.totals.calories.complete ? ' (~ = includes estimates)' : ''}`);
+  for (const g of gapReadout(m.totals, p.targets, null, est)) lines.push(g.text);
   if (m.tier !== 'confirmed') lines.push('Not fully confirmed: ' + m.unconfirmed.map(u => u.name).join(', '));
   lines.push('', 'From Hungry Heels (unofficial, not affiliated with UNC). ' + disclaimer);
   return lines.join('\n');

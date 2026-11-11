@@ -4,6 +4,7 @@ import { borrowNutrition } from '../core/borrow.ts';
 import { decodeSeed, type SeedFile } from '../core/seed.ts';
 import { EAT_UNC_META, EAT_UNC_SNAPSHOT } from '../sources/snapshot-data.ts';
 import { applyNutritionLayers, parseOfficial, type ManualEntry } from '../sources/nutrition-import.ts';
+import { attachEstimates } from '../core/estimate.ts';
 import { validateDay } from '../core/validate.ts';
 import { dedupeBatch, diffDays, isMenuFile, staleness } from '../core/refresh.ts';
 import { formatSaved } from '../core/schedule.ts';
@@ -94,7 +95,11 @@ export async function loadLayers(): Promise<void> {
   reapplyLayers();
 }
 export function reapplyLayers(): { official: number; manual: number } {
-  return applyNutritionLayers([...S.seed, ...S.imported], { official: S.official ? { rows: S.official.rows, label: S.official.label } : null, manual: S.manual });
+  const days = [...S.seed, ...S.imported];
+  const n = applyNutritionLayers(days, { official: S.official ? { rows: S.official.rows, label: S.official.label } : null, manual: S.manual });
+  // Estimates fill only what is still missing after the published layers; recomputed every time.
+  attachEstimates(days.flatMap(d => Object.values(d.items)));
+  return n;
 }
 export async function importOfficial(text: string, fileName: string): Promise<string> {
   const r = parseOfficial(text);

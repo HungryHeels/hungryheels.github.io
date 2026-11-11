@@ -46,14 +46,15 @@ function facts(): HTMLElement {
   const word = share > 0.9 ? 'almost all' : share > 0.6 ? 'most' : share > 0.4 ? 'about half' : share > 0.25 ? 'about a third' : share > 0 ? 'a few' : 'none';
   return h('div', { class: 'stack' },
     h('ul', { class: 'facts' }, rows),
-    h('p', null, `Calories and protein are known for ${known.toLocaleString('en-US')} of the ${total.toLocaleString('en-US')} dishes on these menus (${word}), counting each hall’s version of a dish separately. Fat and carbs are not published anywhere yet, so they show as unknown. Nothing is estimated.`),
+    h('p', null, `Calories and protein are published for ${known.toLocaleString('en-US')} of the ${total.toLocaleString('en-US')} dishes on these menus (${word}), counting each hall’s version of a dish separately. Fat and carbs are not published anywhere yet.`),
+    h('p', null, 'Where a number is missing, Hungry Heels shows an estimate marked with “~”: typical values for a similar food times a typical serving. Estimates are rough (about half are within 30% on calories when checked against published numbers), never replace published ones, never decide allergy or diet rules, and can be turned off on the Me page.'),
     h('p', null, 'Menus come from pages saved by hand, so they can go out of date. Anyone can add a newer one on ', h('a', { href: routeHash({ page: 'menus', view: 'update' }) }, 'Menus › Update menus'), '.'));
 }
 
 const FAQ: Array<[string, string]> = [
   ['Is this official?', 'No. Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services.'],
   ['Is it safe for my allergy?', 'Hungry Heels never claims a dish is allergy-safe. It leaves out anything it can’t confirm is free of what you avoid, but menus and recipes change and the published data can be incomplete. Always confirm with dining staff.'],
-  ['Why is nutrition often unknown?', 'A saved menu page lists ingredients and allergens but not nutrition; UNC shows nutrition only when you tap an item. Calories and protein come from a third-party listing where the names match exactly. You can type in numbers from UNC’s item panel yourself, and an official nutrition file can be imported if one becomes available.'],
+  ['Where do the nutrition numbers come from?', 'A saved menu page lists ingredients and allergens but not nutrition; UNC shows nutrition only when you tap an item. Calories and protein come from a third-party listing where the names match exactly, from numbers you type in from UNC’s item panel, or from an official file if one becomes available. Anything else is an estimate, always marked with “~”, and you can turn estimates off.'],
   ['How do menus get updated?', 'Someone saves the hall’s menu page in Safari (File › Save As › Web Archive) and adds it on Menus › Update menus. The site never downloads anything from dining.unc.edu itself.'],
   ['Does it cost anything?', 'No. There is no account, no sign-up and nothing to buy.'],
 ];

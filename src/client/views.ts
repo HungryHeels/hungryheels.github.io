@@ -1,5 +1,7 @@
 // Detail components shared by the meal card, the item sheet and the planner. Text always carries the meaning.
 import { h } from './dom.ts';
+import { S } from './state.ts';
+import { effective, type MacroKey } from '../core/estimate.ts';
 import type { Meal, MacroTotal, BuildResult } from '../core/meals.ts';
 import { BASIS_LABEL, type CheckRow } from '../core/engine.ts';
 import type { Profile } from '../core/profile.ts';
@@ -12,14 +14,18 @@ const sym = (o: CheckRow['outcome']) => (o === 'pass' ? '✓' : o === 'fail' ? '
 
 /** Per-part contribution table (values scaled by portion). */
 export function contributionTable(m: Meal, onOpen: (id: string) => void): HTMLElement {
-  const cell = (v: number | null, k: number) => (v === null ? h('td', { class: 'unk' }, '?') : h('td', null, String(r1(v * k))));
-  const sum = (key: 'calories' | 'protein' | 'fat' | 'carbs') => m.totals[key].complete ? String(r1(m.totals[key].value!)) : m.totals[key].min > 0 ? `${r1(m.totals[key].min)}+` : '?';
+  const est = S.profile.useEstimates !== false;
+  const cellFor = (it: Meal['parts'][number]['item'], key: MacroKey, k: number) => {
+    const e = effective(it, key, est);
+    return e.value === null ? h('td', { class: 'unk' }, '?') : h('td', { class: e.estimated ? 'est' : '' }, (e.estimated ? '~' : '') + String(r1(e.value * k)));
+  };
+  const sum = (key: MacroKey) => { const t = m.totals[key]; return t.complete ? String(r1(t.value!)) : est && t.est !== null ? `~${r1(t.est)}` : t.min > 0 ? `${r1(t.min)}+` : '?'; };
   return h('div', { class: 'tablewrap' }, h('table', { class: 'contrib' },
-    h('caption', null, 'What each part adds (portion-scaled; ? = not published, + = at least)'),
+    h('caption', null, 'What each part adds (portion-scaled; ~ = estimate, ? = not published, + = at least)'),
     h('thead', null, h('tr', null, h('th', { scope: 'col' }, 'Part'), h('th', { scope: 'col' }, 'Qty'), h('th', { scope: 'col' }, 'kcal'), h('th', { scope: 'col' }, 'Protein g'), h('th', { scope: 'col' }, 'Fat g'), h('th', { scope: 'col' }, 'Carbs g'))),
     h('tbody', null, m.parts.map(p => h('tr', null,
       h('th', { scope: 'row' }, h('button', { type: 'button', class: 'tlink', onClick: () => onOpen(p.item.id) }, p.item.name)),
-      h('td', null, `${p.portions}×`), cell(p.item.nutrition.calories, p.portions), cell(p.item.nutrition.protein, p.portions), cell(p.item.nutrition.fat, p.portions), cell(p.item.nutrition.carbs, p.portions)))),
+      h('td', null, `${p.portions}×`), cellFor(p.item, 'calories', p.portions), cellFor(p.item, 'protein', p.portions), cellFor(p.item, 'fat', p.portions), cellFor(p.item, 'carbs', p.portions)))),
     h('tfoot', null, h('tr', null, h('th', { scope: 'row' }, 'Total'), h('td', null, ''), h('td', null, sum('calories')), h('td', null, sum('protein')), h('td', null, sum('fat')), h('td', null, sum('carbs'))))));
 }
 
@@ -49,7 +55,7 @@ export function gapList(rows: GapRow[]): HTMLElement | null {
 }
 
 export function ideasTable(r: BuildResult, current: number, onPick: (i: number) => void): HTMLElement {
-  const v = (t: MacroTotal) => (t.complete ? String(Math.round(t.value!)) : t.min > 0 ? `${Math.round(t.min)}+` : '?');
+  const v = (t: MacroTotal) => (t.complete ? String(Math.round(t.value!)) : S.profile.useEstimates !== false && t.est !== null ? `~${Math.round(t.est)}` : t.min > 0 ? `${Math.round(t.min)}+` : '?');
   return h('div', { class: 'tablewrap' }, h('table', { class: 'ideas' },
     h('caption', null, `All ${r.meals.length} ideas, ranked (confirmed first)`),
     h('thead', null, h('tr', null, h('th', { scope: 'col' }, '#'), h('th', { scope: 'col' }, 'Main'), h('th', { scope: 'col' }, 'kcal'), h('th', { scope: 'col' }, 'Protein'), h('th', { scope: 'col' }, 'Tier'))),

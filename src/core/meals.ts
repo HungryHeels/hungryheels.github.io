@@ -79,7 +79,9 @@ export function sideFamily(c: { item: MenuItem; kind: SideKind | null }): string
 function sameFamily(a: Candidate, b: Candidate): boolean { return sideFamily(a) === sideFamily(b); }
 
 export interface MealPart { item: MenuItem; station: string; role: 'main' | 'side'; kind: SideKind | null; portions: number; evaluation: Evaluation }
-export interface MacroTotal { value: number | null; min: number; complete: boolean }
+/** value: exact total when every part is published; min: sum of published parts; est: published + estimates for the
+ *  rest (null when some part has neither); estParts: how many parts used an estimate. */
+export interface MacroTotal { value: number | null; min: number; complete: boolean; est: number | null; estParts: number }
 export interface MealTotals { calories: MacroTotal; protein: MacroTotal; fat: MacroTotal; carbs: MacroTotal }
 export type Simplified = null | 'fewer_sides' | 'main_only' | 'animal_plate';
 export interface Meal {
@@ -101,12 +103,16 @@ type Macro = typeof MACROS[number];
 export function totalsFor(parts: Array<{ item: MenuItem; portions: number }>): MealTotals {
   const t = {} as MealTotals;
   for (const m of MACROS) {
-    let sum = 0, complete = true;
+    let sum = 0, est = 0, complete = true, estOk = true, estParts = 0;
     for (const p of parts) {
       const v = p.item.nutrition[m];
-      if (v === null || v === undefined) complete = false; else sum += v * p.portions;
+      if (v === null || v === undefined) {
+        complete = false;
+        const e = p.item.nutrition.estimate;
+        if (e) { est += e[m] * p.portions; estParts++; } else estOk = false;
+      } else { sum += v * p.portions; est += v * p.portions; }
     }
-    t[m] = { value: complete ? round(sum) : null, min: round(sum), complete };
+    t[m] = { value: complete ? round(sum) : null, min: round(sum), complete, est: complete ? round(sum) : estOk ? round(est) : null, estParts };
   }
   return t;
 }
@@ -187,6 +193,10 @@ function evalCombo(slots: Slot[], p: Profile): { score: number; totals: MealTota
       const err = Math.abs(t.value - target) / target;
       score += err;
       notes.push(`${cap(m)} ${Math.round(t.value)}${m === 'calories' ? '' : ' g'} vs target ${target}${m === 'calories' ? '' : ' g'}`);
+    } else if (p.useEstimates !== false && t.est !== null) {
+      // Estimates rank meals when published numbers are missing, with a small penalty for the uncertainty.
+      score += Math.abs(t.est - target) / target + 0.15;
+      notes.push(`${cap(m)} about ${Math.round(t.est)}${m === 'calories' ? '' : ' g'} (partly estimated) vs target ${target}${m === 'calories' ? '' : ' g'}`);
     } else {
       score += 0.75; // unknown: ranks below meals whose values are known
       if (t.min > target * 1.1) score += 1;

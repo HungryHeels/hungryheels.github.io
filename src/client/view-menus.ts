@@ -2,18 +2,15 @@
 import { h, clear } from './dom.ts';
 import { S } from './state.ts';
 import { go } from './nav.ts';
-import { chip, provenanceLine } from './ui.ts';
+import { chip, kcalLine, provenanceLine, useEst } from './ui.ts';
+import { effective } from '../core/estimate.ts';
 import { dataSection } from './view-data.ts';
 import { href, noMenuNotice, openItem, pickerBar } from './view-common.ts';
 import { evaluateItem } from '../core/engine.ts';
 import { nutritionBadge } from '../sources/nutrition-import.ts';
 import type { MenuDay, MenuItem } from '../core/types.ts';
 
-const kcal = (it: MenuItem) => {
-  const n = it.nutrition;
-  if (n.calories === null && n.protein === null) return 'nutrition unknown';
-  return [n.calories !== null ? `${Math.round(n.calories)} kcal` : 'kcal unknown', n.protein !== null ? `${Math.round(n.protein)} g protein` : 'protein unknown'].join(' · ');
-};
+const kcal = (it: MenuItem) => kcalLine(it, 1);
 
 function browse(day: MenuDay): HTMLElement {
   const period = day.periods.find(p => p.name === S.period);
@@ -35,14 +32,14 @@ function browse(day: MenuDay): HTMLElement {
       if (S.hideNonFits && status === 'excluded') continue;
       rows.push({ it, st: st.name, status });
     }
-    const nv = (v: number | null, d: number) => (v === null ? d : v);
-    if (S.sortBy === 'protein') rows.sort((a, b) => nv(b.it.nutrition.protein, -1) - nv(a.it.nutrition.protein, -1));
-    if (S.sortBy === 'calories') rows.sort((a, b) => nv(a.it.nutrition.calories, 1e9) - nv(b.it.nutrition.calories, 1e9));
+    const nv = (it: MenuItem, k: 'protein' | 'calories', d: number) => effective(it, k, useEst()).value ?? d;
+    if (S.sortBy === 'protein') rows.sort((a, b) => nv(b.it, 'protein', -1) - nv(a.it, 'protein', -1));
+    if (S.sortBy === 'calories') rows.sort((a, b) => nv(a.it, 'calories', 1e9) - nv(b.it, 'calories', 1e9));
     if (S.sortBy === 'name') rows.sort((a, b) => a.it.name.localeCompare(b.it.name));
     count.textContent = `Showing ${rows.length} of ${total} items`;
     const rowEl = (r: Row) => h('li', null, h('button', { type: 'button', class: 'item-row', 'data-fk': 'item:' + r.it.id, onClick: () => openItem(day, 'item:')(r.it.id) },
       h('span', { class: 'item-main' }, h('span', { class: 'item-name' }, r.it.name),
-        h('small', null, (S.sortBy !== 'station' ? r.st + ' · ' : '') + kcal(r.it) + (r.it.nutrition.source ? ` · ${nutritionBadge(r.it.nutrition).text}` : ''))),
+        h('small', null, (S.sortBy !== 'station' ? r.st + ' · ' : '') + kcal(r.it) + (r.it.nutrition.source ? ` · ${nutritionBadge(r.it.nutrition, useEst()).text}` : ''))),
       r.status === 'match' ? chip('Fits', 'ok') : r.status === 'excluded' ? chip('Not for you', 'bad') : chip('Unsure', 'warn')));
     if (S.sortBy === 'station') {
       const groups = new Map<string, Row[]>();

@@ -63,7 +63,9 @@ function goals(): HTMLElement {
   const daily = p.daily ?? {};
   const setD = (k: 'calories' | 'protein' | 'fat' | 'carbs') => (n: number | undefined) => { S.profile.daily = { ...(S.profile.daily ?? {}), [k]: n || undefined }; upd(); };
   return sec('goals', 'Goals',
-    h('p', { class: 'muted' }, 'Leave a box blank to ignore it. Only published values count; unknown values are never guessed, so a target is checked only when every part has that value. Fat and carbs are unknown for built-in menus until an official nutrition file is imported.'),
+    h('p', { class: 'muted' }, 'Leave a box blank to ignore it. Published numbers are always used first. Where a dish has none, a labeled estimate can fill the gap (switch below).'),
+    h('div', { class: 'card group' }, sw('Fill missing numbers with estimates', S.profile.useEstimates !== false, x => { S.profile.useEstimates = x; upd(x ? 'Estimates on. They are marked with ~.' : 'Estimates off. Missing numbers show as unknown.'); },
+      'Typical values for similar foods (USDA-style reference values) times a typical serving. Marked with “~” everywhere. Checked against dishes with published numbers: about half are within 30% on calories; protein is usually within 2 g. Never used for allergy or diet rules.', 'g-est')),
     h('div', { class: 'card' }, h('h3', null, 'Per meal'),
       h('div', { class: 'grid2' },
         numField('Calorie cap', p.calorieCap, set(n => { p.calorieCap = n ?? 1000; }), '1000', 'g-cap'),

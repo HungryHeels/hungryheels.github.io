@@ -3,7 +3,8 @@
 Unofficial, unaffiliated meal picker for UNC dining menus the user saves by hand. Read README.md first.
 
 Hard rules (never break):
-- Never invent menu items, ingredients, nutrition, allergens, hours or dates. Missing = `null`/"unknown", never 0 and never "free of".
+- Never invent menu items, ingredients, allergens, hours or dates. Missing = `null`/"unknown", never 0 and never "free of".
+- Nutrition (owner's decision, Nov 11): published values stay in the `calories/protein/fat/carbs` fields and missing ones stay `null`. Labeled ESTIMATES (src/core/estimate.ts) may fill gaps in `nutrition.estimate` only: always marked "~"/"estimate" with their basis, never written into the published fields, never used for diet/allergy/avoid rules, and switchable off (`profile.useEstimates`). Keep the calibration test honest; don't tune it to pass.
 - Never scrape or fetch dining.unc.edu. The app only parses files the user hands it.
 - Never say "allergy-safe" or claim certification. Keep the disclaimer: "Menus can change and data may be incomplete. If you have an allergy, confirm with dining staff. Not medical advice."
 - Never loosen diet rules to make a result appear. Strict avoids (allergy, gluten/dairy/egg, custom, halal-style) exclude uncertain items.

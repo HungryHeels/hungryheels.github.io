@@ -39,6 +39,7 @@ export interface Profile {
   targets: MacroTargets;             // per meal
   maxPortion: 1 | 2 | 3;
   daily?: MacroTargets;              // optional whole-day targets for the day planner
+  useEstimates?: boolean;            // fill unknown macros with labeled estimates (default true)
 }
 
 export function defaultProfile(pattern: PatternId = 'none'): Profile {
