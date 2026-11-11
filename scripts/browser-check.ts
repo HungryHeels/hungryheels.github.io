@@ -69,9 +69,19 @@ for (const name of engines) {
 
     // First run: one question, one tap to a meal. Three pages in the header; no app tab bar.
     await go('#/?hall=chase&date=2026-11-16&period=Dinner');
+    ok(await p.locator('h1').innerText() === 'One dining-hall meal that fits how you eat.', 'first visit shows the landing headline');
+    ok((await p.locator('.hero').innerText()).includes('Unofficial. Not affiliated with UNC'), 'landing says unofficial next to the main button');
+    await p.getByRole('button', { name: 'Find my meal' }).click();
+    ok(await p.evaluate(() => document.activeElement?.id === 'quiz-h'), '"Find my meal" moves focus to the diet question');
+    ok(/\d[\d,]* of the [\d,]+ dishes/.test(await p.locator('.landing').innerText()), 'landing nutrition coverage is computed from the menus');
     await p.getByRole('button', { name: 'Vegetarian' }).click();
     await p.waitForSelector('article.meal');
     ok(await p.locator('article.meal').count() === 1, 'one tap from the first question shows a meal');
+    await p.getByRole('link', { name: 'About Hungry Heels' }).click();
+    await p.waitForSelector('.landing');
+    ok((await p.evaluate(() => location.hash)).includes('about=1') && await p.locator('.quiz [aria-pressed=true]').innerText() === 'Vegetarian', 'footer About link reopens the landing with the current diet marked');
+    await p.getByRole('link', { name: 'Back to my meal' }).click();
+    await p.waitForSelector('article.meal');
     ok(await p.locator('.site-nav a').allInnerTexts().then((t: string[]) => t.join('|') === 'Today|Menus|Me'), 'header has exactly three pages: Today, Menus, Me');
     ok(await p.locator('.site-nav a[aria-current=page]').innerText() === 'Today', 'current page is marked with aria-current');
     ok(await p.locator('.brand-tag').innerText() === 'Unofficial', 'unofficial tag next to the name');

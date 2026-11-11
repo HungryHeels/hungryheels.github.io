@@ -5,7 +5,7 @@
 import type { HallId } from '../core/types.ts';
 
 export type Page = 'today' | 'menus' | 'me';
-export interface Route { page: Page; hall?: HallId; date?: string; period?: string; item?: string; view?: 'update'; section?: string; profile?: string; mode?: 'day' }
+export interface Route { page: Page; hall?: HallId; date?: string; period?: string; item?: string; view?: 'update'; section?: string; profile?: string; mode?: 'day'; about?: true }
 export const PAGE_TITLES: Record<Page, string> = { today: 'Today', menus: 'Menus', me: 'Me' };
 
 export function parseHash(hash: string): Route {
@@ -22,6 +22,7 @@ export function parseHash(hash: string): Route {
   const item = q.get('item'); if (item && /^[\w-]{1,20}$/.test(item)) r.item = item;
   if (q.get('view') === 'update') r.view = 'update';
   if (q.get('mode') === 'day') r.mode = 'day';
+  if (page === 'today' && q.get('about') === '1') r.about = true;
   const section = q.get('section'); if (section && /^[a-z-]{1,20}$/.test(section)) r.section = section;
   const profile = q.get('profile'); if (profile && /^[A-Za-z0-9_-]+$/.test(profile)) r.profile = profile;
   return r;
@@ -36,6 +37,7 @@ export function routeHash(r: Route): string {
     if (r.item) q.set('item', r.item);
     if (r.page === 'menus' && r.view) q.set('view', r.view);
     if (r.page === 'today' && r.mode) q.set('mode', r.mode);
+    if (r.page === 'today' && r.about) q.set('about', '1');
   }
   if (r.section) q.set('section', r.section);
   if (r.profile) q.set('profile', r.profile);

@@ -1,11 +1,10 @@
 // Pieces shared by the Today and Menus pages: the hall / date / meal picker, the first-run question and helpers.
 import { h } from './dom.ts';
-import { S, dayFor, firstDate, lastDate, nextDateWithData, setPattern } from './state.ts';
+import { S, dayFor, firstDate, lastDate, nextDateWithData } from './state.ts';
 import { go } from './nav.ts';
 import { routeHash, type Page, type Route } from './router.ts';
 import { liveState, liveText, recentMains, type HistoryEntry } from '../core/discover.ts';
 import { staleness } from '../core/refresh.ts';
-import { PATTERN_DEFINITIONS, PATTERN_LABELS, type PatternId } from '../core/profile.ts';
 import { HALL_NAMES, type HallId, type MenuDay } from '../core/types.ts';
 import { addDays, defaultPeriod, formatDate, nyNow } from '../core/schedule.ts';
 
@@ -21,18 +20,6 @@ export function href(page: Page, extra: Partial<Route> = {}): string {
 export const openItem = (day: MenuDay, from: string) => (id: string) => go(() => { S.sheet = { item: id, dayKey: `${day.hall}:${day.date}`, opener: from + id }; });
 /** Saved meals double as "what I plan to eat": their mains are suggested a little later for a week, for variety. */
 export const recent = () => recentMains(S.saved.map((s): HistoryEntry => ({ date: s.date, hall: s.hall, period: s.period, main: s.parts[0]?.name ?? '', items: [], at: s.savedAt })), S.date);
-
-export function quiz(): HTMLElement {
-  const picks: PatternId[] = ['vegetarian', 'pescatarian', 'vegan', 'animal_based', 'carnivore'];
-  const choose = (p: PatternId) => go(() => { setPattern(p); }, `${PATTERN_LABELS[p]} saved. Showing a meal.`);
-  return h('section', { class: 'quiz card', 'aria-labelledby': 'quiz-h' },
-    h('h2', { id: 'quiz-h', tabindex: '-1' }, 'What do you eat?'),
-    h('p', { class: 'muted' }, 'Pick one to see a meal from today’s menu. Add allergies and goals any time on the Me page.'),
-    h('div', { class: 'quiz-grid' }, picks.map(p => h('button', { class: 'big', type: 'button', onClick: () => choose(p) }, PATTERN_LABELS[p])),
-      h('button', { class: 'big quiet', type: 'button', onClick: () => choose('none') }, 'No specific diet')),
-    h('details', { class: 'more' }, h('summary', null, 'What do these mean?'),
-      h('dl', { class: 'defs' }, picks.flatMap(p => [h('dt', null, PATTERN_LABELS[p]), h('dd', null, PATTERN_DEFINITIONS[p])]))));
-}
 
 function hallSwitch(): HTMLElement {
   return h('div', { class: 'seg', role: 'group', 'aria-label': 'Dining hall' }, (['chase', 'top-of-lenoir'] as HallId[]).map(hl =>

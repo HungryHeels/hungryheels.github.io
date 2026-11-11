@@ -4,7 +4,8 @@ import { S, activeName, dayFor, saveSaved } from './state.ts';
 import { go } from './nav.ts';
 import { chip, copyText, DISCLAIMER, provenanceLine, sourceBadge } from './ui.ts';
 import { contributionTable, gapList, ideasTable, profileSummary, ruleTable } from './views.ts';
-import { href, noMenuNotice, openItem, pickerBar, quiz, recent } from './view-common.ts';
+import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.ts';
+import { landingView } from './view-landing.ts';
 import { buildMeals, type BuildResult, type Meal } from '../core/meals.ts';
 import { explainChecks } from '../core/engine.ts';
 import { gapReadout, hitsTargets, planDay, toSaved, totalText } from '../core/plan.ts';
@@ -133,10 +134,10 @@ function otherHalls(): HTMLElement {
 }
 
 export function todayView(): HTMLElement {
+  if (!S.onboarded || S.about) return landingView();
   const v = h('div', { class: 'page today' });
   v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, 'Today’s meal'),
     h('p', { class: 'lede' }, 'A meal from Chase or Top of Lenoir that fits your rules.')));
-  if (!S.onboarded) { v.appendChild(quiz()); return v; }
   if (S.loading) { v.appendChild(h('p', { class: 'muted', role: 'status' }, 'Loading menus…')); return v; }
   const { el, day } = pickerBar();
   v.appendChild(el);

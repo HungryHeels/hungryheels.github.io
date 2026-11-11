@@ -256,3 +256,20 @@ body.sheet-open{overflow:hidden}
 .filter-more summary{min-height:40px}
 .filter-more>.filters{padding-top:var(--s2)}
 @media (min-width:960px){.filter-more>summary{display:none}}
+
+/* Landing (first visit and About): left-aligned hero beside the diet question, then plain sections */
+.landing{gap:var(--s6)}
+.hero{display:grid;gap:var(--s5);align-items:start}
+.hero-text{display:grid;gap:var(--s3);align-content:start}
+.hero-text h1{max-width:16ch}
+.hero-text .lede{font-size:var(--fs-lg);color:var(--text);max-width:52ch;margin:0}
+@media (min-width:960px){.hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding-top:var(--s4)}.hero .quiz-grid{grid-template-columns:1fr 1fr}}
+.band{display:grid;gap:var(--s3);border-top:1px solid var(--line);padding-top:var(--s5);max-width:760px}
+.steps{margin:0;padding-left:1.4em;display:grid;gap:var(--s3)}
+.steps li{padding-left:var(--s1)}
+.steps li::marker{font-weight:700;color:var(--accent)}
+.points,.facts{margin:0;padding-left:1.2em;display:grid;gap:var(--s2)}
+.faq{display:grid;gap:var(--s2)}
+.faq p{margin-top:0}
+.big[aria-pressed=true]{border:2px solid var(--accent);color:var(--accent)}
+.big[aria-pressed=true]::before{content:"✓ ";font-weight:700}

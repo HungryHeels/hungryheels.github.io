@@ -35,6 +35,7 @@ function stateRoute(): Route {
   if (S.sheet && S.sheet.dayKey === `${S.hall}:${S.date}` && S.page !== 'me') r.item = S.sheet.item;
   if (S.page === 'menus' && S.menusView === 'update') r.view = 'update';
   if (S.page === 'today' && S.mode === 'day') r.mode = 'day';
+  if (S.page === 'today' && S.about) r.about = true;
   return r;
 }
 function applyRoute(r: Route) {
@@ -46,6 +47,7 @@ function applyRoute(r: Route) {
   if (r.period) S.period = r.period;
   S.menusView = r.view === 'update' ? 'update' : 'browse';
   S.mode = r.mode === 'day' ? 'day' : 'meal';
+  S.about = r.page === 'today' && !!r.about;
   if (r.item && r.page !== 'me') S.sheet = { item: r.item, dayKey: `${S.hall}:${S.date}`, opener: S.sheet?.opener ?? 'item:' + r.item };
   else { if (S.sheet) focusAfterRender(S.sheet.opener); S.sheet = null; }
   S.section = r.section ?? (pageChanged ? null : S.section);
@@ -73,7 +75,7 @@ function closeSheetImpl() {
 
 // ---------- chrome ----------
 function header(): HTMLElement {
-  const link = (p: Page) => h('a', { href: routeHash({ ...stateRoute(), page: p, item: undefined, view: undefined, mode: undefined }), class: 'nav-link', 'aria-current': S.page === p ? 'page' : null, 'data-fk': 'nav:' + p }, PAGE_TITLES[p]);
+  const link = (p: Page) => h('a', { href: routeHash({ ...stateRoute(), page: p, item: undefined, view: undefined, mode: undefined, about: undefined }), class: 'nav-link', 'aria-current': S.page === p ? 'page' : null, 'data-fk': 'nav:' + p }, PAGE_TITLES[p]);
   return h('header', { class: 'site-header' }, h('div', { class: 'wrap header-in' },
     h('a', { class: 'brand', href: routeHash({ page: 'today' }) }, h('span', { class: 'brand-name' }, 'Hungry Heels'), h('span', { class: 'brand-tag' }, 'Unofficial')),
     h('nav', { class: 'site-nav', 'aria-label': 'Main' }, link('today'), link('menus'), link('me'))));
@@ -83,6 +85,7 @@ function footer(): HTMLElement {
     h('div', null, h('p', null, h('strong', null, DISCLAIMER)),
       h('p', null, 'Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services. Menus come only from pages saved by hand; this site never contacts dining.unc.edu.')),
     h('ul', { class: 'footer-links' },
+      h('li', null, h('a', { href: routeHash({ page: 'today', about: true }) }, 'About Hungry Heels')),
       h('li', null, h('a', { href: routeHash({ page: 'me', section: 'privacy' }) }, 'Privacy')),
       h('li', null, h('a', { href: routeHash({ page: 'menus', view: 'update' }) }, 'Update menus')),
       h('li', null, h('a', { href: REPO_ISSUES, target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem')),
@@ -111,7 +114,7 @@ function render() {
   const main = h('main', { id: 'main', class: 'wrap', tabindex: '-1' }, ...banners(), S.page === 'today' ? todayView() : S.page === 'menus' ? menusView() : meView());
   const head = header(), foot = footer();
   root.append(head, main, foot);
-  document.title = `${PAGE_TITLES[S.page]} · Hungry Heels (unofficial)`;
+  document.title = S.page === 'today' && (S.about || !S.onboarded) ? 'Hungry Heels (unofficial): one dining-hall meal that fits how you eat' : `${PAGE_TITLES[S.page]} · Hungry Heels (unofficial)`;
   const pill = root.querySelector('.pills .pill.on') as HTMLElement | null;   // keep the chosen meal visible in the scrolling row
   if (pill?.parentElement && pill.parentElement.scrollWidth > pill.parentElement.clientWidth) pill.parentElement.scrollLeft = pill.offsetLeft - pill.parentElement.offsetLeft - 16;
   const sh = sheetView();

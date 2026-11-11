@@ -12,6 +12,11 @@ test('routes round-trip and keep hall, date, meal and item in the address', () =
   assert.deepEqual(parseHash('#/me?section=goals'), { page: 'me', section: 'goals' });
   assert.equal(routeHash({ page: 'me', hall: 'chase', section: 'saved' }), '#/me?section=saved');
 });
+test('the About content on Today has its own address', () => {
+  assert.equal(routeHash({ page: 'today', about: true }), '#/?about=1');
+  assert.deepEqual(parseHash('#/?about=1'), { page: 'today', about: true });
+  assert.equal(parseHash('#/menus?about=1').about, undefined);
+});
 test('bad values in the address are ignored, never guessed', () => {
   assert.deepEqual(parseHash('#/?hall=duke&date=tomorrow&item=<script>'), { page: 'today' });
 });
