@@ -21,6 +21,7 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. Navy and 
 | `--warn` / `--warn-bg` | `#6e4300` / `#fff1d6` | `#ffd88a` / `#40300d` | **Warnings only:** “Contains …” allergens, unsure, stale, confirm with staff. Never for neutral information such as where nutrition came from. |
 | `--sel-bg` | `#e6eff8` | `#1b2c48` | Selected option (hall, meal, mode): tint + 2px `--accent` outline + ✓. Filled `--accent` is reserved for primary actions. |
 | `--bad` / `--bad-bg` | `#8c1d1d` / `#fde6e6` | `#ffb4b4` / `#431818` | Not for you, removed |
+| `--label-bg` / `--label-fg` | `#ffffff` / `#000000` | `#000000` / `#ffffff` | Ingredients label panel in dish details only (store-label look: black on white, inverted in dark) |
 | `--focus` | `#0b57d0` | `#9cc3ff` | Focus ring |
 
 High contrast (`data-contrast=high`) darkens `--muted`, `--line` and the status colors and doubles control borders, in both themes. Status is never color alone: every status also has a symbol (✓ △ ✕ ?) and a word.
@@ -57,6 +58,7 @@ Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segm
 - **Inputs and selects:** 44px, `--r1`, `--line` border, `--bg` fill, visible label above.
 - **Cards:** `--card`, 1px `--line`, `--r3`, 16px padding. One card per idea; never a grid of identical marketing cards.
 - **Chips:** status words with a symbol, `--fs-xs`, pill radius.
+- **Ingredients label** (dish details): one bordered panel in `--label-bg`/`--label-fg`, `--fs-sm` at 1.3 leading. Bold uppercase “INGREDIENTS:” heading (a real h3, uppercased by CSS) followed by the ingredients as one flowing paragraph that is an inline `ul` (commas and brackets are real text). A ruled “CONTAINS:” line lists only allergens UNC declares. Under it: a `.prov` source line and a “Show original text” disclosure. Never claims weight order, “free of” or allergy safety.
 - **Footer:** full width, `--muted` text: the allergy disclaimer, the unaffiliated notice, and links to Privacy, How to update menus, Report a problem and Source code.
 
 ## Estimates

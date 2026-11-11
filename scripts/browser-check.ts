@@ -248,7 +248,31 @@ for (const name of engines) {
     const sheetTxt = await p.locator('[role=dialog]').innerText();
     ok(/~\d+/.test(sheetTxt) && /estimate/i.test(sheetTxt) && /Estimated from typical values for waffles/.test(sheetTxt) && /Not from UNC/.test(sheetTxt), 'a dish with no published nutrition shows a labeled estimate and how it was made');
     ok(await p.locator('.nutri div.est').count() === 4, 'all four estimated cells are marked as estimates');
-    await p.keyboard.press('Escape');
+    {
+      // Ingredients label: a real heading, the text as a list, a CONTAINS line, the original text, the disclaimer; theme-aware.
+      const lab = p.locator('[role=dialog] section.label');
+      ok(await lab.count() === 1 && await p.getByRole('heading', { name: 'Ingredients:' }).count() === 1, 'dish details show the ingredients label with a real heading');
+      const lt = await lab.innerText();
+      ok(/^INGREDIENTS:/.test(lt) && /CONTAINS:/.test(lt) && await lab.locator('ul > li').count() >= 1, 'label reads "INGREDIENTS: …" then "CONTAINS: …" with list structure');
+      ok(!/free of|allergy-safe|by weight|descending/i.test(await p.locator('[role=dialog]').innerText()), 'no "free of", "allergy-safe" or weight-order wording');
+      ok(await p.locator('[role=dialog] summary', { hasText: 'Show original text' }).count() === 1, 'original ingredient text is behind "Show original text"');
+      ok((await p.locator('[role=dialog]').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'allergy disclaimer stays in the dish details');
+      ok(/Source: .*Chase.*Saved .* ET\./.test(await p.locator('[role=dialog] section.label + .prov').innerText()), 'source line names the source, hall and saved time (ET)');
+      const col = await lab.evaluate((el: Element) => { const s = getComputedStyle(el); return [s.color, s.backgroundColor]; });
+      ok(scheme === 'dark' ? col[0] === 'rgb(255, 255, 255)' && col[1] === 'rgb(0, 0, 0)' : col[0] === 'rgb(0, 0, 0)' && col[1] === 'rgb(255, 255, 255)', `label is ${scheme === 'dark' ? 'white on black' : 'black on white'} (${col.join(' on ')})`);
+      ok(await p.evaluate(() => { const s = document.querySelector('.sheet')!; return s.scrollWidth <= s.clientWidth + 1; }) && await noHScroll(p), 'no horizontal scroll in the dish details');
+      // Structured text (as an official export or a future page might give it) renders nested groups; no allergens → honest line.
+      await p.evaluate(() => { const hh = (window as any).__hh; const S = hh.S;
+        for (const d of [...S.seed, ...S.imported]) for (const it of Object.values(d.items) as any[]) if (it.name === 'Waffle') { it.ingredients = 'Waffle Batter (Enriched Flour [Wheat Flour, Niacin], Milk), Canola and/or Soybean Oil, Contains 2% or less of: Salt.'; it.allergens = []; }
+        hh.render(); });
+      const lt2 = await p.locator('[role=dialog] section.label').innerText();
+      ok(lt2.includes('Waffle Batter (Enriched Flour (Wheat Flour, Niacin), Milk), Canola and/or Soybean Oil, Contains 2% or less of: Salt.'), 'nested sub-ingredients stay in parentheses after their parent');
+      ok(lt2.includes('No allergens declared in UNC’s data. This does not mean allergen-free.'), 'no declared allergens is stated without claiming allergen-free');
+      ok(await p.locator('[role=dialog] section.label ul ul li').count() === 4 && await p.locator('[role=dialog] section.label ul ul ul li').count() === 2, 'sub-ingredients are nested lists for screen readers (two levels)');
+      await p.evaluate(() => { const hh = (window as any).__hh; for (const d of [...hh.S.seed, ...hh.S.imported]) for (const it of Object.values(d.items) as any[]) if (it.name === 'Waffle') it.ingredients = null; hh.render(); });
+      ok((await p.locator('[role=dialog] section.label').innerText()).includes('Ingredients not listed by UNC for this item') && await p.locator('[role=dialog] section.label li').count() === 0, 'missing ingredient text says so, with no list');
+    }
+    await go('#/menus?hall=chase&date=2026-11-16&period=Dinner'); await asNone();
     ok((await p.locator('.item-row', { hasText: 'Waffle' }).first().innerText()).includes('(estimate)'), 'the menu list marks estimated numbers');
     await go('#/me?section=goals');
     await p.locator('[data-fk=g-est]').click();
