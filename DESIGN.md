@@ -1,6 +1,6 @@
 # Hungry Heels design system
 
-Direction: **a calm, practical reference website**, like a well-made transit or library site: plain system type, one strong navy, white cards, a lot of left-aligned text and tables. It should feel trustworthy and quick to scan, not like a marketing page or a game. Not based on comparing real sites (the UXKIN library could not be reached); built from the existing brand colors and the rules below.
+Direction: **a calm, practical reference website**, like a well-made transit or library site: plain system type, one strong navy, white cards, a lot of left-aligned text and tables. It should feel trustworthy and quick to scan, not like a marketing page or a game. Not based on comparing real sites: the UXKIN library was tried twice (Nov 11) and could not be reached from the build environment. Built from the existing brand colors and the rules below. Only raw values allowed outside the tokens: the print stylesheet and the white switch knob.
 
 No UNC logos, wordmarks, seals or trademarked colors used as branding. Navy and light blue are generic colors here; the word "Unofficial" always sits next to the name.
 
@@ -15,6 +15,8 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. Navy and 
 | `--accent` | `#1b5c8c` | `#7bafd4` | **Primary:** buttons, links, selected state |
 | `--accent-text` | `#ffffff` | `#0b1322` | Text on primary |
 | `--carolina` | `#7bafd4` | `#7bafd4` | **The one accent:** portion badges and the active-nav underline only |
+| `--badge-text` | `#13294b` | `#13294b` | Text on `--carolina` (stays dark in both themes for contrast) |
+| `--overlay` | `rgba(0,0,0,.45)` | same | Dims the page behind dish details |
 | `--ok` / `--ok-bg` | `#14612f` / `#e3f3e8` | `#9ee0b4` / `#12351f` | Fits, passed |
 | `--warn` / `--warn-bg` | `#6e4300` / `#fff1d6` | `#ffd88a` / `#40300d` | Unsure, stale, confirm with staff |
 | `--bad` / `--bad-bg` | `#8c1d1d` / `#fde6e6` | `#ffb4b4` / `#431818` | Not for you, removed |
@@ -44,7 +46,7 @@ Weights: 400 body, 600 labels and buttons, 700 headings and dish names. Paragrap
 - **Me:** one column of sections; from 960px, a sticky in-page section list on the left.
 
 ## Shape and depth
-Radius: `--r1` 6 (inputs, chips), `--r2` 10 (buttons), `--r3` 14 (cards, panels). One shadow, `--shadow: 0 1px 2px rgba(19,41,75,.12)`, cards only; none in dark mode.
+Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segmented control uses `--r2` minus its 3px inset), `--r3` 14 (cards, panels), pill (999px) for chips, pills and badges. One shadow, `--shadow: 0 1px 2px rgba(19,41,75,.12)`, cards only; none in dark mode.
 
 ## Components
 - **Header:** white bar, sticky; the name "Hungry Heels" + "Unofficial" tag on the left, three text links (Today, Menus, Me) on the right. The active link is bold with a 3px `--carolina` underline and `aria-current="page"`. No bottom tab bar.
