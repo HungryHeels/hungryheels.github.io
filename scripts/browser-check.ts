@@ -103,7 +103,7 @@ for (const name of engines) {
     ok(await p.locator('.brand-tag').innerText() === 'Unofficial', 'unofficial tag next to the name');
     ok((await p.locator('.site-footer').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'disclaimer in the footer');
     const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    ok(scheme === 'dark' ? bg === 'rgb(11, 19, 34)' : bg === 'rgb(244, 245, 247)', `${scheme} theme applied (${bg})`);
+    ok(scheme === 'dark' ? bg === 'rgb(9, 12, 18)' : bg === 'rgb(245, 246, 248)', `${scheme} theme applied (${bg})`);
     ok(await p.title() === 'Today · Hungry Heels (unofficial)', 'page title names the page');
 
     // The address holds the hall, date and meal; switching updates it; Back and Forward restore it.
