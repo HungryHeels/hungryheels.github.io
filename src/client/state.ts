@@ -2,16 +2,15 @@ import { defaultProfile, type PatternId, type Profile } from '../core/profile.ts
 import { sanitizeProfile, type NamedProfile } from '../core/profile-io.ts';
 import type { HallId, MenuDay } from '../core/types.ts';
 import type { SavedMeal } from '../core/plan.ts';
-import type { HistoryEntry } from '../core/discover.ts';
 import type { DayDiff } from '../core/refresh.ts';
 import type { ManualEntry, OfficialRow } from '../sources/nutrition-import.ts';
+import type { Page } from './router.ts';
 
 export const FIRST_DATE = '2026-11-09';
 export const LAST_DATE = '2026-12-10';
 const KEY_V1 = 'hh-profile-v1';
 const KEY = 'hh-profiles-v2';
 const KEY_SAVED = 'hh-saved-v1';
-const KEY_HISTORY = 'hh-history-v1';
 const KEY_DISPLAY = 'hh-display-v1';
 
 export interface FileResult {
@@ -23,25 +22,25 @@ export interface Display { theme: 'system' | 'light' | 'dark'; text: 'normal' | 
 export interface AppState {
   seed: MenuDay[]; imported: MenuDay[]; seedError: string | null; loading: boolean;
   hall: HallId; date: string; period: string | null;
-  tab: 'menu' | 'plan' | 'you'; menuTab: 'meal' | 'all'; search: string; hideNonFits: boolean;
+  page: Page; mode: 'meal' | 'day'; menusView: 'browse' | 'update'; station: string; search: string; hideNonFits: boolean; section: string | null;
   profiles: NamedProfile[]; activeId: string; profile: Profile; onboarded: boolean; idea: number;
   sheet: { item: string; dayKey: string; opener: string | null } | null;
   importResults: FileResult[]; importing: boolean; importSummary: string | null; showDays: boolean; nutritionMsg: string | null;
   storageNote: string | null; sortBy: 'station' | 'protein' | 'calories' | 'name';
   official: { rows: OfficialRow[]; label: string; text: string } | null; manual: ManualEntry[];
-  saved: SavedMeal[]; history: HistoryEntry[]; display: Display;
+  saved: SavedMeal[]; display: Display;
   incoming: { profile: Profile; name: string | null } | null;
-  planHall: HallId; flash: string | null;
+  flash: string | null;
 }
 
 export const S: AppState = {
   seed: [], imported: [], seedError: null, loading: true,
   hall: 'chase', date: FIRST_DATE, period: null,
-  tab: 'menu', menuTab: 'meal', search: '', hideNonFits: true,
+  page: 'today', mode: 'meal', menusView: 'browse', station: '', search: '', hideNonFits: true, section: null,
   profiles: [], activeId: '', profile: defaultProfile('none'), onboarded: false, idea: 0,
   sheet: null, importResults: [], importing: false, importSummary: null, showDays: false, nutritionMsg: null, storageNote: null,
-  sortBy: 'station', official: null, manual: [], saved: [], history: [], display: { theme: 'system', text: 'normal', contrast: 'normal' },
-  incoming: null, planHall: 'chase', flash: null,
+  sortBy: 'station', official: null, manual: [], saved: [], display: { theme: 'system', text: 'normal', contrast: 'normal' },
+  incoming: null, flash: null,
 };
 
 // ---------- localStorage with an in-memory fallback ----------
@@ -74,7 +73,6 @@ export function loadProfile() {
   S.activeId = list.some(x => x.id === v2?.active) ? v2!.active! : list[0].id;
   S.profile = list.find(x => x.id === S.activeId)!.profile;
   S.saved = readJson<SavedMeal[]>(KEY_SAVED, []).filter(x => x && Array.isArray(x.parts)).slice(0, 100);
-  S.history = readJson<HistoryEntry[]>(KEY_HISTORY, []).filter(x => x && typeof x.main === 'string').slice(0, 200);
   const d = readJson<Partial<Display>>(KEY_DISPLAY, {});
   S.display = { theme: d.theme === 'light' || d.theme === 'dark' ? d.theme : 'system', text: d.text === 'large' ? 'large' : 'normal', contrast: d.contrast === 'high' ? 'high' : 'normal' };
 }
@@ -106,7 +104,6 @@ export function renameProfile(id: string, name: string) { const p = S.profiles.f
 export function activeName(): string { return S.profiles.find(x => x.id === S.activeId)?.name ?? 'Profile'; }
 
 export function saveSaved() { write(KEY_SAVED, JSON.stringify(S.saved.slice(0, 100))); }
-export function saveHistory() { write(KEY_HISTORY, JSON.stringify(S.history.slice(0, 200))); }
 export function saveDisplay() { write(KEY_DISPLAY, JSON.stringify(S.display)); }
 
 // ---------- menu days ----------

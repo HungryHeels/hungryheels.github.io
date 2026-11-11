@@ -37,3 +37,8 @@ export function restoreFocus(root: HTMLElement, key: string | null) {
   }
   el?.focus({ preventScroll: true });
 }
+
+let closer: () => void = () => {};
+/** Close the item details (the app decides whether that is a Back step or a plain redraw). */
+export function setSheetCloser(fn: () => void) { closer = fn; }
+export function closeSheet() { closer(); }

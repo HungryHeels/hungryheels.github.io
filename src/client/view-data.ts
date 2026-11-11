@@ -57,7 +57,7 @@ function checklist(): HTMLElement {
 }
 
 export function dataSection(): HTMLElement {
-  const sec = h('section', { 'aria-labelledby': 'data-h' }, h('h2', { id: 'data-h' }, 'Menu data'));
+  const sec = h('section', { class: 'update', 'aria-labelledby': 'data-h' }, h('h2', { id: 'data-h' }, 'Update menus'));
   const fileInput = h('input', { type: 'file', id: 'pick', multiple: true, accept: '.webarchive,.html,.htm', class: 'sr', onChange: (e: Event) => { const el = e.target as HTMLInputElement; if (el.files) void handle(filesFromInput(el.files)); } });
   const dirInput = h('input', { type: 'file', id: 'pick-dir', multiple: true, class: 'sr', onChange: (e: Event) => { const el = e.target as HTMLInputElement; if (el.files) void handle(filesFromInput(el.files)); } });
   dirInput.setAttribute('webkitdirectory', ''); dirInput.setAttribute('directory', '');

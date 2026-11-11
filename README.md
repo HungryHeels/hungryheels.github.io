@@ -7,12 +7,15 @@ An **unofficial, independent, unaffiliated** meal picker for the Chase and Top o
 Live site: https://hungryheels.github.io/
 
 ## What it does
-- **Menu tab.** Pick a diet (Vegetarian, Pescatarian, Vegan, Animal-based, Carnivore, or none) and get **one complete meal**: a main plus sides, with “Another idea”. Each part shows where its nutrition came from (Official / Entered by you / Eat UNC (3rd party) / Not published). Unknown parts make totals a minimum (“280+ cal”). With targets set, the card shows the honest gap (“Protein 32 g of 40 g: 8 g short”), and if nothing meets the targets the closest meal is shown and the app says so.
-- **Strict avoids.** Big 9 allergens, gluten, dairy, egg, any custom ingredient (with plurals, synonyms and food groups: “pork” covers bacon and ham, “cilantro” covers coriander leaves), and “no pork or alcohol”. If an item can't be confirmed free of something you avoid, it is **never** recommended. Fallbacks may change the meal's structure or period, never the rules, and the app says when one was used.
-- **Trust.** Details lists every rule for the meal and which evidence decided it (UNC allergen list, ingredient text, UNC label, item name). A “Confirm with staff” box appears whenever anything is uncertain, whenever you have an allergy set, and when UNC's own label contradicts its allergen list. “Report a wrong result” opens a prefilled GitHub issue (item, hall, date, your diet rules and the evidence; no name or contact details); nothing is sent unless you submit it.
-- **Plan tab.** Best fit right now (compares both halls for the meal being served now or next, with a countdown, including late periods that run past midnight), a breakfast + lunch + dinner planner against daily targets, saved meals (re-checked against your current rules every time) and an optional “what you've had” log that gently varies mains across the week.
-- **You tab.** Several profiles, a share link (settings live after the `#`, which browsers never send to a server), JSON export/import, extra starting points (a low-FODMAP-style avoid list; high-protein cut/bulk macro targets; none are medical advice), nutrition goals, display settings (theme, large text, high contrast) and Menu data.
-- Works offline once opened from https://hungryheels.github.io/ (a same-origin cache; it never contacts another site). `HungryHeels.html` is the same app as one file you can open from disk; it makes no requests at all.
+A three-page website (links in the header; the address keeps the hall, date, meal and open dish, so Back/Forward, bookmarks and shared links work):
+
+- **Today** (`#/`): pick a hall, date and meal and get **one complete meal** that fits your rules (a main plus sides), with “Another idea”, Save and Share. Beside it: the same meal at the other hall, and your rules. “Whole day” plans breakfast, lunch and dinner against daily targets. Details on the card list every rule with the evidence that decided it, and a “Report a wrong result” link (a prefilled GitHub issue; nothing is sent unless you submit it).
+- **Menus** (`#/menus`): every item on the saved menu with search and filters, each marked Fits / Unsure / Not for you; tap one for ingredients, allergens, nutrition and why. “Update menus” (`#/menus?view=update`) imports saved pages or a whole folder, shows what changed per day and a next-14-days checklist, and takes an official nutrition file.
+- **Me** (`#/me`): diet, allergies and strict avoids, goals (per meal and per day), saved meals (re-checked against your current rules), profiles (share link, JSON export/import), display (theme, large text, high contrast), privacy.
+
+Strictness: Big 9 allergens, gluten, dairy, egg, any custom ingredient (with plurals, synonyms and food groups) and “no pork or alcohol” are strict. If an item can't be confirmed free of something you avoid, it is **never** recommended. Fallbacks may change the meal's structure or period, never the rules, and the page says when one was used. A “Confirm with staff” box appears when anything is uncertain or you have an allergy set. Unknown nutrition makes totals minimums (“280+ cal”); nothing is guessed.
+
+Works offline once opened from https://hungryheels.github.io/ (same-origin cache). `HungryHeels.html` is the same site as one file you can open from disk; it makes no requests. Design decisions are in `DESIGN.md`.
 
 ## Where the data comes from (and what it lacks)
 The menus come from pages saved by hand in Safari (File > Save As > Web Archive). The app never contacts dining.unc.edu (its robots.txt disallows automated access to the date pages).
@@ -26,7 +29,7 @@ Built in:
 ## How to refresh a day
 1. On a Mac, open dining.unc.edu in Safari > Locations > Chase or Top of Lenoir, choose the date, wait for the menu to load.
 2. File > Save As, Format: **Web Archive**. Repeat for each date; put the files in one folder.
-3. Open Hungry Heels > You > Menu data > **Choose a folder** (or drag the folder in, or choose files). Hall and date are read from inside each page, so file names don't matter; other files are skipped, and if a folder has two saves of the same day the newer one is used.
+3. Open Hungry Heels > Menus > **Update menus** > **Choose a folder** (or drag the folder in, or choose files). Hall and date are read from inside each page, so file names don't matter; other files are skipped, and if a folder has two saves of the same day the newer one is used.
 4. Check each day's **What changed** (new / gone / changed items, period and hour changes) and the **Next 14 days** checklist: Missing, Stale (saved 7+ days before a date that hasn't happened yet), No menu (re-save later).
 5. To make days permanent for everyone: `npm run build:seed -- <folder>` then `npm run build`, and commit `src/client/seed-data.ts`, `index.html`, `HungryHeels.html` and `web/`.
 
@@ -37,7 +40,7 @@ npm run check      # typecheck + unit tests (includes the preset, strict and pro
 npm run build      # writes index.html, HungryHeels.html, web/, sw.js, manifest.webmanifest, icon.svg
 npm run e2e        # browser checks with Playwright (Chromium by default; pass firefox / webkit if installed)
 ```
-Zero runtime dependencies. `src/core` is the shared engine (diet rules, meals, planning, trust, refresh); `src/sources` parses pages and nutrition files; `src/client` is the UI (`app.ts` shell plus one `view-*.ts` per screen).
+Zero runtime dependencies. `src/core` is the shared engine (diet rules, meals, planning, trust, refresh); `src/sources` parses pages and nutrition files; `src/client` is the site (`app.ts` shell and router, `view-today.ts`, `view-menus.ts`, `view-me.ts`, `view-sheet.ts` for dish details).
 
 ## Docs
 `docs/SETUP_GITHUB.md` (publishing and the Claude bug-fix helper), `docs/SOURCE_INTEGRATION_REPORT.md`, `docs/DATA_FLOW_AND_PRIVACY.md`, `docs/EMAIL_TO_DIETITIAN.md`.

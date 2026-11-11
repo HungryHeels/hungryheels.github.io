@@ -13,4 +13,4 @@ Hard rules (never break):
 Workflow: `npm install`, `npm run check` (typecheck + tests), `npm run build` (regenerates index.html, HungryHeels.html, web/, sw.js, manifest.webmanifest, icon.svg; commit them), `npm run e2e` (Playwright browser checks; Chromium by default). `npm run build:seed -- <folder of saved pages>` regenerates src/client/seed-data.ts.
 Add a test for every bug you fix.
 Safe phrases in src/core/foods.ts are scoped per food category; never make one apply to an allergen it contains.
-Layout: src/core (engine, meals, plan, trust, refresh, discover, profile-io), src/sources (page + nutrition parsing), src/client (app.ts shell, view-*.ts per screen).
+Layout: src/core (engine, meals, plan, trust, refresh, discover, profile-io), src/sources (page + nutrition parsing), src/client (app.ts shell + hash router in router.ts; three pages: view-today.ts, view-menus.ts, view-me.ts; view-sheet.ts dish details). Follow DESIGN.md for colors, type, spacing and components.

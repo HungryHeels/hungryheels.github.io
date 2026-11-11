@@ -1,6 +1,6 @@
 import { h } from './dom.ts';
 import { S, allDays } from './state.ts';
-import { focusAfterRender, go, render, announce } from './nav.ts';
+import { closeSheet, render, announce } from './nav.ts';
 import { chip, DISCLAIMER, nutritionGrid, provenanceLine, sourceBadge } from './ui.ts';
 import { checkList, profileSummary } from './views.ts';
 import { saveManual } from './imports.ts';
@@ -8,13 +8,6 @@ import { evaluateItem, explainChecks } from '../core/engine.ts';
 import { labelConflict, reportIssueUrl } from '../core/trust.ts';
 import { checkManual, type ManualEntry } from '../sources/nutrition-import.ts';
 import type { MenuDay, MenuItem } from '../core/types.ts';
-
-function closeSheet() {
-  const opener = S.sheet?.opener ?? null;
-  go(() => { S.sheet = null; });
-  focusAfterRender(null);
-  if (opener) { const el = document.querySelector(`[data-fk="${CSS.escape(opener)}"]`) as HTMLElement | null; el?.focus({ preventScroll: true }); }
-}
 
 function manualForm(day: MenuDay, it: MenuItem): HTMLElement {
   const cur = S.manual.find(m => m.hall === day.hall && m.recipeId === it.id);

@@ -47,10 +47,10 @@ function unb64url(s: string): string {
   return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
 }
 export function profileToHash(p: Profile, name?: string): string {
-  return '#profile=' + b64url(JSON.stringify({ v: 1, name: name?.slice(0, 40), profile: p }));
+  return '#/me?profile=' + b64url(JSON.stringify({ v: 1, name: name?.slice(0, 40), profile: p }));
 }
 export function profileFromHash(hash: string): { profile: Profile; name: string | null } | null {
-  const m = /[#&]profile=([A-Za-z0-9_-]+)/.exec(hash);
+  const m = /[#&?]profile=([A-Za-z0-9_-]+)/.exec(hash);
   if (!m) return null;
   try {
     const j = JSON.parse(unb64url(m[1]));

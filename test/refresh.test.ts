@@ -33,7 +33,7 @@ test('staleness: future days saved 7+ days ago are stale; past days never are; u
   const d = mk('2026-11-20', [mkItem('X')], { saved: '2026-11-10T15:00:00Z' });
   assert.equal(staleness(d, '2026-11-12').stale, false);
   const s = staleness(d, '2026-11-19');
-  assert.equal(s.stale, true); assert.equal(s.ageDays, 9); assert.match(s.text, /Saved 9 days ago; menus can change/);
+  assert.equal(s.stale, true); assert.equal(s.ageDays, 9); assert.match(s.text, /Menu page saved 9 days ago; menus can change/);
   assert.equal(staleness(mk('2026-11-12', [mkItem('X')], { saved: '2026-11-01T15:00:00Z' }), '2026-11-19').stale, false, 'past day');
   assert.equal(staleness(mk('2026-11-20', [mkItem('X')], { saved: null }), '2026-11-19').stale, true);
   // America/New_York: 03:30Z on Nov 11 is still Nov 10 in New York.

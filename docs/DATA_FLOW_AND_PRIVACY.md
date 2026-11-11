@@ -6,7 +6,8 @@ Nothing is uploaded. There are no analytics, accounts or third-party requests.
 
 - `HungryHeels.html` opened from disk makes **zero** network requests (checked in Chromium with Playwright).
 - On https://hungryheels.github.io/ the page also registers a service worker (`sw.js`) and a manifest so it can open offline. The service worker only fetches and caches files from the same site (the page, the manifest and the icon); it never contacts any other host. The browser check confirms no request leaves the serving origin.
-- **Share link**: the profile is encoded after the `#` in the link. Browsers never send that part to a server. Opening such a link shows the settings and asks before adding them.
+- **Addresses**: the hall, date, meal and open dish are kept after the `#` (for example `#/menus?hall=chase&date=2026-11-16&period=Dinner`). Browsers never send that part to a server.
+- **Share link**: the profile is encoded after the `#` in the link (`#/me?profile=…`; old `#profile=…` links still work). Browsers never send that part to a server. Opening such a link shows the settings and asks before adding them.
 - **Report a wrong result** opens a GitHub “new issue” page in a new tab with the item, hall, date, period, your diet rules (as words like “Vegan · Peanut allergy”) and the evidence filled in. It contains no name, email or other personal details. Nothing is sent unless you choose to submit the issue on GitHub, and you can edit it first. Diet rules and allergies can be sensitive; delete that line before submitting if you prefer.
 - **Entered by you** nutrition stays in this browser and is never shared, including in reports.
 

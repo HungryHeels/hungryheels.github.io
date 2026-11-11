@@ -6,7 +6,7 @@
 // in the repo). Note: Playwright's WebKit is not Safari on macOS or iOS.
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync, utimesSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { page as fakePage, webArchive } from '../test/fixtures.ts';
@@ -38,6 +38,9 @@ const lenoir = (extra: boolean) => webArchive(fakePage({ slug: 'top-of-lenoir', 
 ] }));
 writeFileSync(join(dir, 'folder', 'lenoir-1109.webarchive'), lenoir(true));
 writeFileSync(join(dir, 'folder', 'sub', 'lenoir-1109-old.webarchive'), lenoir(false));
+// The app keeps the most recently saved copy, judged by file time, so make the times unambiguous.
+utimesSync(join(dir, 'folder', 'sub', 'lenoir-1109-old.webarchive'), new Date('2026-11-01T12:00:00Z'), new Date('2026-11-01T12:00:00Z'));
+utimesSync(join(dir, 'folder', 'lenoir-1109.webarchive'), new Date('2026-11-08T12:00:00Z'), new Date('2026-11-08T12:00:00Z'));
 writeFileSync(join(dir, 'folder', 'notes.txt'), 'not a menu');
 writeFileSync(join(dir, 'official.csv'), 'recipe_id,name,location,calories,protein,total fat,total carbohydrate\n9001,Grilled Chicken,Chase,250,38 g,9,1\n');
 
@@ -60,68 +63,99 @@ for (const name of engines) {
     p.on('console', (m: any) => { if (m.type() === 'error') errors.push(m.text()); });
     p.on('pageerror', (e: any) => errors.push(String(e)));
     p.on('request', (r: any) => { if (!r.url().startsWith(BASE) && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) offsite.push(r.url()); });
-    await p.goto(BASE);
-    // First run: quiz, one tap to a meal.
+    // A real page load each time (goto to a new #hash alone would not reload), so persistence checks are honest.
+    const go = async (hash: string) => { await p.goto(BASE + hash); await p.reload(); await ready(p); };
+    const asNone = () => p.evaluate(() => { const hh = (window as any).__hh; hh.S.profile.pattern = 'none'; hh.render(); });
+
+    // First run: one question, one tap to a meal. Three pages in the header; no app tab bar.
+    await go('#/?hall=chase&date=2026-11-16&period=Dinner');
     await p.getByRole('button', { name: 'Vegetarian' }).click();
     await p.waitForSelector('article.meal');
-    ok(await p.locator('article.meal').count() === 1, 'one tap from the quiz shows a meal card');
-    ok(await p.getByText('Unofficial · personal use · not affiliated with UNC').isVisible(), 'unofficial notice visible');
-    ok((await p.locator('footer.legal').first().innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'disclaimer visible');
+    ok(await p.locator('article.meal').count() === 1, 'one tap from the first question shows a meal');
+    ok(await p.locator('.site-nav a').allInnerTexts().then((t: string[]) => t.join('|') === 'Today|Menus|Me'), 'header has exactly three pages: Today, Menus, Me');
+    ok(await p.locator('.site-nav a[aria-current=page]').innerText() === 'Today', 'current page is marked with aria-current');
+    ok(await p.locator('.brand-tag').innerText() === 'Unofficial', 'unofficial tag next to the name');
+    ok((await p.locator('.site-footer').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'disclaimer in the footer');
     const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    ok(scheme === 'dark' ? bg === 'rgb(11, 19, 34)' : bg === 'rgb(242, 244, 248)', `${scheme} theme applied (${bg})`);
-    // Hall / date / period switching.
-    await p.goto(BASE + '#'); await ready(p); await p.waitForSelector('article.meal');
-    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.date = '2026-11-16'; hh.S.period = null; hh.render(); });
+    ok(scheme === 'dark' ? bg === 'rgb(11, 19, 34)' : bg === 'rgb(244, 245, 247)', `${scheme} theme applied (${bg})`);
+    ok(await p.title() === 'Today · Hungry Heels (unofficial)', 'page title names the page');
+
+    // The address holds the hall, date and meal; switching updates it; Back and Forward restore it.
     await p.getByRole('button', { name: 'Top of Lenoir' }).first().click();
-    ok(await p.getByRole('button', { name: 'Top of Lenoir' }).first().getAttribute('aria-pressed') === 'true', 'hall switch');
-    const dateBefore = await p.locator('.date-mid strong').innerText();
+    ok(await p.getByRole('button', { name: 'Top of Lenoir' }).first().getAttribute('aria-pressed') === 'true', 'hall switch (aria-pressed="true")');
+    ok((await p.evaluate(() => location.hash)).includes('hall=top-of-lenoir'), 'hall is in the address');
     await p.getByRole('button', { name: 'Next day' }).click();
-    ok((await p.locator('.date-mid strong').innerText()) !== dateBefore, 'next day');
+    ok((await p.evaluate(() => location.hash)).includes('date=2026-11-17'), 'date is in the address');
     const pills = p.locator('.pills .pill');
-    if (await pills.count() > 1) { await pills.nth(1).click(); ok(await pills.nth(1).getAttribute('aria-pressed') === 'true', 'period switch'); }
-    await p.getByRole('button', { name: /Another idea/ }).click().catch(() => {});
-    ok(await p.locator('article.meal').count() === 1, 'meal still shown after switching');
-    // Item sheet: focus moves in, Escape closes, focus returns to the opener.
-    const opener = p.locator('.plate-row').first();
-    const openerKey = await opener.getAttribute('data-fk');
-    await opener.focus(); await p.keyboard.press('Enter');
+    await pills.nth(0).click();
+    ok(await pills.nth(0).getAttribute('aria-pressed') === 'true', 'meal switch');
+    await p.getByRole('link', { name: 'Menus', exact: true }).click();
+    await p.waitForSelector('.item-row');
+    ok((await p.evaluate(() => location.hash)).startsWith('#/menus?hall=top-of-lenoir&date=2026-11-17'), 'Menus link keeps the hall and date');
+    ok(await p.title() === 'Menus · Hungry Heels (unofficial)', 'Menus page title');
+    await p.goBack(); await p.waitForSelector('article.meal');
+    ok(await p.locator('.site-nav a[aria-current=page]').innerText() === 'Today', 'Back returns to Today');
+    await p.goForward(); await p.waitForSelector('.item-row');
+    ok(await p.locator('h1').innerText() === 'Menus', 'Forward returns to Menus');
+
+    // A deep link opens a dish directly.
+    await go('#/menus?hall=chase&date=2026-11-16&period=Dinner');
+    ok(await p.evaluate(() => { const r = document.querySelector('.item-row')!.getBoundingClientRect(); return r.top < innerHeight; }), 'first menu item is visible on the first screen');
+    const firstItem = p.locator('.item-row').first();
+    const itemKey = await firstItem.getAttribute('data-fk');
+    await firstItem.focus(); await p.keyboard.press('Enter');
     await p.waitForSelector('[role=dialog]');
-    ok(await p.evaluate(() => document.activeElement?.classList.contains('sheet')), 'focus moves into the item sheet');
+    ok((await p.evaluate(() => location.hash)).includes('item='), 'opening a dish puts it in the address');
+    ok(await p.evaluate(() => document.activeElement?.classList.contains('sheet')), 'focus moves into the dish details');
     for (let i = 0; i < 25; i++) await p.keyboard.press('Tab');
-    ok(await p.evaluate(() => !!document.activeElement?.closest('[role=dialog]')), 'Tab stays inside the sheet');
+    ok(await p.evaluate(() => !!document.activeElement?.closest('[role=dialog]')), 'Tab stays inside the dish details');
+    await p.keyboard.press('Escape'); await p.waitForTimeout(150);
+    ok(await p.locator('[role=dialog]').count() === 0, 'Escape closes the dish details');
+    ok(!(await p.evaluate(() => location.hash)).includes('item='), 'closing removes the dish from the address');
+    ok(await p.evaluate((k: string) => document.activeElement?.getAttribute('data-fk') === k, itemKey as string), 'focus returns to the dish that opened it');
+    await firstItem.click(); await p.waitForSelector('[role=dialog]');
+    await p.goBack(); await p.waitForTimeout(150);
+    ok(await p.locator('[role=dialog]').count() === 0, 'browser Back closes the dish details');
+    const deep = await firstItem.getAttribute('data-fk');
+    await go(`#/menus?hall=chase&date=2026-11-16&period=Dinner&item=${deep!.slice(5)}`);
+    ok(await p.locator('[role=dialog]').count() === 1, 'a shared link with item= opens that dish');
     await p.keyboard.press('Escape');
-    ok(await p.locator('[role=dialog]').count() === 0, 'Escape closes the sheet');
-    ok(await p.evaluate((k: string) => document.activeElement?.getAttribute('data-fk') === k, openerKey as string), 'focus returns to the item that opened the sheet');
-    // Details: rule checklist + report link.
-    await p.locator('details.more summary').first().click();
-    ok(await p.locator('.checks.rules li').count() > 0, 'rule checklist shown in Details');
+    await p.waitForSelector('[role=dialog]', { state: 'detached' });
+    ok(await noHScroll(p), 'no horizontal scroll (Menus)');
+    await p.locator('#item-search').fill('zzzz-nothing');
+    ok(await p.getByText('Nothing matches these filters.').waitFor({ timeout: 5000 }).then(() => true, () => false), 'search filters the list');
+
+    // Today details: rule checklist + report link.
+    await go('#/?hall=chase&date=2026-11-16&period=Dinner');
+    await p.locator('article.meal details.more summary').click();
+    ok(await p.locator('.checks.rules li').count() > 0, 'rule checklist in the meal details');
     const href = await p.getByRole('link', { name: 'Report a wrong result' }).first().getAttribute('href');
     ok(href?.startsWith('https://github.com/HungryHeels/hungryheels.github.io/issues/new?title='), 'report link is a prefilled GitHub issue URL');
-    ok(await noHScroll(p), 'no horizontal scroll (menu)');
+    ok(await noHScroll(p), 'no horizontal scroll (Today)');
 
-    // Import: files, folder (with a .txt and an older duplicate), diff, persistence across reload.
-    await p.getByRole('button', { name: 'You', exact: true }).click();
+    // Update menus: files, folder (with a .txt and an older duplicate), diff, persistence across reload.
+    await go('#/menus?view=update');
+    ok(await p.locator('.subnav a[aria-current=page]').innerText() === 'Update menus', 'Update menus view');
     await p.locator('#pick').setInputFiles(join(dir, 'chase-1112.webarchive'));
-    await p.getByText(/Imported 1 day from 1 saved page/).waitFor();
+    await p.locator('.banner.info', { hasText: /Imported 1 day from 1 saved page/ }).waitFor();
     ok(await p.getByText(/Replaces the built-in copy\. Changed since the earlier save/).isVisible(), 'per-day diff against the built-in copy');
     await p.locator('#pick-dir').setInputFiles(join(dir, 'folder'));
-    await p.getByText(/Imported 1 day from 2 saved pages\. Skipped 1 other file/).waitFor();
+    await p.locator('.banner.info', { hasText: /Imported 1 day from 2 saved pages\. Skipped 1 other file/ }).waitFor();
     ok(await p.getByText('Older duplicate').isVisible(), 'older duplicate in a folder is reported and not used');
     ok(await p.locator('#next14').isVisible(), '14-day checklist shown');
-    ok(await noHScroll(p), 'no horizontal scroll (You tab)');
-    await p.reload(); await ready(p);
-    await p.getByRole('button', { name: 'You', exact: true }).click().catch(() => {});
-    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.tab = 'menu'; hh.S.hall = 'chase'; hh.S.date = '2026-11-12'; hh.S.period = 'Dinner'; hh.S.profile.pattern = 'none'; hh.render(); });
+    ok(await noHScroll(p), 'no horizontal scroll (Update menus)');
+    await go('#/?hall=chase&date=2026-11-12&period=Dinner'); await asNone();
     await p.waitForSelector('.banner.warn');
     ok(await p.getByText(/fewer sides\. Your diet rules were not changed/).isVisible(), 'imported day survives reload (IndexedDB) and the fallback banner shows');
-    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.hall = 'top-of-lenoir'; hh.S.date = '2026-11-09'; hh.S.period = null; hh.render(); });
-    ok(await p.locator('.pills .pill').count() === 2, 'folder import added Lenoir Nov 9 with both periods from the newest save');
+    await go('#/?hall=top-of-lenoir&date=2026-11-09');
+    const pillTxt = await p.locator('.pills .pill').allInnerTexts();
+    ok(pillTxt.length === 2, 'folder import added Lenoir Nov 9 with both periods from the newest save' + (pillTxt.length === 2 ? '' : ` (saw ${JSON.stringify(pillTxt)} at ${await p.evaluate(() => location.hash)})`));
 
-    // Nutrition: official file and manual entry.
-    await p.getByRole('button', { name: 'You', exact: true }).click();
+    // Nutrition: official file and an entered value, both surviving reload.
+    await go('#/menus?view=update');
     await p.locator('#csv').setInputFiles(join(dir, 'official.csv'));
     await p.locator('p[role=status]', { hasText: /Applied official nutrition to \d+ menu entries/ }).waitFor();
-    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.tab = 'menu'; hh.S.hall = 'chase'; hh.S.date = '2026-11-12'; hh.S.period = 'Dinner'; hh.render(); });
+    await go('#/?hall=chase&date=2026-11-12&period=Dinner'); await asNone();
     ok(await p.getByText('Nutrition: Official').first().isVisible(), 'official nutrition badge on the meal');
     await p.locator('.plate-row', { hasText: 'Steamed Broccoli' }).click();
     await p.getByText('Enter values from UNC’s item panel').click();
@@ -129,34 +163,41 @@ for (const name of engines) {
     await p.getByRole('button', { name: 'Save', exact: true }).click();
     await p.getByText('Nutrition: Entered by you').first().waitFor();
     await p.keyboard.press('Escape');
-    await p.reload(); await ready(p);
-    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.tab = 'menu'; hh.S.hall = 'chase'; hh.S.date = '2026-11-12'; hh.S.period = 'Dinner'; hh.S.profile.pattern = 'none'; hh.render(); });
+    await go('#/?hall=chase&date=2026-11-12&period=Dinner'); await asNone();
     await p.waitForSelector('article.meal');
-    ok(await p.getByText('Nutrition: Entered by you').first().isVisible(), 'manual entry persists across reload');
-    ok((await p.locator('.total-row').first().innerText()).includes('285'), 'totals use official + entered values (250 + 35 kcal)');
+    ok(await p.getByText('Nutrition: Entered by you').first().isVisible(), 'entered value persists across reload');
+    ok((await p.locator('.totals').first().innerText()).includes('285'), 'totals use official + entered values (250 + 35 kcal)');
 
-    // Plan tab: best fit now, day planner with daily targets, save a meal.
+    // Save, whole day, Me page.
     await p.getByRole('button', { name: '☆ Save' }).click();
-    await p.getByRole('button', { name: 'Plan', exact: true }).click();
-    ok(await p.locator('#best-h').isVisible(), 'compare halls shown');
+    await p.getByRole('button', { name: 'Whole day' }).click();
+    ok((await p.evaluate(() => location.hash)).includes('mode=day'), 'whole-day view is in the address');
+    ok(await p.locator('.dayplan > li').count() >= 1, 'whole-day plan shows meals');
+    await p.getByRole('link', { name: 'Me', exact: true }).click();
+    await p.waitForSelector('#me-diet');
+    ok(await p.getByText(/Saved meals \(1\)/).isVisible(), 'saved meal listed on Me');
     await p.locator('[data-fk=d-pro]').fill('120'); await p.locator('[data-fk=d-pro]').press('Tab');
-    ok(await p.locator('.dayplan > li').count() >= 1, 'day planner shows meals');
-    ok(await p.getByText(/Saved meals \(1\)/).isVisible(), 'saved meal listed');
-    ok(await noHScroll(p), 'no horizontal scroll (Plan tab)');
+    await go('#/me?section=goals');
+    ok(await p.evaluate(() => { const r = document.getElementById('me-goals')!.getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight; }), 'a #/me?section= link scrolls to that section');
+    ok(await noHScroll(p), 'no horizontal scroll (Me)');
 
-    // Share link: opening it offers to add the profile; nothing leaves the page.
-    const share = await p.evaluate(() => { const S = (window as any).__hh.S; const json = JSON.stringify({ v: 1, name: 'Friend', profile: { ...S.profile, pattern: 'vegan', allergens: ['peanut'] } });
-      return '#profile=' + btoa(json).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); });
-    await p.goto(BASE + share); await p.reload(); await ready(p);
+    // Share link (old and new forms) offers to add the profile; nothing leaves the page.
+    const enc = await p.evaluate(() => { const S = (window as any).__hh.S; const json = JSON.stringify({ v: 1, name: 'Friend', profile: { ...S.profile, pattern: 'vegan', allergens: ['peanut'] } });
+      return btoa(json).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); });
+    await go('#profile=' + enc);
     await p.getByRole('button', { name: 'Add as a new profile' }).click();
-    ok((await p.locator('.rules-line').innerText()).includes('Vegan · Peanut allergy'), 'shared profile added and active');
+    await go('#/?hall=chase&date=2026-11-16&period=Dinner');
+    ok((await p.locator('#rules-h + p').innerText()).includes('Vegan · Peanut allergy'), 'shared profile (old #profile= link) added and active');
 
     // Display settings.
-    await p.getByRole('button', { name: 'You', exact: true }).click();
+    await go('#/me?section=display');
     await p.getByRole('button', { name: 'High' }).click();
     ok(await p.evaluate(() => document.documentElement.getAttribute('data-contrast') === 'high'), 'high contrast setting applied');
     await p.getByRole('button', { name: 'Large' }).click();
     ok(await noHScroll(p), 'no horizontal scroll with large text');
+    // Skip link moves focus without changing the page.
+    await go('#/menus'); await p.keyboard.press('Tab'); await p.keyboard.press('Enter');
+    ok(await p.evaluate(() => location.hash.startsWith('#/menus') && document.activeElement?.id === 'main'), 'skip link focuses the content and keeps the page');
 
     ok(errors.length === 0, 'no console errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
     ok(offsite.length === 0, 'no requests outside 127.0.0.1' + (offsite.length ? ': ' + offsite.slice(0, 3).join(', ') : ''));

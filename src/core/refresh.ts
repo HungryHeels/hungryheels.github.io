@@ -73,11 +73,11 @@ export interface Staleness { ageDays: number | null; stale: boolean; text: strin
 /** How old is the save of this day, and does that matter? Only days today or later can be stale; past days are history. */
 export function staleness(day: MenuDay, today: string = nyNow().date): Staleness {
   const iso = day.provenance.retrievedAt;
-  if (!iso) return { ageDays: null, stale: day.date >= today, text: 'Saved at an unknown time, so menus may have changed' };
+  if (!iso) return { ageDays: null, stale: day.date >= today, text: 'Menu page saved at an unknown time, so it may have changed' };
   const age = Math.max(0, daysBetween(nyDateOf(iso), today));
   const when = age === 0 ? 'today' : age === 1 ? 'yesterday' : `${age} days ago`;
   const stale = day.date >= today && age >= STALE_DAYS;
-  return { ageDays: age, stale, text: stale ? `Saved ${when}; menus can change, so re-save this day if it matters` : `Saved ${when}` };
+  return { ageDays: age, stale, text: stale ? `Menu page saved ${when}; menus can change, so re-save this day if it matters` : `Menu page saved ${when}` };
 }
 
 export type ChecklistStatus = 'ok' | 'stale' | 'no_menu' | 'missing';

@@ -6,7 +6,8 @@ import { defaultProfile } from '../src/core/profile.ts';
 test('share link round-trips in the URL fragment only', () => {
   const p = { ...defaultProfile('vegan'), allergens: ['peanut' as const], avoidIngredients: ['mushroom'], targets: { protein: 35 } };
   const h = profileToHash(p, 'Gym days');
-  assert.ok(h.startsWith('#profile='));
+  assert.ok(h.startsWith('#/me?profile='));
+  assert.ok(profileFromHash('#profile=' + h.split('profile=')[1]), 'old #profile= links still work');
   const back = profileFromHash(h)!;
   assert.deepEqual(back.profile, sanitizeProfile(p)); assert.equal(back.name, 'Gym days');
   assert.equal(profileFromHash('#profile=@@@'), null);

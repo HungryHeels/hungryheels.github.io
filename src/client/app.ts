@@ -1,18 +1,25 @@
-// App shell: tabs, rendering, focus management, display settings and start-up. Views live in view-*.ts.
+// Site shell: header with three pages, footer, hash router (Back/Forward and shareable links), focus management,
+// display settings and start-up. Pages live in view-today.ts, view-menus.ts and view-me.ts.
 import { h, clear } from './dom.ts';
-import { S, FIRST_DATE, addProfile, firstDate, lastDate, loadProfile } from './state.ts';
+import { S, addProfile, firstDate, lastDate, loadProfile } from './state.ts';
 import { loadImported, loadLayers, loadSeed } from './imports.ts';
-import { focusKey, restoreFocus, setRender, takePendingFocus, announce, go } from './nav.ts';
-import { menuView } from './view-menu.ts';
-import { planView } from './view-plan.ts';
-import { youView } from './view-you.ts';
+import { announce, focusAfterRender, focusKey, go, restoreFocus, setRender, setSheetCloser, takePendingFocus } from './nav.ts';
+import { PAGE_TITLES, parseHash, routeHash, type Page, type Route } from './router.ts';
+import { todayView } from './view-today.ts';
+import { menusView } from './view-menus.ts';
+import { meView } from './view-me.ts';
 import { sheetView } from './view-sheet.ts';
 import { profileSummary } from './views.ts';
+import { DISCLAIMER } from './ui.ts';
 import { profileFromHash } from '../core/profile-io.ts';
+import { REPO_ISSUES } from '../core/trust.ts';
 import { nyNow } from '../core/schedule.ts';
 
 let root: HTMLElement;
 let lastSheet: string | null = null;
+let lastPage: Page | null = null;
+let sheetPushed = false;
+const REPO = 'https://github.com/HungryHeels/hungryheels.github.io';
 
 function applyDisplay() {
   const el = document.documentElement;
@@ -21,53 +28,107 @@ function applyDisplay() {
   el.setAttribute('data-contrast', S.display.contrast);
 }
 
-function incomingBanner(): HTMLElement | null {
-  const inc = S.incoming; if (!inc) return null;
-  return h('div', { class: 'banner info', role: 'region', 'aria-label': 'Shared profile' },
-    h('p', null, h('strong', null, `Someone shared a profile${inc.name ? ` (“${inc.name}”)` : ''}: `), profileSummary(inc.profile)),
-    h('div', { class: 'actions' },
-      h('button', { type: 'button', class: 'primary', onClick: () => go(() => { addProfile(inc.name ?? 'Shared profile', inc.profile); S.incoming = null; S.tab = 'menu'; history.replaceState(null, '', location.pathname + location.search); }, 'Shared profile added and active.') }, 'Add as a new profile'),
-      h('button', { type: 'button', onClick: () => go(() => { S.incoming = null; history.replaceState(null, '', location.pathname + location.search); }, 'Dismissed.') }, 'Dismiss')));
+// ---------- routing ----------
+function stateRoute(): Route {
+  const r: Route = { page: S.page };
+  if (S.page !== 'me') { r.hall = S.hall; r.date = S.date; if (S.period) r.period = S.period; }
+  if (S.sheet && S.sheet.dayKey === `${S.hall}:${S.date}` && S.page !== 'me') r.item = S.sheet.item;
+  if (S.page === 'menus' && S.menusView === 'update') r.view = 'update';
+  if (S.page === 'today' && S.mode === 'day') r.mode = 'day';
+  return r;
+}
+function applyRoute(r: Route) {
+  const pageChanged = r.page !== S.page;
+  S.page = r.page;
+  if (r.hall) S.hall = r.hall;
+  if (r.date && !S.loading) S.date = r.date < firstDate() ? firstDate() : r.date > lastDate() ? lastDate() : r.date;
+  else if (r.date) S.date = r.date;
+  if (r.period) S.period = r.period;
+  S.menusView = r.view === 'update' ? 'update' : 'browse';
+  S.mode = r.mode === 'day' ? 'day' : 'meal';
+  if (r.item && r.page !== 'me') S.sheet = { item: r.item, dayKey: `${S.hall}:${S.date}`, opener: S.sheet?.opener ?? 'item:' + r.item };
+  else { if (S.sheet) focusAfterRender(S.sheet.opener); S.sheet = null; }
+  S.section = r.section ?? (pageChanged ? null : S.section);
+  if (r.profile) {
+    const inc = profileFromHash('#profile=' + r.profile);
+    if (inc) { S.incoming = inc; announce('A shared profile was found in the link. Review it at the top of the page.'); }
+  }
+}
+function syncUrl() {
+  const want = routeHash(stateRoute());
+  if (want === location.hash || (want === '#/' && location.hash === '')) return;
+  const sheetOpened = !!S.sheet && !lastSheet;
+  try {
+    if (sheetOpened || (lastPage !== null && lastPage !== S.page)) { history.pushState(null, '', want); if (sheetOpened) sheetPushed = true; }
+    else history.replaceState(null, '', want);
+  } catch { /* some file:// contexts refuse history changes; the page still works */ }
+}
+function closeSheetImpl() {
+  const opener = S.sheet?.opener ?? null;
+  if (sheetPushed) { sheetPushed = false; focusAfterRender(opener); history.back(); return; }   // hashchange closes it
+  go(() => { S.sheet = null; });
+  focusAfterRender(null);
+  if (opener) (document.querySelector(`[data-fk="${CSS.escape(opener)}"]`) as HTMLElement | null)?.focus({ preventScroll: true });
 }
 
-function tabButton(id: AppTab, label: string, icon: string): HTMLElement {
-  return h('button', { type: 'button', 'aria-current': S.tab === id ? 'page' : null, class: S.tab === id ? 'on' : '', 'data-fk': 'tab:' + id,
-    onClick: () => go(() => { S.tab = id; window.scrollTo(0, 0); }, `${label} tab.`) }, h('span', { 'aria-hidden': 'true' }, icon), label);
+// ---------- chrome ----------
+function header(): HTMLElement {
+  const link = (p: Page) => h('a', { href: routeHash({ ...stateRoute(), page: p, item: undefined, view: undefined, mode: undefined }), class: 'nav-link', 'aria-current': S.page === p ? 'page' : null, 'data-fk': 'nav:' + p }, PAGE_TITLES[p]);
+  return h('header', { class: 'site-header' }, h('div', { class: 'wrap header-in' },
+    h('a', { class: 'brand', href: routeHash({ page: 'today' }) }, h('span', { class: 'brand-name' }, 'Hungry Heels'), h('span', { class: 'brand-tag' }, 'Unofficial')),
+    h('nav', { class: 'site-nav', 'aria-label': 'Main' }, link('today'), link('menus'), link('me'))));
 }
-type AppTab = 'menu' | 'plan' | 'you';
+function footer(): HTMLElement {
+  return h('footer', { class: 'site-footer' }, h('div', { class: 'wrap footer-in' },
+    h('div', null, h('p', null, h('strong', null, DISCLAIMER)),
+      h('p', null, 'Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services. Menus come only from pages saved by hand; this site never contacts dining.unc.edu.')),
+    h('ul', { class: 'footer-links' },
+      h('li', null, h('a', { href: routeHash({ page: 'me', section: 'privacy' }) }, 'Privacy')),
+      h('li', null, h('a', { href: routeHash({ page: 'menus', view: 'update' }) }, 'Update menus')),
+      h('li', null, h('a', { href: REPO_ISSUES, target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem')),
+      h('li', null, h('a', { href: REPO, target: '_blank', rel: 'noopener noreferrer' }, 'Source code')))));
+}
+function banners(): Array<HTMLElement | null> {
+  const inc = S.incoming;
+  const clearHashProfile = () => { try { history.replaceState(null, '', routeHash(stateRoute())); } catch { /* ignore */ } };
+  return [
+    inc ? h('div', { class: 'banner info', role: 'region', 'aria-label': 'Shared profile' },
+      h('p', null, h('strong', null, `Someone shared a profile${inc.name ? ` (“${inc.name}”)` : ''}: `), profileSummary(inc.profile)),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'primary', onClick: () => go(() => { addProfile(inc.name ?? 'Shared profile', inc.profile); S.incoming = null; S.page = 'today'; clearHashProfile(); }, 'Shared profile added and active.') }, 'Add as a new profile'),
+        h('button', { type: 'button', onClick: () => go(() => { S.incoming = null; clearHashProfile(); }, 'Dismissed.') }, 'Dismiss'))) : null,
+    S.flash ? h('div', { class: 'banner info flash', role: 'status' }, h('span', null, S.flash), h('button', { type: 'button', class: 'quiet', 'aria-label': 'Dismiss message', onClick: () => go(() => { S.flash = null; }) }, 'OK')) : null,
+  ];
+}
 
 function render() {
-  const keepScroll = window.scrollY;
+  const pageChanged = lastPage !== null && lastPage !== S.page;
+  const keepScroll = pageChanged ? 0 : window.scrollY;
   const pending = takePendingFocus();
-  const fk = pending ? 'fk:' + pending : focusKey(root);
+  const fk = pending ? 'fk:' + pending : pageChanged ? null : focusKey(root);
   applyDisplay();
   clear(root);
-  const title = S.tab === 'menu' ? 'Hungry Heels' : S.tab === 'plan' ? 'Plan' : 'You';
-  const header = h('header', { class: 'top' }, h('h1', { tabindex: '-1', id: 'title' }, title),
-    h('p', { class: 'unofficial' }, 'Unofficial · personal use · not affiliated with UNC'));
-  const main = h('main', { id: 'main' }, incomingBanner(),
-    S.flash ? h('div', { class: 'banner info flash', role: 'status' }, h('span', null, S.flash), h('button', { type: 'button', class: 'linkish', 'aria-label': 'Dismiss message', onClick: () => go(() => { S.flash = null; }) }, 'OK')) : null,
-    S.tab === 'menu' ? menuView() : S.tab === 'plan' ? planView() : youView());
-  const nav = h('nav', { class: 'tabbar', 'aria-label': 'Main' }, tabButton('menu', 'Menu', '🍽'), tabButton('plan', 'Plan', '📅'), tabButton('you', 'You', '⚙'));
-  root.append(header, main, nav);
-  const sel = root.querySelector('.pills.scroll .pill.on') as HTMLElement | null;
-  if (sel && sel.parentElement) sel.parentElement.scrollLeft = sel.offsetLeft - 16;
+  const main = h('main', { id: 'main', class: 'wrap', tabindex: '-1' }, ...banners(), S.page === 'today' ? todayView() : S.page === 'menus' ? menusView() : meView());
+  const head = header(), foot = footer();
+  root.append(head, main, foot);
+  document.title = `${PAGE_TITLES[S.page]} · Hungry Heels (unofficial)`;
+  const pill = root.querySelector('.pills .pill.on') as HTMLElement | null;   // keep the chosen meal visible in the scrolling row
+  if (pill?.parentElement && pill.parentElement.scrollWidth > pill.parentElement.clientWidth) pill.parentElement.scrollLeft = pill.offsetLeft - pill.parentElement.offsetLeft - 16;
   const sh = sheetView();
   const sheetKey = S.sheet ? S.sheet.dayKey + ':' + S.sheet.item : null;
-  if (sh) {
-    root.appendChild(sh);
-    header.inert = true; main.inert = true; nav.inert = true;   // background is not reachable while the dialog is open
-    document.body.classList.add('sheet-open');
-  } else document.body.classList.remove('sheet-open');
+  if (sh) { root.appendChild(sh); head.inert = true; main.inert = true; foot.inert = true; document.body.classList.add('sheet-open'); }
+  else document.body.classList.remove('sheet-open');
+  syncUrl();
   window.scrollTo(0, keepScroll);
   if (sh && sheetKey !== lastSheet) (sh.querySelector('.sheet') as HTMLElement).focus();
+  else if (pageChanged) (root.querySelector('#page-h') as HTMLElement | null)?.focus({ preventScroll: true });
   else restoreFocus(root, fk);
-  lastSheet = sheetKey;
-}
-
-function readHash() {
-  const inc = profileFromHash(location.hash);
-  if (inc) { S.incoming = inc; announce('A shared profile was found in the link. Review it at the top of the page.'); }
+  if (S.section) {
+    const el = document.getElementById('me-' + S.section);
+    if (el) { el.scrollIntoView({ block: 'start' }); (el.querySelector('h2') as HTMLElement | null)?.focus({ preventScroll: true }); }
+    S.section = null;
+  }
+  lastSheet = sh ? sheetKey : null; lastPage = S.page;   // only once the details actually rendered (not while menus load)
 }
 
 function registerOffline() {
@@ -77,14 +138,19 @@ function registerOffline() {
   if (!/^https?:$/.test(location.protocol) || !('serviceWorker' in navigator)) return;
   const link = document.createElement('link'); link.rel = 'manifest'; link.href = 'manifest.webmanifest';
   document.head.appendChild(link);
-  navigator.serviceWorker.register('sw.js').catch(() => { /* not available here: the app works the same without it */ });
+  navigator.serviceWorker.register('sw.js').catch(() => { /* not available here: the site works the same without it */ });
 }
 
 export async function start() {
   root = document.getElementById('app')!;
   setRender(render, document.getElementById('live')!);
+  setSheetCloser(closeSheetImpl);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.sheet && !e.defaultPrevented) { e.preventDefault(); closeSheetImpl(); } });
+  // "Skip to content" must not change the address (the address holds the page), so it just moves focus.
+  document.querySelector('.skip')?.addEventListener('click', e => { e.preventDefault(); (document.getElementById('main') as HTMLElement | null)?.focus(); });
   loadProfile();
-  readHash();
+  const initial = parseHash(location.hash);
+  applyRoute(initial);
   render();
   const [seed, imported] = await Promise.all([loadSeed(), loadImported()]);
   S.seed = seed.days; S.seedError = seed.error; S.imported = imported;
@@ -92,10 +158,11 @@ export async function start() {
   S.loading = false;
   const now = nyNow();
   const first = firstDate(), last = lastDate();
-  S.date = now.date < first ? first : now.date > last ? last : now.date;
-  if (S.date < FIRST_DATE && !imported.length) S.date = FIRST_DATE;
+  const want = initial.date ?? now.date;
+  S.date = want < first ? first : want > last ? last : want;
+  if (initial.item) S.sheet = { item: initial.item, dayKey: `${S.hall}:${S.date}`, opener: 'item:' + initial.item };
   render();
-  window.addEventListener('hashchange', () => { readHash(); render(); });
+  window.addEventListener('hashchange', () => { if (!S.sheet) sheetPushed = false; applyRoute(parseHash(location.hash)); if (!S.sheet) sheetPushed = false; render(); });
   registerOffline();
   (window as any).__hh = { S, render };
 }
