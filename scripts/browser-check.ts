@@ -107,9 +107,16 @@ for (const name of engines) {
     ok(await p.locator('.site-nav a').allInnerTexts().then((t: string[]) => t.join('|') === 'Today|Menus|Me'), 'header has exactly three pages: Today, Menus, Me');
     ok(await p.locator('.site-nav a[aria-current=page]').innerText() === 'Today', 'current page is marked with aria-current');
     ok(await p.locator('.brand-tag').innerText() === 'Unofficial', 'unofficial tag next to the name');
+    // Original art: the mascot is one labeled button that waves on tap; the quad band stays out of the way.
+    const mascot = p.getByRole('button', { name: 'Hungry Heel mascot: tap to say hello' });
+    ok(await mascot.count() === 1, 'mascot is one labeled button');
+    await mascot.click();
+    ok(await p.locator('.mascot .pose-wave').count() === 1 && await p.locator('.mascot-say').isVisible(), 'tapping the mascot waves and shows a line');
+    const quadH = await p.locator('.quad').evaluate((e: Element) => e.getBoundingClientRect().height);
+    ok(w < 760 ? quadH <= 16 : quadH <= 72, `campus band stays small (${quadH}px)`);
     ok((await p.locator('.site-footer').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'disclaimer in the footer');
     const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    ok(scheme === 'dark' ? bg === 'rgb(11, 19, 34)' : bg === 'rgb(244, 245, 247)', `${scheme} theme applied (${bg})`);
+    ok(scheme === 'dark' ? bg === 'rgb(9, 12, 18)' : bg === 'rgb(245, 246, 248)', `${scheme} theme applied (${bg})`);
     ok(await p.title() === 'Today · Hungry Heels (unofficial)', 'page title names the page');
 
     // The address holds the hall, date and meal; switching updates it; Back and Forward restore it.
@@ -321,7 +328,31 @@ for (const name of engines) {
     const sheetTxt = await p.locator('[role=dialog]').innerText();
     ok(/~\d+/.test(sheetTxt) && /estimate/i.test(sheetTxt) && /Estimated from typical values for waffles/.test(sheetTxt) && /Not from UNC/.test(sheetTxt), 'a dish with no published nutrition shows a labeled estimate and how it was made');
     ok(await p.locator('.nutri div.est').count() === 4, 'all four estimated cells are marked as estimates');
-    await p.keyboard.press('Escape');
+    {
+      // Ingredients label: a real heading, the text as a list, a CONTAINS line, the original text, the disclaimer; theme-aware.
+      const lab = p.locator('[role=dialog] section.label');
+      ok(await lab.count() === 1 && await p.getByRole('heading', { name: 'Ingredients:' }).count() === 1, 'dish details show the ingredients label with a real heading');
+      const lt = await lab.innerText();
+      ok(/^INGREDIENTS:/.test(lt) && /CONTAINS:/.test(lt) && await lab.locator('ul > li').count() >= 1, 'label reads "INGREDIENTS: …" then "CONTAINS: …" with list structure');
+      ok(!/free of|allergy-safe|by weight|descending/i.test(await p.locator('[role=dialog]').innerText()), 'no "free of", "allergy-safe" or weight-order wording');
+      ok(await p.locator('[role=dialog] summary', { hasText: 'Show original text' }).count() === 1, 'original ingredient text is behind "Show original text"');
+      ok((await p.locator('[role=dialog]').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'allergy disclaimer stays in the dish details');
+      ok(/Source: .*Chase.*Saved .* ET\./.test(await p.locator('[role=dialog] section.label + .prov').innerText()), 'source line names the source, hall and saved time (ET)');
+      const col = await lab.evaluate((el: Element) => { const s = getComputedStyle(el); return [s.color, s.backgroundColor]; });
+      ok(scheme === 'dark' ? col[0] === 'rgb(255, 255, 255)' && col[1] === 'rgb(0, 0, 0)' : col[0] === 'rgb(0, 0, 0)' && col[1] === 'rgb(255, 255, 255)', `label is ${scheme === 'dark' ? 'white on black' : 'black on white'} (${col.join(' on ')})`);
+      ok(await p.evaluate(() => { const s = document.querySelector('.sheet')!; return s.scrollWidth <= s.clientWidth + 1; }) && await noHScroll(p), 'no horizontal scroll in the dish details');
+      // Structured text (as an official export or a future page might give it) renders nested groups; no allergens → honest line.
+      await p.evaluate(() => { const hh = (window as any).__hh; const S = hh.S;
+        for (const d of [...S.seed, ...S.imported]) for (const it of Object.values(d.items) as any[]) if (it.name === 'Waffle') { it.ingredients = 'Waffle Batter (Enriched Flour [Wheat Flour, Niacin], Milk), Canola and/or Soybean Oil, Contains 2% or less of: Salt.'; it.allergens = []; }
+        hh.render(); });
+      const lt2 = await p.locator('[role=dialog] section.label').innerText();
+      ok(lt2.includes('Waffle Batter (Enriched Flour (Wheat Flour, Niacin), Milk), Canola and/or Soybean Oil, Contains 2% or less of: Salt.'), 'nested sub-ingredients stay in parentheses after their parent');
+      ok(lt2.includes('No allergens declared in UNC’s data. This does not mean allergen-free.'), 'no declared allergens is stated without claiming allergen-free');
+      ok(await p.locator('[role=dialog] section.label ul ul li').count() === 4 && await p.locator('[role=dialog] section.label ul ul ul li').count() === 2, 'sub-ingredients are nested lists for screen readers (two levels)');
+      await p.evaluate(() => { const hh = (window as any).__hh; for (const d of [...hh.S.seed, ...hh.S.imported]) for (const it of Object.values(d.items) as any[]) if (it.name === 'Waffle') it.ingredients = null; hh.render(); });
+      ok((await p.locator('[role=dialog] section.label').innerText()).includes('Ingredients not listed by UNC for this item') && await p.locator('[role=dialog] section.label li').count() === 0, 'missing ingredient text says so, with no list');
+    }
+    await go('#/menus?hall=chase&date=2026-11-16&period=Dinner'); await asNone();
     ok((await p.locator('.item-row', { hasText: 'Waffle' }).first().innerText()).includes('(estimate)'), 'the menu list marks estimated numbers');
     await go('#/me?section=goals');
     await p.locator('[data-fk=g-est]').click();
@@ -341,6 +372,19 @@ for (const name of engines) {
 
     ok(errors.length === 0, 'no console errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
     ok(offsite.length === 0, 'no requests outside 127.0.0.1' + (offsite.length ? ': ' + offsite.slice(0, 3).join(', ') : ''));
+    await ctx.close();
+  }
+  // Reduced motion: poses still change (thinking, happy, wave) but nothing animates.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', timezoneId: 'America/New_York' });
+    const p = await ctx.newPage();
+    await p.goto(`${BASE}?load=rm#/?hall=chase&date=2026-11-16&period=Dinner`); await ready(p);
+    await p.getByRole('button', { name: 'Vegan' }).click();
+    await p.waitForSelector('article.meal');
+    ok(await p.locator('.mascot .pose-happy').count() === 1, 'a newly built meal shows the happy pose');
+    await p.getByRole('button', { name: 'Hungry Heel mascot: tap to say hello' }).click();
+    ok(await p.locator('.mascot .pose-wave').count() === 1, 'reduced motion: tapping still shows the wave pose');
+    ok(await p.evaluate(() => document.getAnimations().length === 0), 'reduced motion: nothing animates');
     await ctx.close();
   }
   // Single file from disk: works and makes no requests at all.

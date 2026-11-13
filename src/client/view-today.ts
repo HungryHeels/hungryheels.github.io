@@ -6,6 +6,8 @@ import { chip, copyText, DISCLAIMER, kcalLine, provenanceLine, sourceBadge, tt, 
 import { contributionTable, gapList, ideasTable, profileSummary, ruleTable } from './views.ts';
 import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.ts';
 import { landingView } from './view-landing.ts';
+import { cheer, figure, sprite } from './mascot.ts';
+import { spriteFor } from './art.ts';
 import { restaurantToday } from './view-restaurant.ts';
 import { isRestaurant } from '../core/restaurant.ts';
 import { buildMeals, type BuildResult, type Meal } from '../core/meals.ts';
@@ -30,6 +32,7 @@ function plateList(m: Meal, day: MenuDay, prefix: string): HTMLElement {
   const roleOf = (p: Meal['parts'][number]) => (m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : 'Side');
   return h('ul', { class: 'plate' }, m.parts.map(p => h('li', null,
     h('button', { type: 'button', class: 'plate-row', 'data-fk': prefix + p.item.id, onClick: () => open(p.item.id) },
+      sprite(spriteFor(p.item.name, p.station, p.role)),
       h('span', { class: 'plate-main' },
         h('span', { class: 'plate-name' }, p.item.name, p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}×`) : null),
         h('small', null, `${roleOf(p)} · ${p.station} · ${kcalLine(p.item, p.portions)}`),
@@ -92,7 +95,7 @@ function oneMeal(day: MenuDay): HTMLElement {
   const r = buildMeals(day, S.period, S.profile, { recentMains: recent() });
   if (r.banner) wrap.appendChild(h('div', { class: 'banner ' + (r.noMealToday ? 'bad' : 'warn'), role: 'status' }, r.banner));
   if (r.noMealToday) {
-    wrap.appendChild(h('div', { class: 'card' }, h('h2', null, 'No meal fits today'),
+    wrap.appendChild(h('div', { class: 'card empty' }, figure('sad', 'empty-fig'), h('h2', null, 'No meal fits today'),
       h('p', null, 'Nothing on this menu passes all of your rules. They were not loosened.'),
       h('a', { class: 'btn primary', href: href('menus') }, 'Browse the full menu')));
     return wrap;
@@ -109,6 +112,7 @@ function oneMeal(day: MenuDay): HTMLElement {
     n > 1 ? h('button', { type: 'button', 'aria-label': 'Previous idea', 'data-fk': 'idea-prev', onClick: () => go(() => { S.idea = (i - 1 + n) % n; }, `Idea ${((i - 1 + n) % n) + 1} of ${n}.`) }, '‹ Back') : null,
     h('button', { class: 'grow', type: 'button', disabled: n < 2, 'data-fk': 'idea-next', onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, n < 2 ? 'Only idea' : `Another idea (${i + 1} of ${n})`)));
   wrap.appendChild(mealCard(r.meals[i], day, r, i));
+  cheer(savedId(r.meals[i], day));
   return wrap;
 }
 
@@ -156,7 +160,7 @@ export function todayView(): HTMLElement {
   const v = h('div', { class: 'page today' });
   v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, mealHeading(S.date, nyNow().date)),
     h('p', { class: 'lede' }, 'A meal from Chase or Top of Lenoir that fits your rules.')));
-  if (S.loading) { v.appendChild(h('p', { class: 'muted', role: 'status' }, 'Loading menus…')); return v; }
+  if (S.loading) { v.appendChild(h('div', { class: 'loading' }, figure('think', 'loading-fig'), h('p', { class: 'muted', role: 'status' }, 'Lacing up… loading menus.'))); return v; }
   const { el, day } = pickerBar();
   v.appendChild(el);
   if (S.seedError) v.appendChild(h('div', { class: 'banner warn' }, S.seedError));
