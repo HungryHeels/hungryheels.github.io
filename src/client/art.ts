@@ -1,6 +1,7 @@
 // Original inline SVG art for Hungry Heels: the "Hungry Heel" mascot (a walking sneaker with a fork), a few food
-// sprites and a generic campus-quad band. Drawn from scratch for this project. Deliberately NOT a footprint, a bare
-// foot, a ram, a domed or columned landmark, an interlocking monogram or any university mark.
+// sprites and a campus band with simplified Chapel Hill landmarks (bell tower, library, stadium). Drawn from scratch
+// for this project as plain silhouettes. Deliberately NOT a footprint, a bare foot, a ram, the Old Well, an
+// interlocking monogram or any university logo or mark.
 // Pure strings (no DOM) so they can be tested in Node. Colors come from CSS custom properties (see style.css), so
 // the art follows light, dark and high-contrast themes. No external references of any kind.
 
@@ -163,40 +164,125 @@ const SPRITE_BODY: Record<Sprite, string> = {
 
 export function spriteSvg(name: Sprite): string { return svg('0 0 32 32', SPRITE_BODY[name], `sprite sprite-${name}`); }
 
-// ---------- campus quad band ----------
-// Generic and not of any real place: sky, round oak trees, lamp posts, lawn and a brick walk. No buildings.
-// The sky follows the meal you are looking at (data-sky: morning, day, evening, night) and the oaks follow the
-// season in New York (data-season: spring blossoms, summer green, fall color, winter frost). All decided in CSS.
+// ---------- campus sprites (32 x 32) ----------
+// Small versions of the band's landmarks plus a dogwood blossom (the state flower). Original, flat, wordless and
+// purely decorative: page-title marks and the footer row. Never the Old Well, a ram, a foot or any university mark.
+export type Campus = 'belltower' | 'library' | 'stadium' | 'dogwood';
+export const CAMPUS: readonly Campus[] = ['belltower', 'library', 'stadium', 'dogwood'];
+const GROUND = '<path class="s-ink" d="M3 30.5h26"/>';
+const CAMPUS_BODY: Record<Campus, string> = {
+  belltower: '<rect class="q-stone2 c-o" x="11" y="27" width="10" height="3"/><rect class="q-brick c-o" x="12.5" y="14" width="7" height="13"/>' +
+    '<path class="q-brick2" d="M14.4 16h1v9h-1zM16.6 16h1v9h-1z"/>' +
+    '<rect class="q-stone c-o" x="12" y="9" width="8" height="5"/><path class="q-open" d="M13.6 13.5v-2.2a1 1 0 0 1 2 0v2.2zM16.4 13.5v-2.2a1 1 0 0 1 2 0v2.2z"/>' +
+    '<rect class="q-stone c-o" x="13.5" y="5.5" width="5" height="3.5"/><path class="q-stone c-o" d="M14.3 5.5L16 .8l1.7 4.7z"/>' + GROUND,
+  library: '<rect class="q-stone2 c-o" x="3" y="20" width="26" height="10"/><rect class="q-shade" x="10" y="17" width="12" height="12"/>' +
+    '<path class="q-stone" d="M10.6 17.5h1.6v11h-1.6zM13.6 17.5h1.6v11h-1.6zM16.8 17.5h1.6v11h-1.6zM19.8 17.5h1.6v11h-1.6z"/>' +
+    '<path class="q-stone c-o" d="M9 17h14l-7-3.5z"/><rect class="q-stone2 c-o" x="11.5" y="10.5" width="9" height="3"/>' +
+    '<path class="q-dome c-o" d="M11 10.8q0-6.3 5-6.3t5 6.3z"/><rect class="q-stone c-o" x="15" y="1.8" width="2" height="2.8"/>' + GROUND,
+  stadium: '<path class="q-post-fill" d="M5.4 6h1.2v12H5.4zM25.4 6h1.2v12h-1.2z"/><rect class="q-post-fill" x="3" y="3.5" width="6" height="3" rx=".6"/><rect class="q-post-fill" x="23" y="3.5" width="6" height="3" rx=".6"/>' +
+    '<circle class="q-light" cx="5" cy="5" r=".8"/><circle class="q-light" cx="7" cy="5" r=".8"/><circle class="q-light" cx="25" cy="5" r=".8"/><circle class="q-light" cx="27" cy="5" r=".8"/>' +
+    '<path class="q-stand c-o" d="M2 30V17q14-6 28 0v13z"/><path class="q-tier" d="M2 20.5q14-6 28 0"/>' +
+    '<rect class="q-brick c-o" x="2" y="24" width="28" height="6"/><path class="q-open" d="M5 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM11 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM18.6 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM24.6 30v-2.6a1.2 1.2 0 0 1 2.4 0V30z"/>',
+  dogwood: [0, 90, 180, 270].map(a => `<g transform="rotate(${a} 16 16)"><path class="c-petal" d="M16 15q-5.5-2-5.2-8 .2-3 5.2-3.6 5 .6 5.2 3.6.3 6-5.2 8z"/><path class="c-tip" d="M14.7 4.3q1.3 1.4 2.6 0-1.3-.9-2.6 0z"/></g>`).join('') +
+    '<circle class="c-eye" cx="16" cy="16" r="3"/><circle class="c-dot" cx="15" cy="15.2" r=".7"/><circle class="c-dot" cx="17" cy="15.4" r=".7"/><circle class="c-dot" cx="16" cy="17" r=".7"/>',
+};
+export function campusSvg(name: Campus): string { return svg('0 0 32 32', CAMPUS_BODY[name], `sprite campus campus-${name}`); }
+
+// ---------- campus band ----------
+// Sky, round oaks, lamp posts, lawn and a brick walk, with three simplified campus silhouettes in the middle:
+// a brick bell tower with a pale belfry and spire, a domed library with a columned portico, and a stadium bowl
+// with light towers. Original, flat and wordless: impressions of the places, not logos or traced drawings.
+// Ground line y = 96 everywhere; the brick walk repeats every 300 units so sections join without a seam.
 function tree(x: number, s: number): string {
-  const f = (n: number) => n.toFixed(1), r = (n: number) => f(n * s), X = (d: number) => f(x + d * s), Y = (d: number) => f(96 - d * s);
+  const r = (n: number) => (n * s).toFixed(1), X = (d: number) => (x + d * s).toFixed(1), Y = (d: number) => (96 - d * s).toFixed(1);
+  // Spring blossoms and winter frost sit on every oak; CSS shows the one for the season (data-season on .quad).
   const bloom = [[-12, 40], [4, 56], [14, 42], [-4, 33], [20, 31], [-18, 30]].map(([dx, dy]) => `<circle cx="${X(dx)}" cy="${Y(dy)}" r="${r(2.6)}"/>`).join('');
-  return `<g class="q-tree"><rect class="q-trunk" x="${X(-3)}" y="${Y(26)}" width="${r(6)}" height="${r(26)}" rx="${r(2)}"/>` +
-    `<circle class="q-oak2" cx="${X(-14)}" cy="${Y(34)}" r="${r(15)}"/><circle class="q-oak2" cx="${X(15)}" cy="${Y(33)}" r="${r(14)}"/>` +
-    `<circle class="q-oak" cx="${x}" cy="${Y(44)}" r="${r(19)}"/><circle class="q-oak" cx="${X(-9)}" cy="${Y(30)}" r="${r(12)}"/><circle class="q-oak" cx="${X(10)}" cy="${Y(29)}" r="${r(12)}"/>` +
-    `<g class="q-bloom">${bloom}</g><ellipse class="q-snow" cx="${x}" cy="${Y(59)}" rx="${r(13)}" ry="${r(4.5)}"/></g>`;
+  return `<rect class="q-trunk" x="${(x - 3 * s).toFixed(1)}" y="${(96 - 26 * s).toFixed(1)}" width="${r(6)}" height="${r(26)}" rx="${r(2)}"/>` +
+    `<circle class="q-oak2" cx="${(x - 14 * s).toFixed(1)}" cy="${(96 - 34 * s).toFixed(1)}" r="${r(15)}"/>` +
+    `<circle class="q-oak2" cx="${(x + 15 * s).toFixed(1)}" cy="${(96 - 33 * s).toFixed(1)}" r="${r(14)}"/>` +
+    `<circle class="q-oak" cx="${x}" cy="${(96 - 44 * s).toFixed(1)}" r="${r(19)}"/>` +
+    `<circle class="q-oak" cx="${(x - 9 * s).toFixed(1)}" cy="${(96 - 30 * s).toFixed(1)}" r="${r(12)}"/>` +
+    `<circle class="q-oak" cx="${(x + 10 * s).toFixed(1)}" cy="${(96 - 29 * s).toFixed(1)}" r="${r(12)}"/>` +
+    `<g class="q-bloom">${bloom}</g><ellipse class="q-snow" cx="${x}" cy="${Y(59)}" rx="${r(13)}" ry="${r(4.5)}"/>`;
 }
-const lamp = (x: number) => `<g class="q-tree"><path class="q-post" d="M${x} 98V66"/><circle class="q-light" cx="${x}" cy="63" r="4"/></g>`;
+const lamp = (x: number) => `<path class="q-post" d="M${x} 98V66"/><circle class="q-light" cx="${x}" cy="63" r="4"/>`;
 const cloud = (x: number, y: number) => `<g class="q-cloud"><ellipse cx="${x}" cy="${y}" rx="26" ry="8"/><ellipse cx="${x + 14}" cy="${y - 5}" rx="15" ry="8"/><ellipse cx="${x - 12}" cy="${y - 3}" rx="11" ry="6"/></g>`;
-const GROUND =
-  '<rect class="q-grass" x="0" y="92" width="1200" height="28"/>' +
-  '<path class="q-brick" d="M0 103Q150 98 300 103T600 103T900 103T1200 103V113Q1050 118 900 113T600 113T300 113T0 113Z"/>' +
-  '<path class="q-joint" d="M0 108Q150 103 300 108T600 108T900 108T1200 108"/>';
-// Two different tiles so the repeat isn't visible on wide screens.
-const TILE_A = cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + GROUND +
+/** Lawn and brick walk for a section `w` wide (a multiple of 300). */
+function ground(w: number): string {
+  let top = 'M0 103Q150 98 300 103', mid = 'M0 108Q150 103 300 108', bot = `Q${w - 150} 118 ${w - 300} 113`;
+  for (let x = 600; x <= w; x += 300) { top += `T${x} 103`; mid += `T${x} 108`; }
+  for (let x = w - 600; x >= 0; x -= 300) bot += `T${x} 113`;
+  return `<rect class="q-grass" x="0" y="92" width="${w}" height="28"/>` +
+    `<path class="q-brick" d="${top}V113${bot}Z"/><path class="q-joint" d="${mid}"/>`;
+}
+const at = (x: number, body: string) => `<g transform="translate(${x} 0)">${body}</g>`;
+/** Arched opening, `w` wide, top of the arch at y. */
+const arch = (x: number, y: number, w: number, h: number) => `<path class="q-open" d="M${x} ${y + h}V${y + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V${y + h}Z"/>`;
+
+/** Brick campanile: plinth, brick shaft with recessed panels, pale belfry with arches, lantern and spire. */
+function bellTower(): string {
+  return '<rect class="q-stone2" x="-12" y="88" width="24" height="8"/>' +
+    '<rect class="q-brick" x="-9" y="40" width="18" height="48"/>' +
+    '<rect class="q-brick2" x="-5" y="46" width="2.5" height="38"/><rect class="q-brick2" x="2.5" y="46" width="2.5" height="38"/>' +
+    '<rect class="q-stone" x="-11" y="29" width="22" height="12"/>' +
+    arch(-7, 31, 5, 9) + arch(2, 31, 5, 9) +
+    '<rect class="q-stone2" x="-13" y="27" width="26" height="3"/>' +
+    '<rect class="q-stone" x="-7.5" y="17" width="15" height="10"/>' +
+    arch(-4.5, 19, 3.5, 7) + arch(1, 19, 3.5, 7) +
+    '<rect class="q-stone2" x="-9" y="15.5" width="18" height="2.5"/>' +
+    '<path class="q-stone" d="M-5.5 15.5L0 1L5.5 15.5Z"/>';
+}
+/** Library: pale wings, a columned portico on steps, a drum and a dome with a small lantern. */
+function library(): string {
+  let cols = '';
+  for (let i = 0; i < 8; i++) cols += `<rect class="q-stone" x="${(-40 + i * 11.1).toFixed(1)}" y="64" width="4" height="25"/>`;
+  let wins = '';
+  for (const x of [-92, -80, -68, 60, 72, 84]) wins += `<rect class="q-open" x="${x}" y="76" width="6" height="10" rx="1"/>`;
+  return '<rect class="q-stone2" x="-100" y="70" width="200" height="26"/>' +
+    '<rect class="q-stone" x="-102" y="67" width="204" height="4"/>' + wins +
+    '<rect class="q-shade" x="-45" y="62" width="90" height="27"/>' + cols +
+    '<rect class="q-stone" x="-50" y="89" width="100" height="3"/><rect class="q-stone2" x="-54" y="92" width="108" height="4"/>' +
+    '<rect class="q-stone" x="-49" y="55" width="98" height="8"/><path class="q-stone2" d="M-49 55L0 46L49 55Z"/>' +
+    '<rect class="q-stone2" x="-24" y="38" width="48" height="10"/>' +
+    '<path class="q-dome" d="M-25 39Q-25 15 0 15Q25 15 25 39Z"/>' +
+    '<rect class="q-stone" x="-3.5" y="9" width="7" height="7"/><path class="q-stone2" d="M-4.5 9.5L0 4L4.5 9.5Z"/>';
+}
+/** Stadium among the trees: a long seating bowl with tiers and portals, an upper deck and two light towers. */
+function stadium(): string {
+  let portals = '';
+  for (let x = -136; x <= 128; x += 22) portals += arch(x, 84, 8, 12);
+  const tower = (x: number) => `<rect class="q-post-fill" x="${x - 1.75}" y="26" width="3.5" height="70"/><rect class="q-post-fill" x="${x - 11}" y="16" width="22" height="11" rx="1.5"/>` +
+    `<circle class="q-light" cx="${x - 6}" cy="21.5" r="2.5"/><circle class="q-light" cx="${x}" cy="21.5" r="2.5"/><circle class="q-light" cx="${x + 6}" cy="21.5" r="2.5"/>`;
+  return tower(-124) + tower(124) +
+    '<path class="q-stand2" d="M-150 58V38Q-105 33 -55 38V54Z"/>' +
+    '<path class="q-stand" d="M-150 96V54Q0 38 150 54V96Z"/>' +
+    '<path class="q-tier" d="M-150 62Q0 46 150 62M-150 69Q0 54 150 69M-150 76Q0 62 150 76"/>' +
+    '<rect class="q-brick" x="-150" y="82" width="300" height="14"/>' + portals;
+}
+const SECTION = 900;
+const LANDMARKS =
+  cloud(120, 22) + cloud(560, 16) + ground(SECTION) +
+  at(170, stadium()) + tree(16, .75) + tree(340, .8) +
+  at(505, library()) + tree(640, .95) + lamp(700) +
+  `<g transform="translate(790 0) scale(1.4 1)">${bellTower()}</g>` + tree(860, .8);
+const TILE =
+  cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + ground(1200) +
   tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9);
-const TILE_B = cloud(90, 20) + cloud(520, 30) + cloud(880, 16) + GROUND +
-  tree(150, .9) + lamp(290) + tree(400, 1.15) + tree(560, .75) + tree(780, 1) + lamp(990) + tree(1080, .85);
-const STARS = [[90, 18], [260, 40], [410, 14], [560, 34], [700, 10], [860, 28], [1010, 44], [1130, 16], [1290, 30], [1420, 12], [1560, 38], [1720, 20], [1880, 46], [2030, 14], [2190, 32], [2330, 22]]
-  .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8"/>`).join('');
+const BAND_W = 4 * 1200 + SECTION;
+// The sky follows the meal on screen (data-sky on .quad): a low sun in the morning, a high one at lunch, a setting sun
+// at dinner, moon and stars late at night. Placed in open sky near the middle so phones (which show the middle) see them.
+const STARS = Array.from({ length: 40 }, (_, i) => `<circle cx="${(i * 142.5 + (i % 3) * 37) % BAND_W}" cy="${8 + ((i * 37) % 46)}" r="1.8"/>`).join('');
 const SKY_LIGHTS =
-  '<circle class="q-sun q-sun-morning" cx="1530" cy="70" r="13"/><circle class="q-sun q-sun-day" cx="1420" cy="26" r="11"/>' +
-  '<circle class="q-sun q-sun-evening" cx="980" cy="72" r="14"/><path class="q-moon" d="M1690 16a12 12 0 1 0 9 21 10 10 0 1 1-9-21z"/>' +
+  '<circle class="q-sun q-sun-morning" cx="2362" cy="66" r="13"/><circle class="q-sun q-sun-day" cx="3062" cy="20" r="10"/>' +
+  '<circle class="q-sun q-sun-evening" cx="3318" cy="68" r="14"/><path class="q-moon" d="M2760 12a12 12 0 1 0 9 21 10 10 0 1 1-9-21z"/>' +
   `<g class="q-stars">${STARS}</g>`;
 
-/** The decorative band under the header: sky, then two 1200-wide tiles of lawn, oaks and lamps. */
+/** The decorative band under the header: two tiles of oaks each side of the landmarks. Scales by height and stays
+ *  centred, so the landmarks are always whole and in the middle, at any width. */
 export function quadSvg(): string {
-  return `<svg class="quad-svg" viewBox="0 0 2400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">` +
-    `<rect class="q-sky" x="0" y="0" width="2400" height="120"/>${SKY_LIGHTS}<g>${TILE_A}</g><g transform="translate(1200 0)">${TILE_B}</g></svg>`;
+  return `<svg class="quad-svg" viewBox="0 0 ${BAND_W} 120" width="${BAND_W}" height="120" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">` +
+    `<rect class="q-sky" x="0" y="0" width="${BAND_W}" height="120"/>${SKY_LIGHTS}` +
+    `<g>${TILE}</g>${at(1200, TILE)}${at(2400, LANDMARKS)}${at(2400 + SECTION, TILE)}${at(3600 + SECTION, TILE)}</svg>`;
 }
 
 /** Which sky goes with a meal ("Breakfast" → morning), or with the New York clock when no meal is chosen. */

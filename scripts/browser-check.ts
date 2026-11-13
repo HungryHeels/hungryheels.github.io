@@ -113,10 +113,9 @@ for (const name of engines) {
     await mascot.click();
     ok(await p.locator('.mascot .pose-wave').count() === 1 && await p.locator('.mascot-say').isVisible(), 'tapping the mascot waves and shows a line');
     const quadH = await p.locator('.quad').evaluate((e: Element) => e.getBoundingClientRect().height);
-    ok(w < 760 ? quadH <= 16 : quadH <= 72, `campus band stays small (${quadH}px)`);
+    ok(w < 760 ? quadH <= 40 : quadH <= 72, `campus band stays small (${quadH}px)`);
     ok(await p.locator('.quad').getAttribute('data-sky') === 'evening', 'campus sky follows the meal (Dinner → evening)');
     ok(['spring', 'summer', 'fall', 'winter'].includes(await p.locator('.quad').getAttribute('data-season') ?? ''), 'campus oaks follow the season');
-    if (w < 760) ok(!(await p.locator('.quad svg').isVisible()), 'phones show a lawn-and-brick strip, not tiny trees');
     ok((await p.locator('.site-footer').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'disclaimer in the footer');
     const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
     ok(scheme === 'dark' ? bg === 'rgb(9, 12, 18)' : bg === 'rgb(245, 246, 248)', `${scheme} theme applied (${bg})`);

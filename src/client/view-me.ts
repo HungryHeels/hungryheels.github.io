@@ -1,4 +1,5 @@
 // Me: your rules, goals, saved meals, profiles and display settings. Everything here stays in this browser.
+import { campus } from './mascot.ts';
 import { h } from './dom.ts';
 import { figure } from './mascot.ts';
 import { S, activeName, addProfile, dayFor, deleteProfile, renameProfile, saveDisplay, saveProfile, saveSaved, setPattern, switchProfile } from './state.ts';
@@ -151,7 +152,7 @@ function privacy(): HTMLElement {
 
 export function meView(): HTMLElement {
   const v = h('div', { class: 'page me' });
-  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, S.profiles.length > 1 ? `Me · ${activeName()}` : 'Me'),
+  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, campus('dogwood'), S.profiles.length > 1 ? `Me · ${activeName()}` : 'Me'),
     h('p', { class: 'lede' }, 'Your rules, goals and saved meals. They stay in this browser.')));
   const toc = h('nav', { class: 'toc', 'aria-label': 'On this page' }, h('ul', null, ME_SECTIONS.map(([id, label]) =>
     h('li', null, h('a', { href: routeHash({ page: 'me', section: id }) }, label)))));

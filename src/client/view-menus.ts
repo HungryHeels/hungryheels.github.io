@@ -8,7 +8,7 @@ import { dataSection } from './view-data.ts';
 import { restaurantMenus } from './view-restaurant.ts';
 import { PLACE_NAMES, isRestaurant } from '../core/restaurant.ts';
 import { href, noMenuNotice, openItem, pickerBar } from './view-common.ts';
-import { sprite } from './mascot.ts';
+import { campus, sprite } from './mascot.ts';
 import { stationSprite } from './dish-sprite.ts';
 import { evaluateItem } from '../core/engine.ts';
 import { nutritionBadge } from '../sources/nutrition-import.ts';
@@ -77,7 +77,7 @@ function browse(day: MenuDay): HTMLElement {
 
 export function menusView(): HTMLElement {
   const v = h('div', { class: 'page menus' });
-  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, 'Menus'),
+  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, campus('library'), 'Menus'),
     h('p', { class: 'lede' }, S.menusView === 'update'
       ? 'Add menu pages you saved in Safari, see what changed, and check which days still need saving.'
       : isRestaurant(S.place) ? `Everything ${PLACE_NAMES[S.place]} publishes, checked against your rules. Open an item for ingredients, allergens and why.`

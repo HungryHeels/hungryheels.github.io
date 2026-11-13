@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MASCOT_LINES, POSES, SPRITES, mascotSvg, quadSvg, seasonFor, skyFor, spriteSvg } from '../src/client/art.ts';
+import { CAMPUS, MASCOT_LINES, POSES, SPRITES, campusSvg, mascotSvg, quadSvg, seasonFor, skyFor, spriteSvg } from '../src/client/art.ts';
 
-const all = () => [...POSES.map(p => mascotSvg(p)), ...POSES.map(p => mascotSvg(p, true)), ...SPRITES.map(spriteSvg), quadSvg()];
+const all = () => [...POSES.map(p => mascotSvg(p)), ...POSES.map(p => mascotSvg(p, true)), ...SPRITES.map(spriteSvg), ...CAMPUS.map(campusSvg), quadSvg()];
 
 test('art: every picture is decorative (aria-hidden, not focusable)', () => {
   for (const s of all()) {
@@ -49,4 +49,18 @@ test('art: the sky follows the meal, then the New York clock; the oaks follow th
   assert.equal(seasonFor('2026-04-02'), 'spring');
   assert.equal(seasonFor('2026-07-04'), 'summer');
   assert.equal(seasonFor('2027-01-20'), 'winter');
+});
+
+test('art: the campus band draws each landmark once, in the middle, and scales by height', () => {
+  const s = quadSvg();
+  const vb = /viewBox="0 0 (\d+) 120" width="(\d+)" height="120"/.exec(s);
+  assert.ok(vb && vb[1] === vb[2], 'width and height match the viewBox so the band keeps its proportions');
+  assert.equal((s.match(/class="q-dome"/g) ?? []).length, 1, 'one library');
+  assert.equal((s.match(/class="q-stand"/g) ?? []).length, 1, 'one stadium');
+  const mid = Number(vb![1]) / 2, at = [...s.matchAll(/translate\((\d+) 0\)/g)].map(m => Number(m[1]));
+  assert.ok(at.some(x => x <= mid) && at.some(x => x > mid - 900 && x < mid + 900), 'landmarks sit around the centre');
+});
+
+test('art: each campus sprite is drawn differently', () => {
+  assert.equal(new Set(CAMPUS.map(campusSvg)).size, CAMPUS.length);
 });
