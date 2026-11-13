@@ -1,4 +1,5 @@
 import { h } from './dom.ts';
+import { figure } from './mascot.ts';
 import { S, allDays, firstDate, lastDate, type FileResult } from './state.ts';
 import { announce, go, render } from './nav.ts';
 import { chip } from './ui.ts';
@@ -70,7 +71,9 @@ export function dataSection(): HTMLElement {
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
   drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer) void filesFromDrop(e.dataTransfer).then(handle); });
   sec.append(fileInput, dirInput, drop);
-  if (S.importSummary) sec.appendChild(h('p', { role: 'status', class: 'banner info' }, S.importSummary));
+  if (S.importSummary) sec.appendChild(/^Imported [1-9]/.test(S.importSummary)   // a happy mascot only when something was actually imported
+    ? h('div', { role: 'status', class: 'banner info with-fig' }, figure('happy', 'state-fig'), h('p', null, S.importSummary))
+    : h('p', { role: 'status', class: 'banner info' }, S.importSummary));
   if (S.importResults.length) sec.appendChild(h('ul', { class: 'results' }, S.importResults.map(resultItem)));
   sec.appendChild(checklist());
 

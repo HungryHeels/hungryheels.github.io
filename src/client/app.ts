@@ -12,7 +12,7 @@ import { sheetView } from './view-sheet.ts';
 import { profileSummary } from './views.ts';
 import { DISCLAIMER } from './ui.ts';
 import { headerMascot } from './mascot.ts';
-import { quadSvg } from './art.ts';
+import { quadSvg, seasonFor, skyFor } from './art.ts';
 import { profileFromHash } from '../core/profile-io.ts';
 import { REPO_ISSUES } from '../core/trust.ts';
 import { nyNow } from '../core/schedule.ts';
@@ -103,6 +103,9 @@ function footer(): HTMLElement {
 let quadEl: HTMLElement | null = null;
 function quad(): HTMLElement {
   if (!quadEl) { quadEl = h('div', { class: 'quad', 'aria-hidden': 'true' }); quadEl.innerHTML = quadSvg(); }
+  const now = nyNow();   // the sky follows the meal on screen (or the clock); the oaks follow the season
+  quadEl.dataset.sky = skyFor(S.page !== 'me' && S.period ? S.period : null, now.minutes);
+  quadEl.dataset.season = seasonFor(now.date);
   return quadEl;
 }
 function banners(): Array<HTMLElement | null> {

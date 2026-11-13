@@ -1,5 +1,6 @@
 // Pieces shared by the Today and Menus pages: the hall / date / meal picker, the first-run question and helpers.
 import { h } from './dom.ts';
+import { figure } from './mascot.ts';
 import { S, dayFor, firstDate, lastDate, nextDateWithData } from './state.ts';
 import { go } from './nav.ts';
 import { routeHash, type Page, type Route } from './router.ts';
@@ -78,7 +79,7 @@ export function pickerBar(): { el: HTMLElement; day: MenuDay | null } {
 
 export function noMenuNotice(day: MenuDay | null): HTMLElement {
   const nxt = nextDateWithData(S.hall, S.date);
-  return h('div', { class: 'banner warn', role: 'status' },
+  return h('div', { class: 'banner warn with-fig', role: 'status' }, figure('sad', 'state-fig'),
     h('p', null, !day ? `No menu saved for ${HALL_NAMES[S.hall]} on ${formatDate(S.date)}.` : `No menu was posted when this page was saved (${formatDate(day.date)}). It may be a break day.`),
     h('div', { class: 'actions' },
       nxt ? h('button', { type: 'button', class: 'primary', onClick: () => go(() => { S.date = nxt; S.period = null; S.idea = 0; }) }, `Go to ${formatDate(nxt)}`) : null,

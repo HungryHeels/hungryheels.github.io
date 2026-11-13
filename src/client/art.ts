@@ -55,8 +55,9 @@ const POSE_PARTS: Record<Pose, string> = {
 };
 
 /** The mascot in one pose, as an SVG string. Always aria-hidden: whatever holds it carries the label. */
-export function mascotSvg(pose: Pose): string {
-  return svg('0 -4 64 68', `<g class="m-body">${SHOE}${POSE_PARTS[pose]}</g>`, `mascot-svg pose-${pose}`);
+export function mascotSvg(pose: Pose, small = false): string {
+  // Small (the 40px header button): cropped to the shoe, arms and fork so it draws larger; thicker lines come from CSS.
+  return svg(small ? '2 -3 57 56' : '0 -4 64 68', `<g class="m-body">${SHOE}${POSE_PARTS[pose]}</g>`, `mascot-svg pose-${pose}${small ? ' mascot-small' : ''}`);
 }
 
 // ---------- food sprites (32 x 32) ----------
@@ -163,30 +164,57 @@ const SPRITE_BODY: Record<Sprite, string> = {
 export function spriteSvg(name: Sprite): string { return svg('0 0 32 32', SPRITE_BODY[name], `sprite sprite-${name}`); }
 
 // ---------- campus quad band ----------
-// Generic and not of any real place: sky, a few round oak trees, lamp posts, lawn and a brick walk. No buildings.
+// Generic and not of any real place: sky, round oak trees, lamp posts, lawn and a brick walk. No buildings.
+// The sky follows the meal you are looking at (data-sky: morning, day, evening, night) and the oaks follow the
+// season in New York (data-season: spring blossoms, summer green, fall color, winter frost). All decided in CSS.
 function tree(x: number, s: number): string {
-  const r = (n: number) => (n * s).toFixed(1);
-  return `<rect class="q-trunk" x="${(x - 3 * s).toFixed(1)}" y="${(96 - 26 * s).toFixed(1)}" width="${r(6)}" height="${r(26)}" rx="${r(2)}"/>` +
-    `<circle class="q-oak2" cx="${(x - 14 * s).toFixed(1)}" cy="${(96 - 34 * s).toFixed(1)}" r="${r(15)}"/>` +
-    `<circle class="q-oak2" cx="${(x + 15 * s).toFixed(1)}" cy="${(96 - 33 * s).toFixed(1)}" r="${r(14)}"/>` +
-    `<circle class="q-oak" cx="${x}" cy="${(96 - 44 * s).toFixed(1)}" r="${r(19)}"/>` +
-    `<circle class="q-oak" cx="${(x - 9 * s).toFixed(1)}" cy="${(96 - 30 * s).toFixed(1)}" r="${r(12)}"/>` +
-    `<circle class="q-oak" cx="${(x + 10 * s).toFixed(1)}" cy="${(96 - 29 * s).toFixed(1)}" r="${r(12)}"/>`;
+  const f = (n: number) => n.toFixed(1), r = (n: number) => f(n * s), X = (d: number) => f(x + d * s), Y = (d: number) => f(96 - d * s);
+  const bloom = [[-12, 40], [4, 56], [14, 42], [-4, 33], [20, 31], [-18, 30]].map(([dx, dy]) => `<circle cx="${X(dx)}" cy="${Y(dy)}" r="${r(2.6)}"/>`).join('');
+  return `<g class="q-tree"><rect class="q-trunk" x="${X(-3)}" y="${Y(26)}" width="${r(6)}" height="${r(26)}" rx="${r(2)}"/>` +
+    `<circle class="q-oak2" cx="${X(-14)}" cy="${Y(34)}" r="${r(15)}"/><circle class="q-oak2" cx="${X(15)}" cy="${Y(33)}" r="${r(14)}"/>` +
+    `<circle class="q-oak" cx="${x}" cy="${Y(44)}" r="${r(19)}"/><circle class="q-oak" cx="${X(-9)}" cy="${Y(30)}" r="${r(12)}"/><circle class="q-oak" cx="${X(10)}" cy="${Y(29)}" r="${r(12)}"/>` +
+    `<g class="q-bloom">${bloom}</g><ellipse class="q-snow" cx="${x}" cy="${Y(59)}" rx="${r(13)}" ry="${r(4.5)}"/></g>`;
 }
-const lamp = (x: number) => `<path class="q-post" d="M${x} 98V66"/><circle class="q-light" cx="${x}" cy="63" r="4"/>`;
+const lamp = (x: number) => `<g class="q-tree"><path class="q-post" d="M${x} 98V66"/><circle class="q-light" cx="${x}" cy="63" r="4"/></g>`;
 const cloud = (x: number, y: number) => `<g class="q-cloud"><ellipse cx="${x}" cy="${y}" rx="26" ry="8"/><ellipse cx="${x + 14}" cy="${y - 5}" rx="15" ry="8"/><ellipse cx="${x - 12}" cy="${y - 3}" rx="11" ry="6"/></g>`;
-const TILE =
-  cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) +
+const GROUND =
   '<rect class="q-grass" x="0" y="92" width="1200" height="28"/>' +
-  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9) +
   '<path class="q-brick" d="M0 103Q150 98 300 103T600 103T900 103T1200 103V113Q1050 118 900 113T600 113T300 113T0 113Z"/>' +
   '<path class="q-joint" d="M0 108Q150 103 300 108T600 108T900 108T1200 108"/>';
+// Two different tiles so the repeat isn't visible on wide screens.
+const TILE_A = cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + GROUND +
+  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9);
+const TILE_B = cloud(90, 20) + cloud(520, 30) + cloud(880, 16) + GROUND +
+  tree(150, .9) + lamp(290) + tree(400, 1.15) + tree(560, .75) + tree(780, 1) + lamp(990) + tree(1080, .85);
+const STARS = [[90, 18], [260, 40], [410, 14], [560, 34], [700, 10], [860, 28], [1010, 44], [1130, 16], [1290, 30], [1420, 12], [1560, 38], [1720, 20], [1880, 46], [2030, 14], [2190, 32], [2330, 22]]
+  .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8"/>`).join('');
+const SKY_LIGHTS =
+  '<circle class="q-sun q-sun-morning" cx="1530" cy="70" r="13"/><circle class="q-sun q-sun-day" cx="1420" cy="26" r="11"/>' +
+  '<circle class="q-sun q-sun-evening" cx="980" cy="72" r="14"/><path class="q-moon" d="M1690 16a12 12 0 1 0 9 21 10 10 0 1 1-9-21z"/>' +
+  `<g class="q-stars">${STARS}</g>`;
 
-/** The decorative band under the header. Two copies of one 1200-wide tile so wide screens never run out. */
+/** The decorative band under the header: sky, then two 1200-wide tiles of lawn, oaks and lamps. */
 export function quadSvg(): string {
   return `<svg class="quad-svg" viewBox="0 0 2400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">` +
-    '<rect class="q-sky" x="0" y="0" width="2400" height="120"/>' +
-    `<g>${TILE}</g><g transform="translate(1200 0)">${TILE}</g></svg>`;
+    `<rect class="q-sky" x="0" y="0" width="2400" height="120"/>${SKY_LIGHTS}<g>${TILE_A}</g><g transform="translate(1200 0)">${TILE_B}</g></svg>`;
+}
+
+/** Which sky goes with a meal ("Breakfast" → morning), or with the New York clock when no meal is chosen. */
+export type Sky = 'morning' | 'day' | 'evening' | 'night';
+export function skyFor(period: string | null, minutes: number): Sky {
+  const p = (period ?? '').toLowerCase();
+  if (/late night|late dinner/.test(p)) return 'night';
+  if (/breakfast|brunch/.test(p)) return 'morning';
+  if (/dinner|supper/.test(p)) return 'evening';
+  if (/lunch/.test(p)) return 'day';
+  const h = Math.floor(minutes / 60);
+  return h >= 5 && h < 10 ? 'morning' : h >= 10 && h < 17 ? 'day' : h >= 17 && h < 20 ? 'evening' : 'night';
+}
+/** The season for the oaks, from a New York date (YYYY-MM-DD). */
+export type Season = 'spring' | 'summer' | 'fall' | 'winter';
+export function seasonFor(date: string): Season {
+  const m = Number(date.slice(5, 7));
+  return m >= 3 && m <= 5 ? 'spring' : m >= 6 && m <= 9 ? 'summer' : m >= 10 && m <= 11 ? 'fall' : 'winter';
 }
 
 /** Short, friendly lines the mascot says when tapped. Place names only; no slogans, no claims about food safety. */

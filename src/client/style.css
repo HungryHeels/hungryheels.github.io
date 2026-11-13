@@ -505,9 +505,9 @@ body.sheet-open{overflow:hidden}
 .mascot-fig{display:block;width:40px;height:40px;transition:transform .12s ease-out}
 .mascot-btn:active .mascot-fig{transform:scale(.9)}
 .mascot-fig svg,.empty-fig svg,.loading-fig svg,.hero-fig svg,.glyph svg{display:block;width:100%;height:100%;overflow:visible}
-.mascot-say{position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:max-content;max-width:min(260px,calc(100vw - 32px));background:var(--say-bg);color:var(--say-text);
+.mascot-say{position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);z-index:30;width:max-content;max-width:min(240px,calc(100vw - 96px));background:var(--say-bg);color:var(--say-text);
   font-size:var(--fs-sm);font-weight:600;line-height:1.35;padding:var(--s2) var(--s3);border-radius:var(--r2);pointer-events:none}
-.mascot-say::before{content:"";position:absolute;left:16px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:var(--say-bg)}
+.mascot-say::before{content:"";position:absolute;left:-6px;top:50%;margin-top:-6px;border:6px solid transparent;border-left:0;border-right-color:var(--say-bg)}
 .mascot-say[hidden]{display:none}
 @keyframes hh-hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-7px) rotate(-5deg)}55%{transform:translateY(0)}75%{transform:translateY(-3px) rotate(3deg)}}
 @keyframes hh-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-20deg)}50%{transform:rotate(12deg)}75%{transform:rotate(-14deg)}}
@@ -540,7 +540,7 @@ body.sheet-open{overflow:hidden}
 /* Sprite fills: food colors (decorative only). Shapes are outlined in the theme ink unless marked .n; .l is a line. */
 .sprite :is(path,circle,ellipse,rect){stroke:var(--s-ink);stroke-width:1.3;stroke-linejoin:round;stroke-linecap:round}
 .sprite .n{stroke:none} .sprite .l{fill:none}
-.c-white{fill:#fff} .c-cream{fill:#f6e7c1} .c-tan{fill:#e2a95a} .c-brown{fill:#8a5a35} .c-red{fill:#d9534f} .c-orange{fill:#f0883e}
+.c-white{fill:var(--s-white)} .c-cream{fill:#f6e7c1} .c-tan{fill:#e2a95a} .c-brown{fill:#8a5a35} .c-red{fill:#d9534f} .c-orange{fill:#f0883e}
 .c-yellow{fill:#f6d06b} .c-yellow2{fill:#ecbe45} .c-yellowd{fill:#d9a72e} .c-green{fill:#5c9e4e} .c-lime{fill:#8cc56a} .c-pink{fill:#f29bb8}
 .c-purple{fill:#8e5bb5} .c-grey{fill:#9fb4c8} .c-salmon{fill:#f4a07a} .c-nori{fill:#2f4a3a} .c-amber{fill:#f2b84b} .c-syrup{fill:#a8642a}
 .c-tofu{fill:#f6efdc} .c-tofu2{fill:#e6d9b4} .c-tofu3{fill:#d3c293} .c-blue{fill:var(--carolina)} .c-ink{fill:var(--s-ink)}
@@ -566,9 +566,49 @@ body.sheet-open{overflow:hidden}
 .quad{height:64px;overflow:hidden;line-height:0;border-bottom:1px solid var(--line)}
 .quad svg{display:block;width:100%;height:100%}
 @media (max-width:959px){.quad{height:40px}}
-@media (max-width:759px){.quad{height:14px}}
+/* Phones: no tiny trees, just a strip of lawn over a brick walk */
+@media (max-width:759px){.quad{height:9px;background:linear-gradient(var(--q-grass) 0 3px,transparent 3px),var(--brick)}.quad svg{display:none}}
 .q-sky{fill:var(--q-sky)} .q-cloud{fill:var(--q-cloud)} .q-grass{fill:var(--q-grass)} .q-oak{fill:var(--q-oak)} .q-oak2{fill:var(--q-oak2)} .q-trunk{fill:var(--q-trunk)}
 .q-brick{fill:var(--q-brick)} .q-joint{fill:none;stroke:var(--q-joint);stroke-width:1.5;stroke-dasharray:14 8}
 .q-post{stroke:var(--q-post);stroke-width:2.5} .q-light{fill:var(--q-light)}
 :root[data-contrast=high] .quad{display:none}
+/* Sky follows the meal: sun low in the morning, high at lunch, setting at dinner; moon and stars late at night. */
+.q-sun,.q-moon,.q-stars,.q-bloom,.q-snow{display:none}
+.q-sun{fill:#ffd36b} .q-sun-morning{fill:#ffc27a} .q-sun-evening{fill:#f39a5a} .q-moon{fill:#f4f1dc} .q-stars{fill:#fff6d8} .q-bloom{fill:#fbe3ee} .q-snow{fill:#f7fbff}
+.quad[data-sky=morning]{--q-sky:#fbe3cc;--q-cloud:#fff6ec} .quad[data-sky=morning] .q-sun-morning,.quad[data-sky=day] .q-sun-day{display:inline}
+.quad[data-sky=evening]{--q-sky:#f2cdbf;--q-cloud:#fbe7de} .quad[data-sky=evening] .q-sun-evening{display:inline}
+.quad[data-sky=night]{--q-sky:#1e3152;--q-cloud:#2a3f61;--q-grass:#3f6b3c;--q-oak:#2d5a37;--q-oak2:#21462b} .quad[data-sky=night] :is(.q-moon,.q-stars){display:inline}
+/* Seasons in New York: dogwood-style blossoms in spring, color in fall, frost in winter */
+.quad[data-season=spring] .q-bloom,.quad[data-season=winter] .q-snow{display:inline}
+.quad[data-season=fall]{--q-oak:#d9822b;--q-oak2:#b5541f}
+.quad[data-season=winter]{--q-oak:#8fa79a;--q-oak2:#71897c}
+.quad[data-season=fall][data-sky=night]{--q-oak:#a35f22;--q-oak2:#7f3f18}
 @media print{.mascot,.quad{display:none!important}}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--s-white:#e4e9f0}
+  :root:not([data-theme=light]) .quad[data-sky=morning]{--q-sky:#2d2c45;--q-cloud:#3c3a58} :root:not([data-theme=light]) .quad[data-sky=day]{--q-sky:#1b2c48} :root:not([data-theme=light]) .quad[data-sky=evening]{--q-sky:#33253f;--q-cloud:#45334f} :root:not([data-theme=light]) .quad[data-sky=night]{--q-sky:#0d1526;--q-cloud:#1a2438;--q-grass:#1c3627}
+  :root:not([data-theme=light]) .quad[data-season=fall]{--q-oak:#9a5a20;--q-oak2:#7a3e17} :root:not([data-theme=light]) .quad[data-season=winter]{--q-oak:#5f7468;--q-oak2:#4b5d52} :root:not([data-theme=light]) .q-snow{fill:#c9d6e6} :root:not([data-theme=light]) .q-bloom{fill:#d9b8c9}}
+:root[data-theme=dark]{--s-white:#e4e9f0}
+:root[data-theme=dark] .quad[data-sky=morning]{--q-sky:#2d2c45;--q-cloud:#3c3a58} :root[data-theme=dark] .quad[data-sky=day]{--q-sky:#1b2c48} :root[data-theme=dark] .quad[data-sky=evening]{--q-sky:#33253f;--q-cloud:#45334f} :root[data-theme=dark] .quad[data-sky=night]{--q-sky:#0d1526;--q-cloud:#1a2438;--q-grass:#1c3627}
+:root[data-theme=dark] .quad[data-season=fall]{--q-oak:#9a5a20;--q-oak2:#7a3e17} :root[data-theme=dark] .quad[data-season=winter]{--q-oak:#5f7468;--q-oak2:#4b5d52} :root[data-theme=dark] .q-snow{fill:#c9d6e6} :root[data-theme=dark] .q-bloom{fill:#d9b8c9}
+
+/* Brick-walk divider (landing sections, footer): the campus band's brick, as a running-bond strip */
+:root{--s-white:#ffffff;--brick:linear-gradient(90deg,var(--q-joint) 1.5px,var(--q-brick) 0) 0 3px/14px 3px repeat-x,linear-gradient(90deg,var(--q-joint) 1.5px,var(--q-brick) 0) 7px 6px/14px 3px repeat-x,var(--q-joint)}
+.band{border-top:none;position:relative}
+.band::before{content:"";position:absolute;left:0;right:0;top:0;height:9px;border-radius:2px;background:linear-gradient(var(--q-grass) 0 3px,transparent 3px),var(--brick);opacity:.9}
+.site-footer{border-top:none;position:relative}
+.site-footer::before{content:"";display:block;height:9px;background:linear-gradient(var(--q-grass) 0 3px,transparent 3px),var(--brick)}
+:root[data-contrast=high] .band::before,:root[data-contrast=high] .site-footer::before{background:var(--line);height:1px;opacity:1}
+@media print{.band::before,.site-footer::before{display:none}}
+
+/* Rounded brand name where the system has a rounded face (Apple devices); others keep the display font */
+.brand-name{font-family:ui-rounded,"SF Pro Rounded",var(--font-display)}
+
+/* Small header mascot: thicker lines and no cheeks so it reads at 40px */
+.mascot-small .m-upper,.mascot-small .m-sole,.mascot-small .m-toe{stroke-width:2.2}
+.mascot-small .m-limb{stroke-width:3} .mascot-small .m-fork{stroke-width:2.2} .mascot-small :is(.m-line,.m-lace,.m-mouth){stroke-width:2} .mascot-small .m-cheek{display:none}
+
+/* Mascot beside empty and success states (decorative; the words carry the meaning) */
+.with-fig{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:var(--s3);align-items:center}
+.with-fig>.state-fig{grid-row:1 / span 3;align-self:start;display:block;width:48px;height:52px}
+.with-fig>:not(.state-fig){grid-column:2}
+.state-fig svg{display:block;width:100%;height:100%;overflow:visible}

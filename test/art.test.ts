@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MASCOT_LINES, POSES, SPRITES, mascotSvg, quadSvg, spriteSvg } from '../src/client/art.ts';
+import { MASCOT_LINES, POSES, SPRITES, mascotSvg, quadSvg, seasonFor, skyFor, spriteSvg } from '../src/client/art.ts';
 
-const all = () => [...POSES.map(mascotSvg), ...SPRITES.map(spriteSvg), quadSvg()];
+const all = () => [...POSES.map(p => mascotSvg(p)), ...POSES.map(p => mascotSvg(p, true)), ...SPRITES.map(spriteSvg), quadSvg()];
 
 test('art: every picture is decorative (aria-hidden, not focusable)', () => {
   for (const s of all()) {
@@ -21,7 +21,7 @@ test('art: self-contained, no outbound references, no scripts, no text', () => {
 });
 
 test('art: each mascot pose is drawn differently', () => {
-  assert.equal(new Set(POSES.map(mascotSvg)).size, POSES.length);
+  assert.equal(new Set(POSES.map(p => mascotSvg(p))).size, POSES.length);
 });
 
 test('art: every food sprite is drawn differently', () => {
@@ -33,4 +33,20 @@ test('art: mascot lines stay friendly and claim nothing', () => {
     assert.doesNotMatch(l, /official|safe|certif|guarantee|allerg|go heels|tar heel|hark|rameses|\bunc\b/i);
     assert.ok(l.length <= 60);
   }
+});
+
+test('art: the sky follows the meal, then the New York clock; the oaks follow the season', () => {
+  assert.equal(skyFor('Breakfast', 0), 'morning');
+  assert.equal(skyFor('Late Lunch', 0), 'day');
+  assert.equal(skyFor('Dinner', 0), 'evening');
+  assert.equal(skyFor('Late Dinner', 0), 'night');
+  assert.equal(skyFor('Late Night', 12 * 60), 'night');
+  assert.equal(skyFor(null, 7 * 60), 'morning');
+  assert.equal(skyFor(null, 13 * 60), 'day');
+  assert.equal(skyFor(null, 18 * 60 + 30), 'evening');
+  assert.equal(skyFor(null, 23 * 60), 'night');
+  assert.equal(seasonFor('2026-11-13'), 'fall');
+  assert.equal(seasonFor('2026-04-02'), 'spring');
+  assert.equal(seasonFor('2026-07-04'), 'summer');
+  assert.equal(seasonFor('2027-01-20'), 'winter');
 });
