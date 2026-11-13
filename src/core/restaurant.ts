@@ -25,10 +25,12 @@ export const PLACE_NAMES: Record<PlaceId, string> = { ...HALL_NAMES, ...RESTAURA
 export const isRestaurant = (p: PlaceId | string | null | undefined): p is RestaurantId => p === 'sweetgreen' || p === 'chipotle';
 export const LOCATION_NOTE = 'Franklin Street, Chapel Hill';
 
-export type ComponentRole = 'base' | 'protein' | 'topping' | 'sauce' | 'side';
-export const ROLES: ComponentRole[] = ['base', 'protein', 'topping', 'sauce', 'side'];
-export const ROLE_LABELS: Record<ComponentRole, string> = { base: 'Base', protein: 'Protein', topping: 'Topping', sauce: 'Sauce or dressing', side: 'Side' };
-export const ROLE_PLURAL: Record<ComponentRole, string> = { base: 'Bases', protein: 'Proteins', topping: 'Toppings', sauce: 'Sauces and dressings', side: 'Sides' };
+/** Build-your-own components (base … sauce), or whole published menu items (dish) when a restaurant publishes
+ *  nutrition only for finished items. Desserts and drinks are listed but never part of a recommended meal. */
+export type ComponentRole = 'base' | 'protein' | 'topping' | 'sauce' | 'dish' | 'side' | 'dessert' | 'drink';
+export const ROLES: ComponentRole[] = ['base', 'protein', 'topping', 'sauce', 'dish', 'side', 'dessert', 'drink'];
+export const ROLE_LABELS: Record<ComponentRole, string> = { base: 'Base', protein: 'Protein', topping: 'Topping', sauce: 'Sauce or dressing', dish: 'Menu item', side: 'Side', dessert: 'Dessert', drink: 'Drink' };
+export const ROLE_PLURAL: Record<ComponentRole, string> = { base: 'Bases', protein: 'Proteins', topping: 'Toppings', sauce: 'Sauces and dressings', dish: 'Menu items', side: 'Sides', dessert: 'Desserts', drink: 'Drinks' };
 
 export interface RestaurantProvenance {
   kind: 'official';
@@ -47,6 +49,7 @@ export interface PlaceHours { text: string; sourceUrl: string }
 export interface RestaurantComponent {
   item: MenuItem;               // id is "<restaurant>:<component id>"
   role: ComponentRole;
+  category: string | null;      // the restaurant's own section name, e.g. "Warm Plates"
   serving: string | null;       // as published, e.g. "4 oz"
   /** An extra serving ONLY where the restaurant's own data defines one. "added" = values of the added amount;
    *  "total" = values of the whole doubled serving. Never computed by multiplying. */
@@ -65,9 +68,13 @@ export interface RestaurantMenu {
   presets: RestaurantPreset[];
   crossContact: CrossContact[];
   hours: PlaceHours | null;
+  /** "store": published for the Franklin Street store itself; "national": the chain's general menu. */
+  scope: 'store' | 'national';
+  address: string | null;       // as published for the store, when scope is "store"
   notes: string[];              // import notes shown with the provenance
 }
 
+export const STORE_MENU_NOTE = (name: string, address: string | null, date: string | null) => `From ${name}’s own nutrition page for the ${address ?? 'Franklin Street'} store${date ? ` (last updated ${date})` : ''}. ${name} notes that values may vary; recipes can change, and prices are not included.`;
 export const HOURS_UNKNOWN = 'Hours unknown: check with the restaurant before you go.';
 export const NATIONAL_MENU_NOTE = 'This is the restaurant’s national published menu. The Franklin Street store may not carry every item, recipes can change, and prices are not included.';
 export const NOT_AFFILIATED = (name: string) => `${name} is named only to identify it. Hungry Heels is not affiliated with, endorsed by or sponsored by ${name}.`;

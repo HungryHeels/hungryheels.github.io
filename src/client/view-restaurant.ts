@@ -6,7 +6,7 @@ import { go } from './nav.ts';
 import { chip, copyText, DISCLAIMER, kcalLine, nutritionGrid, sourceBadge, tt } from './ui.ts';
 import { checkList, contributionTable, gapList, profileSummary, ruleTable } from './views.ts';
 import { href, placeSwitch } from './view-common.ts';
-import { buildBowls, bowlText, type BowlResult } from '../core/restaurant-meals.ts';
+import { buildBowls, bowlText, mealTitle, type BowlResult } from '../core/restaurant-meals.ts';
 import { evaluateItem, explainChecks } from '../core/engine.ts';
 import { gapReadout } from '../core/plan.ts';
 import { mealChecklist, reportIssueUrl, staffFlags } from '../core/trust.ts';
@@ -14,7 +14,7 @@ import { formatSaved } from '../core/schedule.ts';
 import type { Meal, MealPart } from '../core/meals.ts';
 import type { MenuItem } from '../core/types.ts';
 import {
-  HOURS_UNKNOWN, LOCATION_NOTE, RESTAURANT_INFO, NATIONAL_MENU_NOTE, NOT_AFFILIATED, RESTAURANT_NAMES, ROLE_LABELS, ROLE_PLURAL, ROLES,
+  HOURS_UNKNOWN, LOCATION_NOTE, RESTAURANT_INFO, STORE_MENU_NOTE, NATIONAL_MENU_NOTE, NOT_AFFILIATED, RESTAURANT_NAMES, ROLE_LABELS, ROLE_PLURAL, ROLES,
   type ComponentRole, type RestaurantId, type RestaurantMenu,
 } from '../core/restaurant.ts';
 
@@ -37,9 +37,9 @@ function placeBar(id: RestaurantId, menu: RestaurantMenu | null): HTMLElement {
   return h('section', { class: 'picker', 'aria-label': 'Place' },
     h('div', { class: 'picker-row' }, placeSwitch(),
       h('div', { class: 'place-info' },
-        h('p', null, h('strong', null, `${name} · ${LOCATION_NOTE}`)),
+        h('p', null, h('strong', null, `${name} · ${menu?.address ?? LOCATION_NOTE}`)),
         h('p', null, menu?.hours ? [`Hours: ${menu.hours.text} `, h('small', null, '(from ', h('a', { href: menu.hours.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, `${name}’s site`), ')')] : HOURS_UNKNOWN),
-        h('p', { class: 'muted' }, NATIONAL_MENU_NOTE))));
+        h('p', { class: 'muted' }, menu?.scope === 'store' ? STORE_MENU_NOTE(name, menu.address, menu.provenance.documentDate) : NATIONAL_MENU_NOTE))));
 }
 
 function crossContactBox(menu: RestaurantMenu): HTMLElement | null {
@@ -67,7 +67,7 @@ function provenance(menu: RestaurantMenu): HTMLElement {
   return h('section', { class: 'side-note' },
     h('p', { class: 'prov' }, `Source: ${p.publisher}, “${p.documentTitle}” (${p.documentDate ?? 'date not stated'}${p.documentVersion ? ', version ' + p.documentVersion : ''}). Official; saved by hand ${formatSaved(p.retrievedAt)}. `,
       h('a', { href: p.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Official source')),
-    h('p', { class: 'prov' }, NOT_AFFILIATED(menu.name)));
+    h('p', { class: 'prov' }, `Used with ${menu.name}’s permission for this unofficial, personal-use site. ` + NOT_AFFILIATED(menu.name)));
 }
 
 function staffBox(m: Meal, menu: RestaurantMenu): HTMLElement | null {
@@ -110,7 +110,7 @@ function bowlCard(m: Meal, menu: RestaurantMenu, r: BowlResult, idx: number): HT
   const report = reportIssueUrl({ hall: S.hall, date: '', period: null, placeName: `${menu.name} (${LOCATION_NOTE})`, items: m.parts.map(p => p.item), profileSummary: profileSummary(S.profile),
     checks: m.parts.map(p => ({ name: p.item.name, rows: explainChecks(p.item, S.profile) })), verdict: `Recommended bowl (${m.tier === 'confirmed' ? 'fits your rules' : 'mostly confirmed'})`, savedAt: menu.provenance.retrievedAt });
   return h('article', { class: 'meal card', 'aria-labelledby': 'meal-h' },
-    h('header', { class: 'meal-head' }, h('h2', { id: 'meal-h' }, `Bowl at ${menu.name}`),
+    h('header', { class: 'meal-head' }, h('h2', { id: 'meal-h' }, mealTitle(menu)),
       m.tier === 'confirmed' ? chip('Fits your rules', 'ok') : chip('Mostly confirmed', 'warn')),
     bowlList(m, 'part:'),
     totals(m),
@@ -144,8 +144,11 @@ function presetsCard(menu: RestaurantMenu, r: BowlResult): HTMLElement | null {
 export function restaurantToday(id: RestaurantId): HTMLElement {
   const v = h('div', { class: 'page today' });
   const menu = menuFor(id);
-  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, `Bowl at ${RESTAURANT_NAMES[id]}`),
-    h('p', { class: 'lede' }, `A build-your-own bowl from ${RESTAURANT_NAMES[id]}’s published components that fits your rules.`)));
+  const dishMenu = !!menu && !menu.components.some(c => c.role === 'base');
+  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, menu ? mealTitle(menu) : `${RESTAURANT_NAMES[id]}`),
+    h('p', { class: 'lede' }, dishMenu
+      ? `One of ${RESTAURANT_NAMES[id]}’s published menu items that fits your rules. ${RESTAURANT_NAMES[id]}’s nutrition page lists finished menu items, not custom-bowl ingredients, so custom bowls aren’t covered.`
+      : `A build-your-own bowl from ${RESTAURANT_NAMES[id]}’s published components that fits your rules.`)));
   v.appendChild(placeBar(id, menu));
   if (!menu) { v.appendChild(pendingCard(id)); return v; }
   const r = buildBowls(menu, S.profile);
@@ -155,8 +158,8 @@ export function restaurantToday(id: RestaurantId): HTMLElement {
   if (r.noMeal) {
     main.appendChild(h('div', { class: 'banner bad', role: 'status' }, r.banner ?? 'No bowl fits your rules.'));
     main.appendChild(h('div', { class: 'card' }, h('h2', null, 'No meal fits'),
-      h('p', null, 'Nothing here passes all of your rules, and they were not loosened. ' + r.counts.map(c => `${c.fit} of ${c.total} ${ROLE_PLURAL[c.role].toLowerCase()}`).join(', ') + ' fit.'),
-      h('a', { class: 'btn primary', href: href('menus') }, `See every ${menu.name} component`)));
+      h('p', null, 'Nothing here passes all of your rules, and they were not loosened.' + (menu.crossContact.some(c => c.allergens.length >= 9) && (S.profile.allergens.length || S.profile.avoidGluten || S.profile.avoidDairy || S.profile.avoidEgg) ? ` ${menu.name} says cross-contamination may occur with any allergen, so no item can be confirmed free of yours.` : '')),
+      h('a', { class: 'btn primary', href: href('menus') }, `See everything on the ${menu.name} menu`)));
   } else {
     const n = r.meals.length, i = S.idea % n;
     main.appendChild(h('div', { class: 'actions idea-nav' },
@@ -187,12 +190,19 @@ export function restaurantMenus(id: RestaurantId): HTMLElement {
     clear(list);
     const term = S.search.trim().toLowerCase();
     let shown = 0;
+    const groups: Array<{ title: string; comps: RestaurantMenu['components'] }> = [];
     for (const role of ROLES) {
-      const rows = menu.components.filter(c => c.role === role).map(c => ({ c, status: evaluateItem(c.item, S.profile).status }))
+      const cs = menu.components.filter(c => c.role === role);
+      if (role === 'dish' || cs.some(c => c.category)) {
+        for (const cat of [...new Set(cs.map(c => c.category ?? ROLE_PLURAL[role]))]) groups.push({ title: cat, comps: cs.filter(c => (c.category ?? ROLE_PLURAL[role]) === cat) });
+      } else groups.push({ title: ROLE_PLURAL[role], comps: cs });
+    }
+    for (const g of groups) {
+      const rows = g.comps.map(c => ({ c, status: evaluateItem(c.item, S.profile).status }))
         .filter(x => (!term || x.c.item.name.toLowerCase().includes(term) || (x.c.item.ingredients ?? '').toLowerCase().includes(term)) && (!S.hideNonFits || x.status !== 'excluded' || x.c.item.id === S.openComp));
       if (!rows.length) continue;
       shown += rows.length;
-      list.appendChild(h('section', { class: 'station-group' }, h('h2', { class: 'station' }, ROLE_PLURAL[role]), h('ul', { class: 'list' }, rows.map(({ c, status }) =>
+      list.appendChild(h('section', { class: 'station-group' }, h('h2', { class: 'station' }, g.title), h('ul', { class: 'list' }, rows.map(({ c, status }) =>
         h('li', null, h('details', { class: 'comp', id: 'comp-' + c.item.id.replace(/[^a-z0-9-]/g, '-'), ...(S.openComp === c.item.id ? { open: true } : {}) },
           h('summary', { class: 'item-row', 'data-fk': 'item:' + c.item.id },
             h('span', { class: 'item-main' }, h('span', { class: 'item-name' }, c.item.name), h('small', null, (c.serving ? c.serving + ' · ' : '') + kcalLine(c.item, 1))),
@@ -207,7 +217,7 @@ export function restaurantMenus(id: RestaurantId): HTMLElement {
             c.item.warnings.map(w => h('p', { class: 'muted' }, w)),
             h('h3', null, 'Your rules'), checkList(explainChecks(c.item, S.profile)))))))));
     }
-    count.textContent = `Showing ${shown} of ${menu.components.length} components`;
+    count.textContent = `Showing ${shown} of ${menu.components.length} ${menu.components.some(c => c.role === 'base') ? 'components' : 'menu items'}`;
     if (!shown) list.appendChild(h('p', { class: 'muted' }, 'Nothing matches these filters.'));
   };
   const q = h('input', { type: 'search', id: 'item-search', placeholder: 'e.g. chicken, rice', value: S.search });

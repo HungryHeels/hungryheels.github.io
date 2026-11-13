@@ -81,6 +81,7 @@ function compute(menu: RestaurantMenu, p: Profile, max: number): BowlResult {
   const presets = presetsAll.filter((x): x is PresetFit => !!x);
   const res: BowlResult = { meals: [], noMeal: false, banner: null, counts, presets, presetsExcluded: presetsAll.length - presets.length };
   const animalDiet = p.pattern === 'carnivore' || p.pattern === 'animal_based';
+  if (!menu.components.some(c => c.role === 'base') && menu.components.some(c => c.role === 'dish')) return dishMode(menu, p, max, cands, res);
   const rank = (arr: RCandidate[], salt: string) => arr.slice().sort((a, b) => (a.evaluation.status === 'match' ? 0 : 1) - (b.evaluation.status === 'match' ? 0 : 1) || hash(salt + a.comp.item.id) - hash(salt + b.comp.item.id));
   const bases = rank(cands.base, 'b').slice(0, 5);
   const proteinsFit = rank(cands.protein, 'p').filter(c => !animalDiet || c.animal).slice(0, 7);
@@ -136,6 +137,47 @@ function compute(menu: RestaurantMenu, p: Profile, max: number): BowlResult {
   return res;
 }
 
+/** Kids' meals are listed on Menus but never suggested to a student as a meal. */
+const NOT_SUGGESTED = /\bkids?\b/i;
+
+/** Restaurants that publish nutrition only for finished menu items (e.g. Sweetgreen's store page): an idea is one
+ *  published item that fits, plus at most one published side when targets are set. Nothing is recombined. */
+function dishMode(menu: RestaurantMenu, p: Profile, max: number, cands: Record<ComponentRole, RCandidate[]>, res: BowlResult): BowlResult {
+  const animalDiet = p.pattern === 'carnivore' || p.pattern === 'animal_based';
+  const dishes = cands.dish.filter(c => !NOT_SUGGESTED.test(c.comp.category ?? '') && (!animalDiet || c.animal));
+  const total = menu.components.filter(c => c.role === 'dish' && !NOT_SUGGESTED.test(c.category ?? '')).length;
+  if (!dishes.length) {
+    res.noMeal = true;
+    res.banner = `No menu item at ${menu.name} fits your rules (0 of ${total}). Your rules were not loosened.`;
+    return res;
+  }
+  const hasTargets = Object.values(p.targets).some(v => !!v);
+  const useEst = p.useEstimates !== false;
+  const sides = hasTargets ? cands.side : [];
+  const meals: Meal[] = [];
+  for (const d of dishes) {
+    let best: { parts: Array<MealPart & { component: ComponentRole }>; score: number; totals: MealTotals } | null = null;
+    for (const side of [null, ...sides]) {
+      const parts = [part(d.comp.item, 'dish', d.evaluation)];
+      if (side) parts.push(part(side.comp.item, 'side', side.evaluation));
+      const totals = totalsFor(parts.map(x => ({ item: x.item, portions: 1 })));
+      if (totals.calories.min > p.calorieCap) continue;
+      let score = hasTargets ? targetError(totals, p.targets, useEst) : 0;
+      score += parts.reduce((a, x) => a + (x.evaluation.status === 'match' ? 0 : 0.05), 0) + (side ? 0.04 : 0);
+      if (!best || score < best.score) best = { parts, score, totals };
+    }
+    if (best) meals.push(toMeal(best.parts, p, best.score + (hash(d.comp.item.id) % 1000) * 1e-7, best.totals));
+  }
+  meals.sort((a, b) => a.score - b.score);
+  const conf = meals.filter(m => m.tier === 'confirmed'), poss = meals.filter(m => m.tier !== 'confirmed');
+  res.meals = [...conf, ...poss].slice(0, max);
+  if (!res.meals.length) {
+    res.noMeal = true;
+    res.banner = `No menu item at ${menu.name} fits your rules under your ${p.calorieCap} kcal cap. Your rules were not loosened.`;
+  }
+  return res;
+}
+
 /** A published preset fits only if every one of its components passes the rules. */
 function presetFit(menu: RestaurantMenu, pr: RestaurantPreset, p: Profile): PresetFit | null {
   const parts: Array<MealPart & { component: ComponentRole }> = [];
@@ -159,10 +201,13 @@ function presetFit(menu: RestaurantMenu, pr: RestaurantPreset, p: Profile): Pres
   return { preset: pr, meal, publishedTotals: !!n };
 }
 
+/** "Bowl at Chipotle" for build-your-own menus, "Pick at Sweetgreen" for published menu items. */
+export function mealTitle(menu: RestaurantMenu): string { return menu.components.some(c => c.role === 'base') ? `Bowl at ${menu.name}` : `Pick at ${menu.name}`; }
+
 /** Plain-text bowl for Share (copy). */
 export function bowlText(m: Meal, menu: RestaurantMenu, disclaimer: string): string {
   const v = (t: MealTotals['calories']) => (t.complete ? String(Math.round(t.value!)) : t.min > 0 ? `${Math.round(t.min)}+` : 'unknown');
-  const lines = [`Bowl at ${menu.name} (national published menu; the Franklin Street store may differ)`];
+  const lines = [menu.scope === 'store' ? `${mealTitle(menu)} (${menu.address ?? 'Franklin Street'}; ${menu.name}'s published values)` : `${mealTitle(menu)} (national published menu; the Franklin Street store may differ)`];
   for (const x of m.parts) lines.push(`- ${(x as MealPart & { component?: ComponentRole }).component ? ROLE_LABELS[(x as MealPart & { component: ComponentRole }).component] + ': ' : ''}${x.item.name}`);
   lines.push(`About ${v(m.totals.calories)} kcal, ${v(m.totals.protein)} g protein (${menu.name}'s published values).`);
   lines.push('', `From Hungry Heels (unofficial; not affiliated with ${menu.name} or UNC). ` + disclaimer);
