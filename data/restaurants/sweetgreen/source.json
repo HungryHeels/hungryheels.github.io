@@ -1,0 +1,19 @@
+{
+  "restaurant": "sweetgreen",
+  "kind": "official",
+  "publisher": "Sweetgreen, Inc.",
+  "sourceUrl": "https://www.sweetgreen.com/nutrition/chapel-hill",
+  "documentTitle": "Sweetgreen Chapel Hill nutrition (Nutrition tables, Allergen information, Ingredients)",
+  "documentDate": "November 12, 2026",
+  "documentVersion": "page marked “Last updated November 12, 2026”",
+  "retrievedAt": "2026-11-12T20:36:26-05:00",
+  "sha256": "43c350e21fd005eaeb3b513edcac7a5c90a9ad445e6e014558f31677ac5b2918",
+  "scope": "store",
+  "address": "122 East Franklin Street, Chapel Hill, NC",
+  "hours": { "text": "Mon - Sun 10:00am - 10:00pm", "sourceUrl": "https://www.sweetgreen.com/locations/chapel-hill" },
+  "permission": "Email signed “The sweetgreen team”, provided by the site owner on 2026-11-12 (sender address and date not provided; not independently verified): “Hello [name], You are welcome to use the data on ours sites as long as you keep the site for unofficial and personal use only. Thanks for reaching out. Sincerely, The sweetgreen team”. Condition: the site stays unofficial and for personal use only.",
+  "crossContact": [
+    { "text": "Sweetgreen kitchens are not allergen-free environments and cross-contamination may occur. Please inform your in-store team member of any food allergies.", "allergens": "all" }
+  ],
+  "presets": []
+}

@@ -75,7 +75,7 @@ export function menusView(): HTMLElement {
   v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, 'Menus'),
     h('p', { class: 'lede' }, S.menusView === 'update'
       ? 'Add menu pages you saved in Safari, see what changed, and check which days still need saving.'
-      : isRestaurant(S.place) ? `Every published ${PLACE_NAMES[S.place]} component, checked against your rules. Open one for ingredients, allergens and why.`
+      : isRestaurant(S.place) ? `Everything ${PLACE_NAMES[S.place]} publishes, checked against your rules. Open an item for ingredients, allergens and why.`
       : 'Every item on the saved menu, checked against your rules. Tap an item for ingredients, allergens and why.')));
   v.appendChild(h('nav', { class: 'subnav', 'aria-label': 'Menus' },
     h('a', { href: href('menus'), 'aria-current': S.menusView === 'browse' ? 'page' : null }, 'Browse'),

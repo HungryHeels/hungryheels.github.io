@@ -254,16 +254,39 @@ for (const name of engines) {
     ok(await p.locator('[role=group][aria-label=Place]').count() === 1, 'place picker is a labeled group');
     const boxes = await places.evaluateAll((els: Element[]) => els.map(e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right }; }));
     ok(boxes.every((b: any) => b.h >= 44 && b.w >= 100 && b.r <= w) && new Set(boxes.map((b: any) => Math.round(b.y))).size === 2, `place buttons are 2 x 2, at least 44px tall and fully visible at ${w}px`);
+    // Sweetgreen: real official data for the Franklin Street store. The profile here is "Vegan · Peanut allergy", and
+    // Sweetgreen says cross-contamination may occur with any allergen, so the honest answer is "No meal fits".
     await p.getByRole('button', { name: 'Sweetgreen' }).click();
     ok(await p.getByRole('button', { name: 'Sweetgreen' }).getAttribute('aria-pressed') === 'true', 'Sweetgreen selected (aria-pressed)');
     ok((await p.evaluate(() => location.hash)) === '#/?place=sweetgreen', 'restaurant is in the address, without a date or meal');
     const sgTxt = await p.locator('main').innerText();
-    ok(/No Sweetgreen data yet/.test(sgTxt) && /Nothing is guessed/.test(sgTxt), 'Sweetgreen without official data says so and recommends nothing');
-    ok(await p.locator('a[data-fk=official-info]').getAttribute('href') === 'https://www.sweetgreen.com/nutrition' && await p.locator('a[data-fk=official-info]').getAttribute('target') === '_blank', 'links to Sweetgreen’s own nutrition page (opens in a new tab, nothing fetched)');
-    ok(/Hours unknown/.test(sgTxt) && /national published menu/.test(sgTxt) && /Franklin Street/.test(sgTxt), 'hours unknown and national-menu caveat shown');
-    ok(await p.locator('.datebar').count() === 0 && await p.locator('.pills').count() === 0 && await p.locator('article.meal').count() === 0, 'no date bar, meal pills or meal for a restaurant');
+    ok(/122 East Franklin Street/.test(sgTxt) && /Mon - Sun 10:00am - 10:00pm/.test(sgTxt) && /last updated November 12, 2026/.test(sgTxt), 'Sweetgreen shows the store address, official hours and the page date');
+    ok(/not allergen-free environments and cross-contamination may occur/.test(sgTxt), 'Sweetgreen’s own cross-contamination statement is shown');
+    ok(/No meal fits/.test(sgTxt) && /not loosened/.test(sgTxt) && /no item can be confirmed free of yours/.test(sgTxt), 'peanut allergy at Sweetgreen: honest "No meal fits", with the reason');
+    ok(/Used with Sweetgreen’s permission/.test(sgTxt) && /not affiliated with, endorsed by or sponsored by Sweetgreen/.test(sgTxt), 'permission credit and not-affiliated note');
+    ok(await p.locator('.datebar').count() === 0 && await p.locator('.pills').count() === 0, 'no date bar or meal pills for a restaurant');
+    ok(await noHScroll(p), `no horizontal scroll on Sweetgreen at ${w}px`);
+    const savedProfile = await p.evaluate(() => JSON.stringify((window as any).__hh.S.profile));
+    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.profile = { ...hh.S.profile, allergens: [], pattern: 'none' }; hh.render(); });
+    await p.waitForSelector('article.meal');
+    ok(await p.locator('#meal-h').innerText() === 'Pick at Sweetgreen', 'no allergy: Sweetgreen shows one published menu item');
+    const pick = await p.locator('article.meal').innerText();
+    ok(/Menu item/.test(pick) && /Nutrition: Official/.test(pick) && /Fits your rules/.test(pick), 'the pick is a published item with official numbers');
+    ok(!/Kids/.test(await p.locator('article.meal .plate').innerText()), 'no kids’ meal suggested');
+    await p.locator('.site-nav a', { hasText: 'Menus' }).click();
+    await p.waitForSelector('details.comp');
+    ok(await p.locator('.station-group h2', { hasText: 'Warm Plates' }).count() === 1 && await p.locator('.station-group h2', { hasText: 'Drinks' }).count() === 1, 'Sweetgreen Menus uses Sweetgreen’s own sections');
+    ok(await noHScroll(p), `no horizontal scroll on Sweetgreen Menus at ${w}px`);
+    await p.locator('.site-nav a', { hasText: 'Today' }).click();
+    // Chipotle: no data yet; links to Chipotle's own page.
+    await p.getByRole('button', { name: 'Chipotle' }).click();
+    const cpTxt = await p.locator('main').innerText();
+    ok(/No Chipotle data yet/.test(cpTxt) && /Nothing is guessed/.test(cpTxt), 'Chipotle without data says so and recommends nothing');
+    ok(await p.locator('a[data-fk=official-info]').getAttribute('href') === 'https://www.chipotle.com/nutrition-calculator' && await p.locator('a[data-fk=official-info]').getAttribute('target') === '_blank', 'links to Chipotle’s own nutrition page (opens in a new tab, nothing fetched)');
+    ok(/Hours unknown/.test(cpTxt) && /national published menu/.test(cpTxt), 'Chipotle: hours unknown and national-menu caveat');
     ok((await p.locator('.site-footer').innerText()).includes('not affiliated with, endorsed by or sponsored by either'), 'footer: restaurants named only to identify them');
-    ok(await noHScroll(p), `no horizontal scroll on a restaurant at ${w}px`);
+    await p.evaluate((sp: string) => { const hh = (window as any).__hh; hh.S.profile = JSON.parse(sp); hh.render(); }, savedProfile);
+    await p.getByRole('button', { name: 'Chase' }).click();
     await p.evaluate((m: unknown) => { const hh = (window as any).__hh; hh.S.restaurants = [m]; hh.render(); }, FIXTURE_MENU);
     await p.getByRole('button', { name: 'Chipotle' }).click();
     await p.waitForSelector('article.meal');

@@ -22,12 +22,13 @@ const ALL = [...ALLERGEN_TOKENS];
 const ROLE_ALIASES: Record<string, ComponentRole> = {
   base: 'base', bases: 'base', protein: 'protein', proteins: 'protein', topping: 'topping', toppings: 'topping', 'mix-in': 'topping', mixin: 'topping',
   sauce: 'sauce', sauces: 'sauce', dressing: 'sauce', dressings: 'sauce', salsa: 'sauce', side: 'side', sides: 'side',
+  dish: 'dish', 'menu item': 'dish', dessert: 'dessert', desserts: 'dessert', drink: 'drink', drinks: 'drink',
 };
 const LABEL_TOKENS: Record<string, 'vegan' | 'vegetarian' | 'gluten_free'> = {
   vegan: 'vegan', vegetarian: 'vegetarian', 'gluten free': 'gluten_free', 'gluten-free': 'gluten_free', gluten_free: 'gluten_free',
 };
 const REQUIRED_COLS = ['id', 'role', 'name', 'contains', 'calories', 'protein_g', 'fat_g', 'carbs_g'];
-const KNOWN_COLS = new Set([...REQUIRED_COLS, 'serving', 'may_contain', 'ingredients', 'labels', 'extra_for', 'extra_kind', 'sodium_mg', 'fiber_g', 'sugar_g', 'notes']);
+const KNOWN_COLS = new Set([...REQUIRED_COLS, 'category', 'serving', 'may_contain', 'ingredients', 'labels', 'extra_for', 'extra_kind', 'sodium_mg', 'fiber_g', 'sugar_g', 'notes']);
 
 export interface RestaurantImport { menu: RestaurantMenu | null; errors: string[]; warnings: string[] }
 
@@ -116,6 +117,9 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
     if (typeof src.hours?.text === 'string' && isHttps(src.hours?.sourceUrl) && onDomain(src.hours.sourceUrl, domain)) hours = { text: src.hours.text.trim(), sourceUrl: src.hours.sourceUrl };
     else errors.push(`source.json "hours" must be null, or { "text", "sourceUrl" } with an official ${domain} link for this store.`);
   }
+  const scope = src.scope === undefined ? 'national' : src.scope;
+  if (scope !== 'store' && scope !== 'national') errors.push('source.json "scope" must be "store" (published for the Franklin Street store) or "national".');
+  if (scope === 'store' && (typeof src.address !== 'string' || !/Franklin/i.test(src.address))) errors.push('source.json "address" must be the store address as published (a Franklin Street store) when "scope" is "store".');
   const crossContact: CrossContact[] = [];
   if (src.crossContact !== undefined && !Array.isArray(src.crossContact)) errors.push('source.json "crossContact" must be a list.');
   for (const [i, cc] of (Array.isArray(src.crossContact) ? src.crossContact : []).entries()) {
@@ -136,7 +140,7 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
   const docLabel = `${shortPub}’s published nutrition (${typeof src.documentTitle === 'string' ? src.documentTitle.trim() : 'official document'}, ${typeof src.documentDate === 'string' ? src.documentDate : 'date not stated'})`;
   const blanket = new Set(crossContact.flatMap(c => c.allergens));
 
-  interface Raw { line: number; id: string; role: ComponentRole; item: MenuItem; serving: string | null; extraFor: string | null; extraKind: 'added' | 'total' | null }
+  interface Raw { line: number; id: string; role: ComponentRole; category: string | null; item: MenuItem; serving: string | null; extraFor: string | null; extraKind: 'added' | 'total' | null }
   const raws: Raw[] = [];
   const ids = new Set<string>();
   if (!errors.some(e => e.startsWith('components.csv is missing'))) {
@@ -191,11 +195,11 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
       };
       if (allergensUnknown) item.warnings.push(`${shortPub} publishes no allergen information for this item, so every allergen check treats it as unknown.`);
       if ((f.notes ?? '').trim()) item.warnings.push((f.notes ?? '').trim());
-      raws.push({ line: r + 1, id: cid, role, item, serving: (f.serving ?? '').trim() || null, extraFor, extraKind: extraFor ? (ek as 'added' | 'total') : null });
+      raws.push({ line: r + 1, id: cid, role, category: (f.category ?? '').trim() || null, item, serving: (f.serving ?? '').trim() || null, extraFor, extraKind: extraFor ? (ek as 'added' | 'total') : null });
     }
   }
   const components: RestaurantComponent[] = [];
-  for (const x of raws) if (!x.extraFor) components.push({ item: x.item, role: x.role, serving: x.serving, extra: null });
+  for (const x of raws) if (!x.extraFor) components.push({ item: x.item, role: x.role, category: x.category, serving: x.serving, extra: null });
   for (const x of raws) if (x.extraFor) {
     const parent = components.find(c => c.item.id === `${id}:${x.extraFor}`);
     if (!parent) { errors.push(`components.csv row ${x.line}: "extra_for" names "${x.extraFor}", which is not a component.`); continue; }
@@ -211,7 +215,8 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
   const names = new Map<string, number>();
   for (const c of components) names.set(c.item.name.toLowerCase(), (names.get(c.item.name.toLowerCase()) ?? 0) + 1);
   for (const [n, k] of names) if (k > 1) warnings.push(`components.csv: "${n}" appears ${k} times; check that each row is a different published component.`);
-  if (!components.some(c => c.role === 'base')) warnings.push('No component has role "base", so no bowl can be built.');
+  if (!components.some(c => c.role === 'base' || c.role === 'dish')) warnings.push('No component has role "base" or "dish", so nothing can be recommended.');
+  if (components.some(c => c.role === 'base') && components.some(c => c.role === 'dish')) errors.push('components.csv mixes build-your-own bases with whole menu items ("dish"); use one or the other.');
 
   const presets: RestaurantPreset[] = [];
   if (src.presets !== undefined && !Array.isArray(src.presets)) errors.push('source.json "presets" must be a list.');
@@ -231,7 +236,7 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
     id, name: RESTAURANT_NAMES[id],
     provenance: { kind: 'official', publisher, sourceUrl: src.sourceUrl, documentTitle: src.documentTitle.trim(), documentDate: src.documentDate ?? null,
       documentVersion: typeof src.documentVersion === 'string' ? src.documentVersion : null, retrievedAt: src.retrievedAt, sha256: src.sha256 ?? null, permission: src.permission.trim() },
-    components, presets, crossContact, hours, notes: warnings.slice(),
+    components, presets, crossContact, hours, scope: scope as 'store' | 'national', address: typeof src.address === 'string' ? src.address.trim() : null, notes: warnings.slice(),
   };
   return { menu, errors, warnings };
 }
