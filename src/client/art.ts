@@ -82,6 +82,30 @@ const SPRITE_BODY: Record<Sprite, string> = {
 
 export function spriteSvg(name: Sprite): string { return svg('0 0 32 32', SPRITE_BODY[name], `sprite sprite-${name}`); }
 
+// ---------- campus sprites (32 x 32) ----------
+// Small versions of the band's landmarks plus a dogwood blossom (the state flower). Original, flat, wordless and
+// purely decorative: page-title marks and the footer row. Never the Old Well, a ram, a foot or any university mark.
+export type Campus = 'belltower' | 'library' | 'stadium' | 'dogwood';
+export const CAMPUS: readonly Campus[] = ['belltower', 'library', 'stadium', 'dogwood'];
+const GROUND = '<path class="s-ink" d="M3 30.5h26"/>';
+const CAMPUS_BODY: Record<Campus, string> = {
+  belltower: '<rect class="q-stone2 c-o" x="11" y="27" width="10" height="3"/><rect class="q-brick c-o" x="12.5" y="14" width="7" height="13"/>' +
+    '<path class="q-brick2" d="M14.4 16h1v9h-1zM16.6 16h1v9h-1z"/>' +
+    '<rect class="q-stone c-o" x="12" y="9" width="8" height="5"/><path class="q-open" d="M13.6 13.5v-2.2a1 1 0 0 1 2 0v2.2zM16.4 13.5v-2.2a1 1 0 0 1 2 0v2.2z"/>' +
+    '<rect class="q-stone c-o" x="13.5" y="5.5" width="5" height="3.5"/><path class="q-stone c-o" d="M14.3 5.5L16 .8l1.7 4.7z"/>' + GROUND,
+  library: '<rect class="q-stone2 c-o" x="3" y="20" width="26" height="10"/><rect class="q-shade" x="10" y="17" width="12" height="12"/>' +
+    '<path class="q-stone" d="M10.6 17.5h1.6v11h-1.6zM13.6 17.5h1.6v11h-1.6zM16.8 17.5h1.6v11h-1.6zM19.8 17.5h1.6v11h-1.6z"/>' +
+    '<path class="q-stone c-o" d="M9 17h14l-7-3.5z"/><rect class="q-stone2 c-o" x="11.5" y="10.5" width="9" height="3"/>' +
+    '<path class="q-dome c-o" d="M11 10.8q0-6.3 5-6.3t5 6.3z"/><rect class="q-stone c-o" x="15" y="1.8" width="2" height="2.8"/>' + GROUND,
+  stadium: '<path class="q-post-fill" d="M5.4 6h1.2v12H5.4zM25.4 6h1.2v12h-1.2z"/><rect class="q-post-fill" x="3" y="3.5" width="6" height="3" rx=".6"/><rect class="q-post-fill" x="23" y="3.5" width="6" height="3" rx=".6"/>' +
+    '<circle class="q-light" cx="5" cy="5" r=".8"/><circle class="q-light" cx="7" cy="5" r=".8"/><circle class="q-light" cx="25" cy="5" r=".8"/><circle class="q-light" cx="27" cy="5" r=".8"/>' +
+    '<path class="q-stand c-o" d="M2 30V17q14-6 28 0v13z"/><path class="q-tier" d="M2 20.5q14-6 28 0"/>' +
+    '<rect class="q-brick c-o" x="2" y="24" width="28" height="6"/><path class="q-open" d="M5 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM11 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM18.6 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM24.6 30v-2.6a1.2 1.2 0 0 1 2.4 0V30z"/>',
+  dogwood: [0, 90, 180, 270].map(a => `<g transform="rotate(${a} 16 16)"><path class="c-petal" d="M16 15q-5.5-2-5.2-8 .2-3 5.2-3.6 5 .6 5.2 3.6.3 6-5.2 8z"/><path class="c-tip" d="M14.7 4.3q1.3 1.4 2.6 0-1.3-.9-2.6 0z"/></g>`).join('') +
+    '<circle class="c-eye" cx="16" cy="16" r="3"/><circle class="c-dot" cx="15" cy="15.2" r=".7"/><circle class="c-dot" cx="17" cy="15.4" r=".7"/><circle class="c-dot" cx="16" cy="17" r=".7"/>',
+};
+export function campusSvg(name: Campus): string { return svg('0 0 32 32', CAMPUS_BODY[name], `sprite campus campus-${name}`); }
+
 /** A decorative glyph for a dish: by its name, then its station, then whether it is a main or a side.
  *  Only a picture; it never stands in for words and never decides anything. */
 export function spriteFor(itemName: string, station: string, role: 'main' | 'side' = 'main'): Sprite {

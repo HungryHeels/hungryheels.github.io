@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MASCOT_LINES, POSES, SPRITES, keywordSprite, mascotSvg, quadSvg, spriteFor, spriteSvg } from '../src/client/art.ts';
+import { CAMPUS, MASCOT_LINES, POSES, SPRITES, campusSvg, keywordSprite, mascotSvg, quadSvg, spriteFor, spriteSvg } from '../src/client/art.ts';
 
-const all = () => [...POSES.map(mascotSvg), ...SPRITES.map(spriteSvg), quadSvg()];
+const all = () => [...POSES.map(mascotSvg), ...SPRITES.map(spriteSvg), ...CAMPUS.map(campusSvg), quadSvg()];
 
 test('art: every picture is decorative (aria-hidden, not focusable)', () => {
   for (const s of all()) {
@@ -50,4 +50,8 @@ test('art: the campus band draws each landmark once, in the middle, and scales b
   assert.equal((s.match(/class="q-stand"/g) ?? []).length, 1, 'one stadium');
   const mid = Number(vb![1]) / 2, at = [...s.matchAll(/translate\((\d+) 0\)/g)].map(m => Number(m[1]));
   assert.ok(at.some(x => x <= mid) && at.some(x => x > mid - 900 && x < mid + 900), 'landmarks sit around the centre');
+});
+
+test('art: each campus sprite is drawn differently', () => {
+  assert.equal(new Set(CAMPUS.map(campusSvg)).size, CAMPUS.length);
 });
