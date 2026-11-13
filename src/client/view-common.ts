@@ -5,7 +5,8 @@ import { go } from './nav.ts';
 import { routeHash, type Page, type Route } from './router.ts';
 import { liveState, liveText, recentMains, type HistoryEntry } from '../core/discover.ts';
 import { staleness } from '../core/refresh.ts';
-import { HALL_NAMES, type HallId, type MenuDay } from '../core/types.ts';
+import { HALL_NAMES, type MenuDay } from '../core/types.ts';
+import { PLACE_IDS, PLACE_NAMES, isRestaurant } from '../core/restaurant.ts';
 import { addDays, defaultPeriod, formatDate, nyNow } from '../core/schedule.ts';
 
 export function currentDay(): MenuDay | null { return dayFor(S.hall, S.date); }
@@ -21,10 +22,14 @@ export const openItem = (day: MenuDay, from: string) => (id: string) => go(() =>
 /** Saved meals double as "what I plan to eat": their mains are suggested a little later for a week, for variety. */
 export const recent = () => recentMains(S.saved.map((s): HistoryEntry => ({ date: s.date, hall: s.hall, period: s.period, main: s.parts[0]?.name ?? '', items: [], at: s.savedAt })), S.date);
 
-function hallSwitch(): HTMLElement {
-  return h('div', { class: 'seg', role: 'group', 'aria-label': 'Dining hall' }, (['chase', 'top-of-lenoir'] as HallId[]).map(hl =>
-    h('button', { type: 'button', 'aria-pressed': S.hall === hl, class: S.hall === hl ? 'on' : '', 'data-fk': 'hall:' + hl,
-      onClick: () => go(() => { S.hall = hl; S.period = null; S.idea = 0; }, `${HALL_NAMES[hl]} selected.`) }, HALL_NAMES[hl])));
+/** The place picker: the two dining halls, then the two Franklin Street restaurants (2 × 2 on every width). */
+export function placeSwitch(): HTMLElement {
+  return h('div', { class: 'seg places', role: 'group', 'aria-label': 'Place' }, PLACE_IDS.map(pl =>
+    h('button', { type: 'button', 'aria-pressed': S.place === pl, class: S.place === pl ? 'on' : '', 'data-fk': 'place:' + pl,
+      onClick: () => go(() => {
+        S.place = pl; S.idea = 0; S.openComp = null;
+        if (!isRestaurant(pl)) { S.hall = pl; S.period = null; }
+      }, `${PLACE_NAMES[pl]} selected.`) }, PLACE_NAMES[pl])));
 }
 function dateControl(day: MenuDay | null): HTMLElement {
   const set = (d: string) => go(() => { S.date = d; S.period = null; S.idea = 0; }, `Showing ${formatDate(d)}.`);
@@ -64,8 +69,8 @@ export function pickerBar(): { el: HTMLElement; day: MenuDay | null } {
   ensurePeriod(day);
   const now = nyNow();
   const live = day && day.date === now.date ? liveText(liveState(day, dayFor(day.hall, addDays(day.date, -1)), now)) : null;
-  const el = h('section', { class: 'picker', 'aria-label': 'Hall, date and meal' },
-    h('div', { class: 'picker-row' }, hallSwitch(), dateControl(day)),
+  const el = h('section', { class: 'picker', 'aria-label': 'Place, date and meal' },
+    h('div', { class: 'picker-row' }, placeSwitch(), dateControl(day)),
     day && !day.noMenuPosted ? periodPills(day) : null,
     live ? h('p', { class: 'serving' }, live) : null);
   return { el, day };

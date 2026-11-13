@@ -47,6 +47,15 @@ export interface MenuItem {
   labels: DietLabels;
   nutrition: Nutrition;
   warnings: string[];
+  /** Whose labels and allergen list these are (default UNC). Restaurants set their own name. */
+  publisher?: string;
+  /** Allergen flags from a published "may contain" / shared-equipment / cross-contact statement. Treated as
+   *  UNKNOWN (never "free of"), so strict avoids exclude the item. Same vocabulary as `allergens`, plus "gluten". */
+  mayContain?: string[];
+  /** True when the publisher gives no allergen declaration for this item at all: allergen checks are unknown. */
+  allergensUnknown?: boolean;
+  /** Declared allergens outside the Big 9 vocabulary (e.g. "mustard"), kept verbatim for custom avoids. */
+  otherAllergens?: string[];
 }
 
 export interface Station { name: string; itemIds: string[] }

@@ -1,6 +1,8 @@
 import { defaultProfile, type PatternId, type Profile } from '../core/profile.ts';
 import { sanitizeProfile, type NamedProfile } from '../core/profile-io.ts';
 import type { HallId, MenuDay } from '../core/types.ts';
+import type { PlaceId, RestaurantMenu } from '../core/restaurant.ts';
+import { RESTAURANT_DATA } from './restaurant-data.ts';
 import type { SavedMeal } from '../core/plan.ts';
 import type { DayDiff } from '../core/refresh.ts';
 import type { ManualEntry, OfficialRow } from '../sources/nutrition-import.ts';
@@ -22,6 +24,9 @@ export interface Display { theme: 'system' | 'light' | 'dark'; text: 'normal' | 
 export interface AppState {
   seed: MenuDay[]; imported: MenuDay[]; seedError: string | null; loading: boolean;
   hall: HallId; date: string; period: string | null;
+  place: PlaceId;                     // what the picker shows: a hall (then equal to hall) or a restaurant
+  restaurants: RestaurantMenu[];      // built-in official restaurant data (empty until the official files are added)
+  openComp: string | null;            // restaurant component to open on the Menus page
   page: Page; mode: 'meal' | 'day'; menusView: 'browse' | 'update'; station: string; search: string; hideNonFits: boolean; section: string | null; about: boolean;
   profiles: NamedProfile[]; activeId: string; profile: Profile; onboarded: boolean; idea: number;
   sheet: { item: string; dayKey: string; opener: string | null } | null;
@@ -35,7 +40,7 @@ export interface AppState {
 
 export const S: AppState = {
   seed: [], imported: [], seedError: null, loading: true,
-  hall: 'chase', date: FIRST_DATE, period: null,
+  hall: 'chase', date: FIRST_DATE, period: null, place: 'chase', restaurants: RESTAURANT_DATA, openComp: null,
   page: 'today', mode: 'meal', menusView: 'browse', station: '', search: '', hideNonFits: true, section: null, about: false,
   profiles: [], activeId: '', profile: defaultProfile('none'), onboarded: false, idea: 0,
   sheet: null, importResults: [], importing: false, importSummary: null, showDays: false, nutritionMsg: null, storageNote: null,

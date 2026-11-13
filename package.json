@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "build:seed": "tsx scripts/build-seed.ts",
     "build": "tsx scripts/build.ts",
+    "build:restaurants": "tsx scripts/build-restaurants.ts",
     "check": "npm run typecheck && npm test",
     "e2e": "tsx scripts/browser-check.ts"
   },

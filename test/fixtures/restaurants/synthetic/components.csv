@@ -1,0 +1,28 @@
+id,role,name,serving,calories,protein_g,fat_g,carbs_g,contains,may_contain,ingredients,labels,extra_for,extra_kind,notes
+b-rice,base,TEST White Rice,4 oz,210,4,4,40,none,,"rice, water, rice bran oil, salt",vegan;vegetarian;gluten-free,,,SYNTHETIC
+b-greens,base,TEST Romaine,2.5 oz,5,0,0,1,none,,romaine lettuce,vegan;vegetarian;gluten-free,,,SYNTHETIC
+b-wrap,base,TEST Flour Wrap,1 wrap,320,8,9,50,wheat,,"enriched wheat flour, water, canola oil, salt",vegan;vegetarian,,,SYNTHETIC
+b-barley,base,TEST Barley Grains,4 oz,190,5,1,40,gluten,,"barley, water, salt",vegan;vegetarian,,,SYNTHETIC
+p-chicken,protein,TEST Grilled Chicken,4 oz,180,32,7,0,none,,"chicken, sunflower oil, salt, black pepper",,,,SYNTHETIC
+p-chicken-x,protein,TEST Grilled Chicken (extra serving),4 oz,180,32,7,0,,,,,p-chicken,added,SYNTHETIC
+p-steak,protein,TEST Steak,4 oz,150,21,6,1,none,,"beef, salt, black pepper",,,,SYNTHETIC
+p-tofu,protein,TEST Tofu,4 oz,150,8,10,9,soy,,"tofu (soybeans, water, calcium sulfate), sunflower oil, salt",vegan;vegetarian,,,SYNTHETIC
+p-beans,protein,TEST Black Beans,4 oz,130,8,1,22,none,milk,"black beans, water, salt",vegan;vegetarian,,,SYNTHETIC: may contain milk
+p-shrimp,protein,TEST Shrimp,4 oz,120,24,2,1,shellfish,,"shrimp, oil, salt",,,,SYNTHETIC
+p-salmon,protein,TEST Salmon,4 oz,230,25,14,0,fish,,"salmon, oil, salt",,,,SYNTHETIC
+p-egg,protein,TEST Hard Boiled Egg,2 eggs,140,12,10,1,egg,,eggs,vegetarian,,,SYNTHETIC
+t-cheese,topping,TEST Shredded Cheese,1 oz,110,6,8,1,milk,,"cheese (pasteurized milk, cultures, salt, enzymes)",vegetarian,,,SYNTHETIC
+t-corn,topping,TEST Corn Salsa,4 oz,80,3,2,16,none,,"corn, onion, lime juice, salt",vegan;vegetarian,,,SYNTHETIC
+t-tomato,topping,TEST Tomato,2 oz,10,0,0,2,none,,tomatoes,vegan;vegetarian,,,SYNTHETIC
+t-peanuts,topping,TEST Roasted Peanuts,1 oz,170,7,14,5,peanut,,"peanuts, salt",vegan;vegetarian,,,SYNTHETIC
+t-almonds,topping,TEST Toasted Almonds,1 oz,170,6,15,6,tree nuts,,"almonds, salt",vegan;vegetarian,,,SYNTHETIC
+t-sesame,topping,TEST Sesame Seeds,0.25 oz,40,1,4,1,sesame,,sesame seeds,vegan;vegetarian,,,SYNTHETIC
+t-onion,topping,TEST Pickled Onion,1 oz,15,0,0,3,none,,,vegan;vegetarian,,,SYNTHETIC: no ingredient list
+t-bacon,topping,TEST Bacon,1 oz,90,6,7,0,none,,"pork belly, salt, sugar",,,,SYNTHETIC
+s-vin,sauce,TEST Lime Vinaigrette,2 oz,210,0,22,4,none,,"canola oil, lime juice, vinegar, salt",vegan;vegetarian;gluten-free,,,SYNTHETIC
+s-ranch,sauce,TEST Ranch,2 oz,250,1,26,3,milk;egg,,"soybean oil, buttermilk, egg yolk, salt",vegetarian,,,SYNTHETIC
+s-soy,sauce,TEST Soy Glaze,1 oz,40,1,0,8,soy;wheat,,"soy sauce (water, soybeans, wheat, salt), sugar",vegan;vegetarian,,,SYNTHETIC
+s-wine,sauce,TEST White Wine Sauce,2 oz,120,1,10,3,milk,,"white wine, butter, garlic",vegetarian,,,SYNTHETIC
+s-house,sauce,TEST House Sauce,2 oz,100,0,10,2,,,,,,,SYNTHETIC: no allergen information
+d-chips,side,TEST Corn Chips,4 oz,540,7,25,73,none,wheat,"corn masa, sunflower oil, salt",vegan;vegetarian,,,SYNTHETIC: shared fryer
+d-fruit,side,TEST Apple,1 apple,95,0,0,25,none,,apple,vegan;vegetarian;gluten-free,,,SYNTHETIC

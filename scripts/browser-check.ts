@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync, utimesSync } from '
 import { extname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { page as fakePage, webArchive } from '../test/fixtures.ts';
+import { importRestaurant } from '../src/sources/restaurant-import.ts';
 
 const require = createRequire(import.meta.url);
 const pw = require('playwright');
@@ -43,6 +44,11 @@ utimesSync(join(dir, 'folder', 'sub', 'lenoir-1109-old.webarchive'), new Date('2
 utimesSync(join(dir, 'folder', 'lenoir-1109.webarchive'), new Date('2026-11-08T12:00:00Z'), new Date('2026-11-08T12:00:00Z'));
 writeFileSync(join(dir, 'folder', 'notes.txt'), 'not a menu');
 writeFileSync(join(dir, 'official.csv'), 'recipe_id,name,location,calories,protein,total fat,total carbohydrate\n9001,Grilled Chicken,Chase,250,38 g,9,1\n');
+
+// SYNTHETIC restaurant menu (test/fixtures/restaurants/; never shipped), injected into the page to exercise the bowl
+// builder in a real browser while the official files are pending.
+const FIXTURE_MENU = importRestaurant(readFileSync('test/fixtures/restaurants/synthetic/source.json', 'utf8'), readFileSync('test/fixtures/restaurants/synthetic/components.csv', 'utf8')).menu;
+if (!FIXTURE_MENU) throw new Error('synthetic restaurant fixture did not import');
 
 let failures = 0;
 const ok = (cond: unknown, msg: string) => { if (cond) console.log('  ok  ' + msg); else { failures++; console.log('  FAIL ' + msg); } };
@@ -247,6 +253,50 @@ for (const name of engines) {
     await p.getByRole('button', { name: 'Add as a new profile' }).click();
     await go('#/?hall=chase&date=2026-11-16&period=Dinner');
     ok((await p.locator('#rules-h + p').innerText()).includes('Vegan · Peanut allergy'), 'shared profile (old #profile= link) added and active');
+
+    // Place picker: Chase, Top of Lenoir, Sweetgreen, Chipotle (2 x 2). Restaurants have no date or meal.
+    await go('#/?hall=chase&date=2026-11-16&period=Dinner');
+    const places = p.locator('.seg.places button');
+    ok((await places.allInnerTexts()).map((t: string) => t.replace(/^✓\s*/, '')).join('|') === 'Chase|Top of Lenoir|Sweetgreen|Chipotle', 'place picker lists the four places');
+    ok(await p.locator('[role=group][aria-label=Place]').count() === 1, 'place picker is a labeled group');
+    const boxes = await places.evaluateAll((els: Element[]) => els.map(e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right }; }));
+    ok(boxes.every((b: any) => b.h >= 44 && b.w >= 100 && b.r <= w) && new Set(boxes.map((b: any) => Math.round(b.y))).size === 2, `place buttons are 2 x 2, at least 44px tall and fully visible at ${w}px`);
+    await p.getByRole('button', { name: 'Sweetgreen' }).click();
+    ok(await p.getByRole('button', { name: 'Sweetgreen' }).getAttribute('aria-pressed') === 'true', 'Sweetgreen selected (aria-pressed)');
+    ok((await p.evaluate(() => location.hash)) === '#/?place=sweetgreen', 'restaurant is in the address, without a date or meal');
+    const sgTxt = await p.locator('main').innerText();
+    ok(/No Sweetgreen data yet/.test(sgTxt) && /Nothing is guessed/.test(sgTxt), 'Sweetgreen without official data says so and recommends nothing');
+    ok(await p.locator('a[data-fk=official-info]').getAttribute('href') === 'https://www.sweetgreen.com/nutrition' && await p.locator('a[data-fk=official-info]').getAttribute('target') === '_blank', 'links to Sweetgreen’s own nutrition page (opens in a new tab, nothing fetched)');
+    ok(/Hours unknown/.test(sgTxt) && /national published menu/.test(sgTxt) && /Franklin Street/.test(sgTxt), 'hours unknown and national-menu caveat shown');
+    ok(await p.locator('.datebar').count() === 0 && await p.locator('.pills').count() === 0 && await p.locator('article.meal').count() === 0, 'no date bar, meal pills or meal for a restaurant');
+    ok((await p.locator('.site-footer').innerText()).includes('not affiliated with, endorsed by or sponsored by either'), 'footer: restaurants named only to identify them');
+    ok(await noHScroll(p), `no horizontal scroll on a restaurant at ${w}px`);
+    await p.evaluate((m: unknown) => { const hh = (window as any).__hh; hh.S.restaurants = [m]; hh.render(); }, FIXTURE_MENU);
+    await p.getByRole('button', { name: 'Chipotle' }).click();
+    await p.waitForSelector('article.meal');
+    ok(await p.locator('#meal-h').innerText() === 'Bowl at Chipotle', 'Chipotle (synthetic fixture) shows a bowl');
+    const bowl = await p.locator('article.meal .plate').innerText();
+    ok(/Base/.test(bowl) && /TEST /.test(bowl), 'the bowl lists its parts by role');
+    ok(!/Peanut|Cheese|Ranch|Chicken|Steak|Black Beans/.test(bowl), 'vegan + peanut allergy: no peanut, animal or may-contain-milk item in the bowl');
+    ok((await p.locator('article.meal').innerText()).includes('Nutrition: Official'), 'published restaurant numbers carry the Official badge');
+    ok(/Confirm with the restaurant/.test(await p.locator('article.meal').innerText()), 'allergy set: confirm with the restaurant');
+    const first = bowl;
+    await p.locator('[data-fk=idea-next]').click();
+    ok((await p.locator('article.meal .plate').innerText()) !== first, '"Another idea" shows a different bowl');
+    ok(await noHScroll(p), `no horizontal scroll on a bowl at ${w}px`);
+    await p.locator('.site-nav a', { hasText: 'Menus' }).click();
+    await p.waitForSelector('details.comp');
+    ok((await p.evaluate(() => location.hash)) === '#/menus?place=chipotle', 'Menus keeps the restaurant in the address');
+    ok(await p.locator('.station-group h2', { hasText: 'Bases' }).count() === 1, 'Menus lists components by role');
+    await p.locator('#only-fits').uncheck();
+    await p.locator('details.comp summary', { hasText: 'TEST Black Beans' }).click();
+    ok(/May contain milk \(cross-contact\)/.test(await p.locator('details.comp[open]').innerText()), 'a cross-contact statement is shown on the component');
+    ok(await noHScroll(p), `no horizontal scroll on restaurant Menus at ${w}px`);
+    await p.goBack(); await p.waitForSelector('article.meal');
+    ok((await p.evaluate(() => location.hash)) === '#/?place=chipotle', 'Back returns to the restaurant bowl');
+    await p.getByRole('button', { name: 'Chase' }).click();
+    await p.waitForSelector('article.meal');
+    ok((await p.evaluate(() => location.hash)).includes('hall=chase') && /at Chase/.test(await p.locator('#meal-h').innerText()), 'switching back to Chase restores the dining-hall meal');
 
     // Estimates: marked with "~" and explained; never shown when switched off.
     await go('#/menus?hall=chase&date=2026-11-16&period=Dinner'); await asNone();

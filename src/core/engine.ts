@@ -9,6 +9,14 @@ export interface Evidence { state: EvState; why: string; basis?: EvBasis }
 export const BASIS_LABEL: Record<EvBasis, string> = {
   allergen: 'UNC allergen list', ingredients: 'ingredient text', label: 'UNC diet label', name: 'item name', missing: 'no ingredient list', none: 'no rule',
 };
+/** BASIS_LABEL with the item's own publisher (a restaurant) instead of UNC. */
+export function basisLabel(b: EvBasis, publisher?: string): string {
+  if (!publisher || publisher === 'UNC') return BASIS_LABEL[b];
+  if (b === 'allergen') return `${publisher} allergen information`;
+  if (b === 'label') return `${publisher} diet label`;
+  if (b === 'missing') return 'no ingredient or allergen list';
+  return BASIS_LABEL[b];
+}
 export type Status = 'match' | 'potential' | 'insufficient' | 'excluded';
 export interface Evaluation {
   status: Status;
@@ -56,8 +64,12 @@ function computeEvidence(item: MenuItem, cat: FoodCat, opts: EvidenceOpts): Evid
   // 1. Allergen declaration always counts, even against a label: if UNC's own label and allergen list
   //    disagree, we believe the one that says "contains" (the safe direction).
   const flag = ALLERGEN_FLAG[cat];
-  if (flag && item.allergens.includes(flag)) {
-    return { state: 'yes', basis: 'allergen', why: labelNo ? `UNC lists ${flag.replace('_', ' ')} as an allergen even though it is ${labelNo}` : `UNC lists ${flag.replace('_', ' ')} as an allergen` };
+  const pub = item.publisher ?? 'UNC';
+  // Restaurants may declare "gluten" on its own (e.g. barley): it counts for gluten, not for wheat.
+  const flags = cat === 'gluten' ? ['wheat', 'gluten'] : flag ? [flag] : [];
+  const declared = flags.find(f => item.allergens.includes(f));
+  if (declared) {
+    return { state: 'yes', basis: 'allergen', why: labelNo ? `${pub} lists ${declared.replace('_', ' ')} as an allergen even though it is ${labelNo}` : `${pub} lists ${declared.replace('_', ' ')} as an allergen` };
   }
   // 2. Ingredient list also overrides a label.
   let ingText = item.ingredients ? stripSafe(norm(item.ingredients), cat) : '';
@@ -67,6 +79,11 @@ function computeEvidence(item: MenuItem, cat: FoodCat, opts: EvidenceOpts): Evid
   if (ingHits.length) {
     return { state: 'yes', basis: 'ingredients', why: labelNo ? `ingredients include ${ingHits[0]} even though it is ${labelNo}` : `ingredients include ${ingHits[0]}` };
   }
+  // 2b. A published cross-contact ("may contain", shared equipment) statement, or no allergen declaration at all,
+  //     means we cannot say "free of": unknown, so strict avoids exclude it. A label never overrides this.
+  const may = flags.find(f => item.mayContain?.includes(f));
+  if (may) return { state: 'unknown', basis: 'allergen', why: `${pub} says it may contain ${may.replace('_', ' ')} (cross-contact)` };
+  if (flags.length && item.allergensUnknown) return { state: 'unknown', basis: 'missing', why: `${pub} publishes no allergen information for it` };
   // 3. Published label says no, and nothing contradicts it.
   if (labelNo) return { state: 'no', basis: 'label', why: labelNo };
   // 4. Name.
@@ -105,7 +122,12 @@ export function customEvidence(item: MenuItem, term: string): Evidence {
   const nameT = norm(item.name);
   const n = hit(nameT);
   if (n) return { state: 'yes', basis: 'name', why: n === t ? `name includes "${term}"` : `name includes ${n} (counts as "${term}")` };
-  if (cat) { const ev = evidence(item, cat); if (ev.state === 'yes' && ev.basis === 'allergen') return { ...ev, why: `${ev.why} (counts as "${term}")` }; }
+  if (cat) {
+    const ev = evidence(item, cat);
+    if (ev.state === 'yes' && ev.basis === 'allergen') return { ...ev, why: `${ev.why} (counts as "${term}")` };
+    if (ev.state === 'unknown' && (ev.basis === 'allergen' || item.allergensUnknown)) return { ...ev, why: `${ev.why} (counts as "${term}")` };
+  }
+  for (const o of item.otherAllergens ?? []) { const on = norm(o); if (hit(on)) return { state: 'yes', basis: 'allergen', why: `${item.publisher ?? 'UNC'} lists ${o} as an allergen` }; }
   if (!item.ingredients) return { state: 'unknown', basis: 'missing', why: 'no ingredient list published' };
   const i = hit(norm(item.ingredients));
   if (i) return { state: 'yes', basis: 'ingredients', why: i === t ? `ingredients include "${term}"` : `ingredients include ${i} (counts as "${term}")` };
@@ -221,8 +243,8 @@ function compute(item: MenuItem, p: Profile): Evaluation {
       unconfirmed.push(`${CAT_LABELS[cat]}: ${ev.why}`);
     }
   }
-  if (p.pattern === 'vegan' && item.labels.vegan) reasons.push('Labeled vegan by UNC.');
-  else if (p.pattern === 'vegetarian' && (item.labels.vegetarian || item.labels.vegan)) reasons.push('Labeled vegetarian by UNC.');
+  if (p.pattern === 'vegan' && item.labels.vegan) reasons.push(`Labeled vegan by ${item.publisher ?? 'UNC'}.`);
+  else if (p.pattern === 'vegetarian' && (item.labels.vegetarian || item.labels.vegan)) reasons.push(`Labeled vegetarian by ${item.publisher ?? 'UNC'}.`);
   else if (p.pattern !== 'none') reasons.push(`Checked against ${patternWord(p)} rules using labels, allergens and ingredients.`);
   if (anyUnknown) return out(noData ? 'insufficient' : 'potential', null, false);
   return out('match', null, false);
@@ -252,12 +274,13 @@ export function matchSentence(item: MenuItem, p: Profile, ev: Evaluation): strin
 
 void hasVague;
 
-export interface CheckRow { group: 'strict' | 'diet'; label: string; state: EvState; why: string; basis: EvBasis; outcome: 'pass' | 'fail' | 'unconfirmed' }
+export interface CheckRow { group: 'strict' | 'diet'; label: string; state: EvState; why: string; basis: EvBasis; outcome: 'pass' | 'fail' | 'unconfirmed'; publisher?: string }
 
 /** Every check applied to an item, in the order the engine applies them, with the evidence for each. */
 export function explainChecks(item: MenuItem, p: Profile): CheckRow[] {
   const rows: CheckRow[] = [];
-  const strict = (label: string, ev: Evidence) => rows.push({ group: 'strict', label, state: ev.state, why: ev.why, basis: ev.basis ?? 'none', outcome: ev.state === 'no' ? 'pass' : 'fail' });
+  const publisher = item.publisher;
+  const strict = (label: string, ev: Evidence) => rows.push({ group: 'strict', label, state: ev.state, why: ev.why, basis: ev.basis ?? 'none', outcome: ev.state === 'no' ? 'pass' : 'fail', ...(publisher ? { publisher } : {}) });
   for (const a of p.allergens) strict(`${a.replace('_', ' ')} allergy`, evidence(item, ALLERGEN_CAT[a]));
   if (p.avoidGluten) strict('gluten', evidence(item, 'gluten'));
   if (p.avoidDairy) strict('dairy', evidence(item, 'dairy'));
@@ -267,7 +290,7 @@ export function explainChecks(item: MenuItem, p: Profile): CheckRow[] {
   const opts: EvidenceOpts = { vegan: p.pattern === 'vegan', ignoreSeasonings: p.pattern === 'carnivore' || p.pattern === 'animal_based' };
   for (const cat of forbiddenCats(p)) {
     const ev = evidence(item, cat, opts);
-    rows.push({ group: 'diet', label: `no ${CAT_LABELS[cat]}`, state: ev.state, why: ev.why, basis: ev.basis ?? 'none', outcome: ev.state === 'no' ? 'pass' : ev.state === 'yes' ? 'fail' : 'unconfirmed' });
+    rows.push({ group: 'diet', label: `no ${CAT_LABELS[cat]}`, state: ev.state, why: ev.why, basis: ev.basis ?? 'none', outcome: ev.state === 'no' ? 'pass' : ev.state === 'yes' ? 'fail' : 'unconfirmed', ...(publisher ? { publisher } : {}) });
   }
   return rows;
 }

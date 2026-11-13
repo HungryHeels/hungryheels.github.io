@@ -8,6 +8,8 @@ import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.t
 import { landingView } from './view-landing.ts';
 import { cheer, figure, sprite } from './mascot.ts';
 import { spriteFor } from './art.ts';
+import { restaurantToday } from './view-restaurant.ts';
+import { isRestaurant } from '../core/restaurant.ts';
 import { buildMeals, type BuildResult, type Meal } from '../core/meals.ts';
 import { explainChecks } from '../core/engine.ts';
 import { gapReadout, hitsTargets, planDay, toSaved } from '../core/plan.ts';
@@ -154,6 +156,7 @@ function otherHalls(): HTMLElement {
 
 export function todayView(): HTMLElement {
   if (!S.onboarded || S.about) return landingView();
+  if (isRestaurant(S.place)) return restaurantToday(S.place);
   const v = h('div', { class: 'page today' });
   v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, mealHeading(S.date, nyNow().date)),
     h('p', { class: 'lede' }, 'A meal from Chase or Top of Lenoir that fits your rules.')));

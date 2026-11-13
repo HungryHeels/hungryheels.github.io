@@ -1,0 +1,20 @@
+{
+  "_comment": "SYNTHETIC TEST FIXTURE. Not real Chipotle data. Never shipped. See test/fixtures/restaurants/README.md.",
+  "restaurant": "chipotle",
+  "kind": "official",
+  "publisher": "SYNTHETIC TEST PUBLISHER",
+  "sourceUrl": "https://www.chipotle.com/SYNTHETIC-TEST-FIXTURE-does-not-exist.pdf",
+  "documentTitle": "SYNTHETIC TEST FIXTURE (not a real document)",
+  "documentDate": "2026-01-01",
+  "documentVersion": null,
+  "retrievedAt": "2026-11-13T10:05:00-05:00",
+  "sha256": null,
+  "hours": null,
+  "permission": "SYNTHETIC TEST FIXTURE: no real permission exists or is needed for made-up data",
+  "crossContact": [],
+  "presets": [
+    { "name": "TEST Chicken Rice Bowl", "components": ["b-rice", "p-chicken", "t-corn", "s-vin"], "nutrition": { "calories": 600, "protein": 37, "fat": 22, "carbs": 52 } },
+    { "name": "TEST Tofu Greens Bowl", "components": ["b-greens", "p-tofu", "t-sesame", "s-soy"] },
+    { "name": "TEST Cheesy Bowl", "components": ["b-rice", "p-steak", "t-cheese", "s-ranch"] }
+  ]
+}

@@ -3,7 +3,7 @@ import { h } from './dom.ts';
 import { S } from './state.ts';
 import { effective, type MacroKey } from '../core/estimate.ts';
 import type { Meal, MacroTotal, BuildResult } from '../core/meals.ts';
-import { BASIS_LABEL, type CheckRow } from '../core/engine.ts';
+import { basisLabel, type CheckRow } from '../core/engine.ts';
 import type { Profile } from '../core/profile.ts';
 import { ALLERGEN_LABELS, PATTERN_LABELS } from '../core/profile.ts';
 import type { RuleRow } from '../core/trust.ts';
@@ -35,7 +35,7 @@ export function checkList(rows: CheckRow[]): HTMLElement {
   const word = (r: CheckRow) => (r.outcome === 'pass' ? 'Pass' : r.outcome === 'fail' ? (r.group === 'strict' ? 'Blocked' : 'Fails') : 'Unconfirmed');
   return h('ul', { class: 'checks compact' }, rows.map(r => h('li', { class: 'c-' + r.outcome },
     h('span', { class: 'c-sym', 'aria-hidden': 'true' }, sym(r.outcome)),
-    h('span', { class: 'c-body' }, h('strong', null, `${word(r)}: ${r.label}`), h('small', null, `${r.group === 'strict' ? 'Strict avoid' : 'Diet rule'} · ${r.why} · decided by ${BASIS_LABEL[r.basis]}`)))));
+    h('span', { class: 'c-body' }, h('strong', null, `${word(r)}: ${r.label}`), h('small', null, `${r.group === 'strict' ? 'Strict avoid' : 'Diet rule'} · ${r.why} · decided by ${basisLabel(r.basis, r.publisher)}`)))));
 }
 
 /** Whole-meal rule checklist: one row per rule, each part's evidence underneath. */
@@ -45,7 +45,7 @@ export function ruleTable(rows: RuleRow[]): HTMLElement {
   return h('ul', { class: 'checks rules' }, rows.map(r => h('li', { class: 'c-' + r.outcome },
     h('span', { class: 'c-sym', 'aria-hidden': 'true' }, sym(r.outcome)),
     h('span', { class: 'c-body' }, h('strong', null, `${word(r)}: ${r.label}`), h('small', null, `${r.group === 'strict' ? 'Strict avoid' : 'Diet rule'} · ${r.decidedBy}`),
-      h('ul', { class: 'rule-parts' }, r.parts.map(x => h('li', null, `${sym(x.outcome)} ${x.name}: ${x.why} (${BASIS_LABEL[x.basis]})`)))))));
+      h('ul', { class: 'rule-parts' }, r.parts.map(x => h('li', null, `${sym(x.outcome)} ${x.name}: ${x.why} (${basisLabel(x.basis, x.publisher)})`)))))));
 }
 
 export function gapList(rows: GapRow[]): HTMLElement | null {

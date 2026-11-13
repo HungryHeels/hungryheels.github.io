@@ -117,6 +117,14 @@ summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weig
 .picker{display:grid;gap:var(--s3)}
 .picker-row{display:grid;gap:var(--s3)}
 @media (min-width:760px){.picker-row{grid-template-columns:minmax(240px,320px) minmax(0,1fr);align-items:start}}
+.seg.places{display:grid;grid-template-columns:1fr 1fr}
+.seg.places button{min-height:44px}
+.place-info{display:grid;gap:var(--s1);background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:var(--s2) var(--s3)}
+.place-info p{margin:0;font-size:var(--fs-sm)}
+details.comp>summary{list-style:none}
+details.comp>summary::-webkit-details-marker{display:none}
+.comp-body{padding:0 var(--s3) var(--s3);display:grid;gap:var(--s2)}
+.comp-body p,.comp-body h3{margin:0}
 .datectl{display:grid;gap:2px}
 .datebar{display:flex;align-items:center;gap:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:3px}
 .datebar button{width:44px;font-size:var(--fs-xl);line-height:1;flex:none;border:none}
