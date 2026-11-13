@@ -83,7 +83,12 @@ function computeEvidence(item: MenuItem, cat: FoodCat, opts: EvidenceOpts): Evid
   //     means we cannot say "free of": unknown, so strict avoids exclude it. A label never overrides this.
   const may = flags.find(f => item.mayContain?.includes(f));
   if (may) return { state: 'unknown', basis: 'allergen', why: `${pub} says it may contain ${may.replace('_', ' ')} (cross-contact)` };
-  if (flags.length && item.allergensUnknown) return { state: 'unknown', basis: 'missing', why: `${pub} publishes no allergen information for it` };
+  if (flags.length && item.allergensUnknown) {
+    // The restaurant's own diet label still can't make it "free of" anything for an allergy (unknown either way),
+    // but it is real evidence for a soft diet rule: basis "label" lets the diet check call it possible, not no-data.
+    return labelNo ? { state: 'unknown', basis: 'label', why: `${labelNo} by ${pub}, but ${pub} publishes no allergen information for it` }
+      : { state: 'unknown', basis: 'missing', why: `${pub} publishes no allergen information for it` };
+  }
   // 3. Published label says no, and nothing contradicts it.
   if (labelNo) return { state: 'no', basis: 'label', why: labelNo };
   // 4. Name.
@@ -239,7 +244,8 @@ function compute(item: MenuItem, p: Profile): Evaluation {
     }
     if (ev.state === 'unknown') {
       anyUnknown = true;
-      if (!item.ingredients) noData = true;
+      // No data only when information is actually missing; a published label or cross-contact statement is evidence.
+      if (!item.ingredients && ev.basis === 'missing') noData = true;
       unconfirmed.push(`${CAT_LABELS[cat]}: ${ev.why}`);
     }
   }

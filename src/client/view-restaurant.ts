@@ -23,11 +23,18 @@ export function menuFor(id: RestaurantId): RestaurantMenu | null { return S.rest
 
 const allergenWords = (a: string[]) => a.map(x => x.replace('_', ' ')).join(', ');
 /** "Contains …" / "May contain …" lines for one component, as the restaurant publishes them. */
-function allergenLines(it: MenuItem): Array<HTMLElement | null> {
+/** Allergens covered by the restaurant's own kitchen-wide statements (shown once, in the statement box). */
+function blanketAllergens(menu: RestaurantMenu): Set<string> { return new Set(menu.crossContact.flatMap(c => c.allergens)); }
+/** True when the restaurant publishes no allergen list for any item (said once, in the statement box). */
+function noneDeclared(menu: RestaurantMenu): boolean { return menu.components.length > 0 && menu.components.every(c => c.item.allergensUnknown); }
+/** Per-item "Contains" / "May contain" lines. Facts that apply to every item are shown once at the top instead. */
+function allergenLines(it: MenuItem, menu: RestaurantMenu): Array<HTMLElement | null> {
+  const blanket = blanketAllergens(menu);
+  const extraMay = (it.mayContain ?? []).filter(a => !blanket.has(a));
   return [
-    it.allergensUnknown ? h('small', { class: 'plate-allergen' }, '? Allergen information not published')
+    it.allergensUnknown ? (noneDeclared(menu) ? null : h('small', { class: 'plate-allergen' }, '? Allergen information not published'))
       : it.allergens.length || it.otherAllergens?.length ? h('small', { class: 'plate-allergen' }, '△ Contains ' + allergenWords([...it.allergens, ...(it.otherAllergens ?? [])])) : null,
-    it.mayContain?.length ? h('small', { class: 'plate-allergen' }, '△ May contain ' + allergenWords(it.mayContain) + ' (cross-contact)') : null,
+    extraMay.length ? h('small', { class: 'plate-allergen' }, '△ May contain ' + allergenWords(extraMay) + ' (cross-contact)') : null,
   ];
 }
 
@@ -43,10 +50,14 @@ function placeBar(id: RestaurantId, menu: RestaurantMenu | null): HTMLElement {
 }
 
 function crossContactBox(menu: RestaurantMenu): HTMLElement | null {
-  if (!menu.crossContact.length) return null;
-  return h('div', { class: 'staff', role: 'note' }, h('strong', null, `△ ${menu.name}’s own allergen statement`),
-    h('ul', null, menu.crossContact.map(c => h('li', null, '“' + c.text + '”'))),
-    h('small', null, 'Because of this statement, every strict allergy or avoid it covers excludes all items.'));
+  const none = noneDeclared(menu);
+  if (!menu.crossContact.length && !none) return null;
+  const covered = [...blanketAllergens(menu)];
+  return h('div', { class: 'staff', role: 'note' }, h('strong', null, `△ ${menu.name}’s own allergen statement${menu.crossContact.length > 1 ? 's' : ''}`),
+    menu.crossContact.length ? h('ul', null, menu.crossContact.map(c => h('li', null, '“' + c.text + '”'))) : null,
+    none ? h('p', null, `${menu.name} doesn’t publish a per-item allergen list in a file Hungry Heels can use, so every item’s allergens are unknown here.`) : null,
+    h('small', null, none ? 'So every allergy and every strict gluten, dairy or egg avoid excludes all items. Check with the restaurant.'
+      : `So every strict allergy or avoid covering ${allergenWords(covered)} excludes all items. These apply to every item and aren’t repeated below.`));
 }
 
 function pendingCard(id: RestaurantId): HTMLElement {
@@ -71,20 +82,27 @@ function provenance(menu: RestaurantMenu): HTMLElement {
 }
 
 function staffBox(m: Meal, menu: RestaurantMenu): HTMLElement | null {
-  const f = staffFlags(m, S.profile).map(x => x.replace('dining staff', 'restaurant staff').replace('check with staff', 'ask the restaurant'));
+  const names = new Set(m.unconfirmed.map(u => u.name));
+  const general = staffFlags(m, S.profile).filter(x => !(names.has(x.slice(0, x.indexOf(':'))) && /: could not confirm /.test(x)))
+    .map(x => x.replace('dining staff', 'restaurant staff').replace('check with staff', 'ask the restaurant'));
+  // Identical reasons (e.g. one kitchen-wide cross-contact statement) are said once, naming every part they apply to.
+  const byWhy = new Map<string, string[]>();
+  for (const u of m.unconfirmed) byWhy.set(u.why, [...(byWhy.get(u.why) ?? []), u.name]);
+  const grouped = [...byWhy].map(([why, ns]) => `${ns.length === m.parts.length && ns.length > 1 ? 'Every part' : ns.join(', ')}: could not confirm ${why || 'every diet rule'}.`);
+  const f = [...general, ...grouped];
   if (!f.length) return null;
   return h('div', { class: 'staff', role: 'note' }, h('strong', null, '⚠ Confirm with the restaurant'), h('ul', null, f.map(x => h('li', null, x))),
     h('small', null, `Recipes and suppliers can differ at the ${menu.name} on ${LOCATION_NOTE.replace(', Chapel Hill', '')}.`));
 }
 
 type BowlPart = MealPart & { component?: ComponentRole };
-function bowlList(m: Meal, prefix: string): HTMLElement {
+function bowlList(m: Meal, prefix: string, menu: RestaurantMenu): HTMLElement {
   return h('ul', { class: 'plate' }, m.parts.map((p: BowlPart) => h('li', null,
     h('button', { type: 'button', class: 'plate-row', 'data-fk': prefix + p.item.id, onClick: () => openComponent(p.item.id) },
       h('span', { class: 'plate-main' },
         h('span', { class: 'plate-name' }, p.item.name),
         h('small', null, `${p.component ? ROLE_LABELS[p.component] : p.station} · ${kcalLine(p.item, 1)}`),
-        ...allergenLines(p.item),
+        ...allergenLines(p.item, menu),
         h('small', null, sourceBadge(p.item))),
       h('span', { class: 'chev', 'aria-hidden': 'true' }, '›')))));
 }
@@ -114,7 +132,7 @@ function bowlCard(m: Meal, menu: RestaurantMenu, r: BowlResult, idx: number): HT
   return h('article', { class: 'meal card', 'aria-labelledby': 'meal-h' },
     h('header', { class: 'meal-head' }, h('h2', { id: 'meal-h' }, mealTitle(menu)),
       m.tier === 'confirmed' ? chip('Fits your rules', 'ok') : chip('Mostly confirmed', 'warn')),
-    bowlList(m, 'part:'),
+    bowlList(m, 'part:', menu),
     totals(m),
     gapList(gapReadout(m.totals, S.profile.targets, null, false)),
     m.unknownNutrition.length ? h('p', { class: 'muted' }, `${menu.name} publishes no value for some numbers of ${m.unknownNutrition.join(', ')}, so “+” totals are minimums. Nothing is estimated here.`) : null,
@@ -215,7 +233,7 @@ export function restaurantMenus(id: RestaurantId): HTMLElement {
             status === 'match' ? chip('Fits', 'ok') : status === 'excluded' ? chip('Not for you', 'bad') : chip('Unsure', 'warn')),
           h('div', { class: 'comp-body' },
             nutritionGrid(c.item), h('p', null, sourceBadge(c.item)),
-            ...allergenLines(c.item),
+            ...allergenLines(c.item, menu),
             !c.item.allergensUnknown && !c.item.allergens.length && !c.item.otherAllergens?.length ? h('p', null, `${menu.name} declares no major allergens for it.`) : null,
             h('p', { class: 'ingr' }, h('strong', null, 'Ingredients: '), c.item.ingredients ?? 'not published (treated as unknown).'),
             h('p', { class: 'ingr' }, h('strong', null, `${menu.name} labels: `), [c.item.labels.vegan ? 'vegan' : '', c.item.labels.vegetarian ? 'vegetarian' : '', c.item.labels.madeWithoutGluten ? 'gluten-free' : ''].filter(Boolean).join(', ') || 'none published'),

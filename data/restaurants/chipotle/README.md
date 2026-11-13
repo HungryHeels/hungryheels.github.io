@@ -1,6 +1,6 @@
 # Chipotle (Franklin Street, Chapel Hill): official data goes here
 
-**Status: permission recorded, no data yet.** Chipotle's nutrition and allergen chart are only in its ordering app (services.chipotle.com), which this project does not call. See `docs/RESTAURANTS.md` for the ways forward.
+**Status: built in.** Chipotle's US nutrition PDF and chipotle.com/allergens statements, extracted by `scripts/extract-chipotle.ts` from the saved copies in `source/` (git-ignored). Store hours and address from locations.chipotle.com. Permission and provenance are in `source.json`. Refresh steps: `docs/RESTAURANTS.md`.
 
 To add or refresh data:
 

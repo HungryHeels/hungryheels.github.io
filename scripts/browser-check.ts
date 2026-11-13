@@ -298,12 +298,17 @@ for (const name of engines) {
     ok(await p.locator('.station-group h2', { hasText: 'Warm Plates' }).count() === 1 && await p.locator('.station-group h2', { hasText: 'Drinks' }).count() === 1, 'Sweetgreen Menus uses Sweetgreen’s own sections');
     ok(await noHScroll(p), `no horizontal scroll on Sweetgreen Menus at ${w}px`);
     await p.locator('.site-nav a', { hasText: 'Today' }).click();
-    // Chipotle: no data yet; links to Chipotle's own page.
+    // Chipotle: real data from Chipotle's US nutrition sheet; official hours and address for 301 W Franklin St.
     await p.locator('[data-fk="place:chipotle"]').click();
+    await p.waitForSelector('article.meal');
     const cpTxt = await p.locator('main').innerText();
-    ok(/No Chipotle data yet/.test(cpTxt) && /Nothing is guessed/.test(cpTxt), 'Chipotle without data says so and recommends nothing');
-    ok(await p.locator('a[data-fk=official-info]').getAttribute('href') === 'https://www.chipotle.com/nutrition-calculator' && await p.locator('a[data-fk=official-info]').getAttribute('target') === '_blank', 'links to Chipotle’s own nutrition page (opens in a new tab, nothing fetched)');
-    ok(/Hours unknown/.test(cpTxt) && /national published menu/.test(cpTxt), 'Chipotle: hours unknown and national-menu caveat');
+    ok(await p.locator('#meal-h').innerText() === 'Bowl at Chipotle', 'Chipotle (real data) shows a bowl');
+    ok(/301 W Franklin St/.test(cpTxt) && /10:45 AM - 11:00 PM/.test(cpTxt) && /national published menu/.test(cpTxt), 'Chipotle: store address, official hours and the national-menu caveat');
+    ok(/Individual foods may come into contact with one another during preparation/.test(cpTxt), 'Chipotle’s own cross-contact statement is shown');
+    const cpBowl = await p.locator('article.meal').innerText();
+    ok(/Base/.test(cpBowl) && /Nutrition: Official/.test(cpBowl) && !/Tortilla/.test(await p.locator('article.meal .plate').innerText()), 'the bowl has a base, official numbers and no tortilla');
+    ok(await p.locator('.side-note a', { hasText: 'Official source' }).getAttribute('href') === 'https://www.chipotle.com/content/dam/chipotle/menu/nutrition/US-Nutrition-Facts-Paper-Menu-3-2025.pdf', 'provenance links to Chipotle’s own nutrition PDF');
+    ok(await noHScroll(p), `no horizontal scroll on Chipotle at ${w}px`);
     ok((await p.locator('.site-footer').innerText()).includes('not affiliated with, endorsed by or sponsored by either'), 'footer: restaurants named only to identify them');
     await p.evaluate((sp: string) => { const hh = (window as any).__hh; hh.S.profile = JSON.parse(sp); hh.render(); }, savedProfile);
     await p.locator('[data-fk="place:chase"]').click();

@@ -357,3 +357,75 @@ test('saved restaurant pick: re-checked against the current rules and data, neve
   const gone = { ...s, parts: [...s.parts, { id: 'chipotle:not-there', name: 'Gone Item', portions: 1 }] };
   assert.match(recheckRestaurantSaved(gone, m, defaultProfile('none')).problems.join(), /Gone Item is no longer on Chipotle/);
 });
+
+test('engine: a restaurant diet label with no allergen list is a possible match for a soft diet, never for a strict avoid', () => {
+  const sofritas: MenuItem = { ...mkItem('Sofritas', { ing: null, labels: { vegan: true, vegetarian: true, halal: false, madeWithoutGluten: false } }), publisher: 'Chipotle', allergensUnknown: true };
+  assert.equal(evaluateItem(sofritas, defaultProfile('vegan')).status, 'potential', 'vegan label: possible');
+  assert.equal(evaluateItem(sofritas, defaultProfile('vegetarian')).status, 'potential', 'vegetarian: possible (fish and shellfish are allergens, and no allergen list is published)');
+  assert.equal(evaluateItem(sofritas, { ...defaultProfile('vegan'), avoidDairy: true }).status, 'excluded', 'strict dairy avoid: excluded');
+  assert.equal(evaluateItem(sofritas, { ...defaultProfile('none'), allergens: ['milk'] }).status, 'excluded');
+  const unlabeled: MenuItem = { ...mkItem('Mystery', { ing: null }), publisher: 'Chipotle', allergensUnknown: true };
+  assert.equal(evaluateItem(unlabeled, defaultProfile('vegan')).status, 'insufficient', 'no label and no ingredients: still no data');
+});
+
+test('engine: a cross-contact statement on a labeled item with no ingredient list is "possible" for a soft diet, not "no data"', () => {
+  const rice: MenuItem = { ...mkItem('Rice', { ing: null, labels: { vegan: true, vegetarian: true, halal: false, madeWithoutGluten: false } }), publisher: 'Chipotle', allergensUnknown: true, mayContain: ['milk', 'egg', 'fish', 'shellfish'] };
+  assert.equal(evaluateItem(rice, defaultProfile('vegan')).status, 'potential');
+  assert.equal(evaluateItem(rice, { ...defaultProfile('none'), avoidEgg: true }).status, 'excluded', 'strict avoid still excluded');
+  assert.equal(evaluateItem(mkItem('Cheese', { ing: null }), defaultProfile('vegetarian')).status, 'insufficient', 'dining hall: unchanged');
+});
+
+// ---------------- real data: Chipotle, 301 W Franklin St (US nutrition sheet OCT-2024-US-CK + chipotle.com/allergens) ----------------
+const CP = REAL.find(m => m.id === 'chipotle');
+test('Chipotle (real): provenance, permission, store hours and address', { skip: !CP && 'no Chipotle data' }, () => {
+  const m = CP!;
+  assert.match(m.provenance.sourceUrl, /^https:\/\/www\.chipotle\.com\/content\/dam\/chipotle\/menu\/nutrition\/US-Nutrition-Facts-Paper-Menu-3-2025\.pdf$/);
+  assert.equal(m.provenance.documentVersion, 'OCT-2024-US-CK');
+  assert.match(m.provenance.permission, /The Team at Chipotle/);
+  assert.ok(!/Joshua/.test(m.provenance.permission), 'no personal name in the public repo');
+  assert.equal(m.scope, 'national', 'a national sheet: the UI says the store may differ');
+  assert.equal(m.address, '301 W Franklin St, Chapel Hill, NC 27516');
+  assert.deepEqual(m.hours, { text: 'Monday - Sunday 10:45 AM - 11:00 PM', sourceUrl: 'https://locations.chipotle.com/nc/chapel-hill/301-w-franklin-st' });
+  assert.equal(m.components.length, 29);
+  assert.ok(!m.components.some(c => c.role === 'drink'), 'no drinks: the sheet has two fountain lists and the store’s is unknown');
+});
+test('Chipotle (real): rows copied exactly; no allergen list is invented', { skip: !CP && 'no Chipotle data' }, () => {
+  const by = (n: string) => CP!.components.find(c => c.item.name === n)!;
+  const ch = by('Chicken');
+  assert.deepEqual([ch.item.nutrition.calories, ch.item.nutrition.protein, ch.item.nutrition.fat, ch.item.nutrition.carbs, ch.serving], [180, 32, 7, 0, '4 oz']);
+  assert.deepEqual([by('Sofritas').item.nutrition.calories, by('Sofritas').item.nutrition.protein], [150, 8]);
+  assert.equal(by('Queso Blanco (large)').item.nutrition.fiber, null, '"<1" stays unknown');
+  for (const c of CP!.components) {
+    assert.equal(c.item.allergensUnknown, true, `${c.item.name}: Chipotle's per-item allergen chart is not in a static file, so allergens are unknown`);
+    assert.equal(c.item.ingredients, null);
+  }
+  assert.equal(by('Sofritas').item.labels.vegan, true, 'Chipotle: "Our Sofritas is vegan and vegetarian approved."');
+  for (const n of ['Chicken', 'Cheese', 'Sour Cream', 'Queso Blanco (entreé)', 'Chipotle-Honey Vinaigrette']) assert.equal(by(n).item.labels.vegan, false, n);
+  assert.ok(by('Chips (regular)').item.mayContain!.includes('gluten') && by('Crispy Corn Tortilla').item.mayContain!.includes('gluten'));
+});
+test('Chipotle (real): bowls for soft diets, honest "No meal fits" for every allergy and strict avoid', { skip: !CP && 'no Chipotle data' }, () => {
+  const m = CP!;
+  for (const rule of [...ALLERGEN_IDS.map(a => ({ allergens: [a] })), { avoidGluten: true }, { avoidDairy: true }, { avoidEgg: true }, { halalStyle: true }] as Array<Partial<Profile>>)
+    assert.ok(buildBowls(m, { ...defaultProfile('none'), ...rule }).noMeal, JSON.stringify(rule));
+  assert.ok(buildBowls(m, defaultProfile('none')).meals.every(b => b.tier === 'confirmed'));
+  const vegan = buildBowls(m, defaultProfile('vegan'));
+  assert.ok(!vegan.noMeal && vegan.meals.every(b => b.tier === 'possible'), 'vegan: possible bowls only (no allergen list, cross-contact)');
+  assert.ok(vegan.meals.every(b => !b.parts.some(x => /chicken|steak|barbacoa|carnitas|cheese|queso|sour cream|honey/i.test(x.item.name))));
+  assert.ok(buildBowls(m, defaultProfile('carnivore')).noMeal);
+  assert.ok(!buildBowls(m, defaultProfile('none')).meals.some(b => b.parts.some(x => /tortilla/i.test(x.item.name))), 'tortillas are listed, never put in a bowl');
+});
+test('Chipotle: components.csv is exactly what the extractor produces from the saved PDF', async t => {
+  const { existsSync } = await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const pdf = 'data/restaurants/chipotle/source/US-Nutrition-Facts-Paper-Menu-3-2025.pdf';
+  let text: string;
+  try { if (!existsSync(pdf)) throw new Error('missing'); text = execFileSync('pdftotext', ['-layout', pdf, '-'], { encoding: 'utf8' }); }
+  catch { t.skip('saved PDF (git-ignored) or pdftotext not available here'); return; }
+  const { createHash } = await import('node:crypto');
+  assert.equal(createHash('sha256').update(readFileSync(pdf)).digest('hex'), CP!.provenance.sha256);
+  const { extractChipotle } = await import('../scripts/extract-chipotle.ts');
+  const x = extractChipotle(text);
+  const csv = (v: string) => (/[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v);
+  assert.equal([x.header, ...x.rows].map(r => r.map(csv).join(',')).join('\n') + '\n', readFileSync('data/restaurants/chipotle/components.csv', 'utf8'));
+  assert.equal(x.code, 'OCT-2024-US-CK');
+});

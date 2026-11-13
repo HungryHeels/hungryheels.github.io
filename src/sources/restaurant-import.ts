@@ -22,7 +22,7 @@ const ALL = [...ALLERGEN_TOKENS];
 const ROLE_ALIASES: Record<string, ComponentRole> = {
   base: 'base', bases: 'base', protein: 'protein', proteins: 'protein', topping: 'topping', toppings: 'topping', 'mix-in': 'topping', mixin: 'topping',
   sauce: 'sauce', sauces: 'sauce', dressing: 'sauce', dressings: 'sauce', salsa: 'sauce', side: 'side', sides: 'side',
-  dish: 'dish', 'menu item': 'dish', dessert: 'dessert', desserts: 'dessert', drink: 'drink', drinks: 'drink',
+  dish: 'dish', 'menu item': 'dish', tortilla: 'tortilla', tortillas: 'tortilla', dessert: 'dessert', desserts: 'dessert', drink: 'drink', drinks: 'drink',
 };
 const LABEL_TOKENS: Record<string, 'vegan' | 'vegetarian' | 'gluten_free'> = {
   vegan: 'vegan', vegetarian: 'vegetarian', 'gluten free': 'gluten_free', 'gluten-free': 'gluten_free', gluten_free: 'gluten_free',

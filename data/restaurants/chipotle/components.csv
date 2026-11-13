@@ -1,0 +1,30 @@
+id,role,category,name,serving,calories,protein_g,fat_g,carbs_g,sodium_mg,fiber_g,sugar_g,contains,may_contain,ingredients,labels,extra_for,extra_kind,notes
+flour-tortilla-burrito,tortilla,Tortillas,Flour Tortilla (burrito),1 ea,320,8,9,50,600,3,0,,,,vegan;vegetarian,,,"Vegan and vegetarian per chipotle.com/allergens. Chipotle: if you avoid gluten, don’t eat our flour tortillas."
+flour-tortilla-taco,tortilla,Tortillas,Flour Tortilla (taco),1 ea,80,2,2.5,13,160,<1,0,,,,vegan;vegetarian,,,"Vegan and vegetarian per chipotle.com/allergens. Chipotle: if you avoid gluten, don’t eat our flour tortillas."
+crispy-corn-tortilla,tortilla,Tortillas,Crispy Corn Tortilla,1 ea,70,1,3,10,0,1,0,,gluten,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+cilantro-lime-brown-rice,base,Rice and greens,Cilantro-Lime Brown Rice,4 oz,210,4,6,36,190,2,0,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+cilantro-lime-white-rice,base,Rice and greens,Cilantro-Lime White Rice,4 oz,210,4,4,40,350,1,0,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+black-beans,topping,Beans and veggies,Black Beans,4 oz,130,8,1.5,22,210,7,2,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+pinto-beans,topping,Beans and veggies,Pinto Beans,4 oz,130,8,1.5,21,210,8,1,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+fajita-vegetables,topping,Beans and veggies,Fajita Vegetables,2 oz,20,1,0,5,150,1,2,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+barbacoa,protein,Proteins,Barbacoa,4 oz,170,24,7,2,530,1,0,,,,,,,
+chicken,protein,Proteins,Chicken,4 oz,180,32,7,0,310,0,0,,,,,,,
+carnitas,protein,Proteins,Carnitas,4 oz,210,23,12,0,450,0,0,,,,,,,Chipotle: our carnitas are made with pork.
+steak,protein,Proteins,Steak,4 oz,150,21,6,1,330,1,0,,,,,,,
+sofritas,protein,Proteins,Sofritas,4 oz,150,8,10,9,560,3,5,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+fresh-tomato-salsa,topping,Salsas,Fresh Tomato Salsa,4 oz,25,0,0,4,550,1,1,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+roasted-chili-corn-salsa,topping,Salsas,Roasted Chili-Corn Salsa,4 oz,80,3,1.5,16,330,3,4,,gluten,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+tomatillo-green-chili-salsa,topping,Salsas,Tomatillo-Green Chili Salsa,2 fl oz,15,0,0,4,260,0,2,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+tomatillo-red-chili-salsa,topping,Salsas,Tomatillo-Red Chili Salsa,2 fl oz,30,0,0,4,500,1,0,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+cheese,topping,Toppings,Cheese,1 oz,110,6,8,1,190,0,0,,,,,,,
+sour-cream,topping,Toppings,Sour Cream,2 oz,110,2,9,2,30,0,2,,,,,,,
+guacamole-topping-side,topping,Toppings,Guacamole (topping/side),4 oz,230,2,22,8,370,6,1,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+guacamole-large,side,Sides,Guacamole (large),8 oz,460,4,44,16,740,12,2,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+queso-blanco-entree,topping,Toppings,Queso Blanco (entreé),2 oz,120,5,9,4,250,0,1,,,,,,,
+queso-blanco-side,side,Sides,Queso Blanco (side),4 oz,240,10,18,7,490,0,2,,,,,,,
+queso-blanco-large,side,Sides,Queso Blanco (large),8 oz,480,20,37,14,980,<1,5,,,,,,,
+supergreens-salad-mix,base,Rice and greens,Supergreens Salad Mix,3 oz,15,1,0,3,15,2,1,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+romaine-lettuce-tacos,topping,Toppings,Romaine Lettuce (tacos),1 oz,5,0,0,1,0,1,0,,,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+chips-regular,side,Sides,Chips (regular),4 oz,540,7,25,73,390,7,1,,gluten,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+chips-large,side,Sides,Chips (large),6 oz,810,11,38,110,590,11,2,,gluten,,vegan;vegetarian,,,Vegan and vegetarian per chipotle.com/allergens.
+chipotle-honey-vinaigrette,sauce,Dressing,Chipotle-Honey Vinaigrette,2 fl oz,220,1,16,18,850,1,12,,,,,,,

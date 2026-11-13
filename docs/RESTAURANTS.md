@@ -6,7 +6,10 @@ Status (Nov 12, 2026, New York time):
   2026-11-12T20:36:26-05:00, used under the permission recorded in `data/restaurants/sweetgreen/source.json`
   (condition: the site stays unofficial and for personal use only). Official store hours from
   https://www.sweetgreen.com/locations/chapel-hill. 57 published items, extracted by `scripts/extract-sweetgreen.ts`.
-- **Chipotle: permission recorded, no data yet** (see “Chipotle” below).
+- **Chipotle: live.** Chipotle's own US nutrition sheet, a static PDF on chipotle.com (sheet code OCT-2024-US-CK, file
+  `US-Nutrition-Facts-Paper-Menu-3-2025.pdf`), retrieved once at 2026-11-13T10:13:27-05:00, plus the diet, gluten and
+  cross-contact statements on https://www.chipotle.com/allergens. Store address and hours from Chipotle's own store page
+  https://locations.chipotle.com/nc/chapel-hill/301-w-franklin-st (301 W Franklin St; Mon–Sun 10:45 AM–11:00 PM).
 
 ## Permission (recorded Nov 12, 2026)
 The site owner provided two emails and stated they came from the restaurants. Neither could be verified from the
@@ -32,12 +35,30 @@ grant this, remove its data.
   `retrievedAt`, `sha256` and `documentDate` in `source.json`, then `npm run check` and `npm run build`.
 
 ## Chipotle
-Chipotle's nutrition calculator (https://www.chipotle.com/nutrition-calculator) and its allergen chart
-(https://www.chipotle.com/allergens) are not in the pages themselves: both are filled in by Chipotle's ordering app
-from `services.chipotle.com`. The original sourcing rule for this feature excludes ordering systems and APIs, so that
-was not called, and nothing was copied. Ways forward: ask Chipotle for a file (PDF or spreadsheet) of the Chapel Hill
-store's nutrition and allergens; or type the values in by hand from the calculator into `components.csv` following
-the rules below; or the owner explicitly lifts the no-API rule for this one source.
+- **Source:** the US nutrition sheet is national; Chipotle publishes no static per-store sheet ("Offerings may vary by
+  location"), so the app says the Franklin Street store may differ. The PDF's first nutrition table gives every
+  build-your-own component (tortillas, rice, Supergreens, beans, fajita veggies, five proteins, four salsas, cheese,
+  sour cream, guacamole, queso, romaine, chips, chipotle-honey vinaigrette) with portion, calories, fat, carbs,
+  protein, sodium, fiber and sugar. `scripts/extract-chipotle.ts` copies them (needs `pdftotext`); a test checks the
+  CSV reproduces exactly from the saved PDF. Drinks and the kids' menu are left out: the sheet has two different
+  fountain lists and doesn't say which this store has.
+- **Not used:** the Chipotle "nutrition.pdf" is the UK sheet (different recipes); the nutrition calculator and the
+  allergen chart are filled in by the ordering app from services.chipotle.com, which this project does not call.
+- **Allergens:** Chipotle's per-item allergen chart isn't in any static file, so every item's allergens are
+  **unknown**. With Chipotle's own statements (“Individual foods may come into contact with one another during
+  preparation…”; “…cannot guarantee the complete absence of these allergens…”), every allergy and strict gluten,
+  dairy or egg avoid gets “No meal fits”. Corn items carry Chipotle's trace-gluten note.
+- **Diet labels** come only from Chipotle's words: “Our Sofritas is vegan and vegetarian approved … Our tortillas,
+  vegetables, rice, beans, salsas, chips and guacamole, are vegetarian and vegan.” Meats, cheese, queso, sour cream
+  and the honey vinaigrette get no label. No ingredient lists are published in a static file, so vegetarian and
+  vegan bowls are “possible”, not confirmed; the no-pork/alcohol rule excludes everything (“our carnitas are made
+  with pork” is kept as a note).
+- **Bowls:** one base (white or brown rice, or Supergreens), one protein or none, up to three toppings (beans,
+  fajita veggies, salsas, cheese, sour cream, guacamole, queso, romaine), at most the one dressing; a published side
+  (chips, large guacamole or queso) only when you set targets. Tortillas are listed on Menus, never added to a bowl.
+- To refresh: save the newest US nutrition PDF from chipotle.com into `data/restaurants/chipotle/source/`, run
+  `npx tsx scripts/extract-chipotle.ts <pdf>`, update `retrievedAt`, `sha256`, `documentDate`/`documentVersion` and
+  `sourceUrl` in `source.json`, re-check the statements on chipotle.com/allergens, then `npm run check` and `npm run build`.
 
 ## History: why there was no data at first
 The rule for these places: use only each restaurant's **own officially published** nutrition and allergen

@@ -27,10 +27,10 @@ export const LOCATION_NOTE = 'Franklin Street, Chapel Hill';
 
 /** Build-your-own components (base … sauce), or whole published menu items (dish) when a restaurant publishes
  *  nutrition only for finished items. Desserts and drinks are listed but never part of a recommended meal. */
-export type ComponentRole = 'base' | 'protein' | 'topping' | 'sauce' | 'dish' | 'side' | 'dessert' | 'drink';
-export const ROLES: ComponentRole[] = ['base', 'protein', 'topping', 'sauce', 'dish', 'side', 'dessert', 'drink'];
-export const ROLE_LABELS: Record<ComponentRole, string> = { base: 'Base', protein: 'Protein', topping: 'Topping', sauce: 'Sauce or dressing', dish: 'Menu item', side: 'Side', dessert: 'Dessert', drink: 'Drink' };
-export const ROLE_PLURAL: Record<ComponentRole, string> = { base: 'Bases', protein: 'Proteins', topping: 'Toppings', sauce: 'Sauces and dressings', dish: 'Menu items', side: 'Sides', dessert: 'Desserts', drink: 'Drinks' };
+export type ComponentRole = 'base' | 'protein' | 'topping' | 'sauce' | 'dish' | 'side' | 'tortilla' | 'dessert' | 'drink';
+export const ROLES: ComponentRole[] = ['base', 'protein', 'topping', 'sauce', 'dish', 'side', 'tortilla', 'dessert', 'drink'];
+export const ROLE_LABELS: Record<ComponentRole, string> = { base: 'Base', protein: 'Protein', topping: 'Topping', sauce: 'Sauce or dressing', dish: 'Menu item', side: 'Side', tortilla: 'Tortilla', dessert: 'Dessert', drink: 'Drink' };
+export const ROLE_PLURAL: Record<ComponentRole, string> = { base: 'Bases', protein: 'Proteins', topping: 'Toppings', sauce: 'Sauces and dressings', dish: 'Menu items', side: 'Sides', tortilla: 'Tortillas', dessert: 'Desserts', drink: 'Drinks' };
 
 export interface RestaurantProvenance {
   kind: 'official';

@@ -1,0 +1,36 @@
+{
+  "restaurant": "chipotle",
+  "kind": "official",
+  "publisher": "Chipotle Mexican Grill",
+  "sourceUrl": "https://www.chipotle.com/content/dam/chipotle/menu/nutrition/US-Nutrition-Facts-Paper-Menu-3-2025.pdf",
+  "documentTitle": "US Nutrition Facts paper menu (nutrition facts table, main menu), with diet and gluten statements from chipotle.com/allergens",
+  "documentDate": "October 2024 (sheet code OCT-2024-US-CK; file named 3-2025)",
+  "documentVersion": "OCT-2024-US-CK",
+  "retrievedAt": "2026-11-13T10:13:27-05:00",
+  "sha256": "b1836d0f05a41ca8b5e17e16f2dc571c0cc10756b7fc098c29660f6d1e5d5d0c",
+  "scope": "national",
+  "address": "301 W Franklin St, Chapel Hill, NC 27516",
+  "hours": {
+    "text": "Monday - Sunday 10:45 AM - 11:00 PM",
+    "sourceUrl": "https://locations.chipotle.com/nc/chapel-hill/301-w-franklin-st"
+  },
+  "permission": "Email signed “The Team at Chipotle”, provided by the site owner on 2026-11-12 (sender address and date not provided; not independently verified): “Hi [name], We appreciate you request and have granted you access to our chapel hill store information. As long as you keep this open source and don't charge for it, you are welcome to use our data. Have a great week! Thanks, The Team at Chipotle”. Later relayed by the owner: Chipotle is OK with the site using its public site data as long as it is not used in a monetized site. Conditions: open source (MIT, see LICENSE), no charge, not monetized.",
+  "crossContact": [
+    {
+      "text": "Individual foods may come into contact with one another during preparation, which is not reflected on this chart.",
+      "allergens": "all"
+    },
+    {
+      "text": "Although we do not use eggs, mustard, peanuts, tree nuts, sesame, shellfish, or fish as ingredients in our food, Chipotle cannot guarantee the complete absence of these allergens in its restaurants.",
+      "allergens": [
+        "egg",
+        "peanut",
+        "tree nuts",
+        "sesame",
+        "shellfish",
+        "fish"
+      ]
+    }
+  ],
+  "presets": []
+}
