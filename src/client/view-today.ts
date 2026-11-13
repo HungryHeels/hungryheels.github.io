@@ -8,7 +8,7 @@ import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.t
 import { landingView } from './view-landing.ts';
 import { cheer, figure, sprite } from './mascot.ts';
 import { spriteFor } from './art.ts';
-import { restaurantToday } from './view-restaurant.ts';
+import { nearbyCard, restaurantToday } from './view-restaurant.ts';
 import { isRestaurant } from '../core/restaurant.ts';
 import { buildMeals, type BuildResult, type Meal } from '../core/meals.ts';
 import { explainChecks } from '../core/engine.ts';
@@ -172,6 +172,7 @@ export function todayView(): HTMLElement {
     S.mode === 'meal' ? oneMeal(day) : wholeDay(day));
   const side = h('aside', { class: 'side-col', 'aria-label': 'More for this meal' },
     otherHalls(),
+    nearbyCard(),
     h('section', { class: 'card side', 'aria-labelledby': 'rules-h' }, h('h2', { id: 'rules-h' }, S.profiles.length > 1 ? `Rules: ${activeName()}` : 'Your rules'),
       h('p', null, profileSummary(S.profile)), h('a', { href: href('me', { section: 'diet' }) }, 'Change rules')),
     h('section', { class: 'side-note' }, provenanceLine(day), h('p', { class: 'muted' }, `Menu for ${formatDate(day.date)}.`)));

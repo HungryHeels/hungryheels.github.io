@@ -15,7 +15,7 @@ grant this, remove its data.
 - Sweetgreen, signed “The sweetgreen team”: use is fine “as long as you keep the site for unofficial and personal use only”.
 - Chipotle, signed “The Team at Chipotle”: access to its Chapel Hill store information, “as long as you keep this open
   source and don't charge for it”; later relayed as “can't be used in a monetized site”. Hungry Heels charges nothing
-  and has no ads. Note: the repository has **no open-source license file yet**; adding one is the owner's decision.
+  and has no ads. The code is open source under the MIT license (`LICENSE`, added Nov 12, 2026); the license explicitly does not cover restaurant data.
 
 ## Sweetgreen: what the data is
 - Sweetgreen's page lists **finished menu items** (Warm Plates, Wraps, Bowls, Salads, Kids Meals, Sides, Dessert,

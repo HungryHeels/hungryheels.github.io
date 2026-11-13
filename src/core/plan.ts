@@ -134,7 +134,9 @@ export function planDay(day: MenuDay, p: Profile, daily: MacroTargets, opts: { r
 }
 
 // ---------------- Saved meals ----------------
-export interface SavedMeal { id: string; hall: MenuDay['hall']; date: string; period: string; parts: Array<{ id: string; name: string; portions: number }>; savedAt: string }
+/** A saved meal. `place` is set for a restaurant pick (Sweetgreen, Chipotle): then `date` is the day it was saved
+ *  (America/New_York), `period` is the card title, and `hall` is unused. */
+export interface SavedMeal { id: string; hall: MenuDay['hall']; date: string; period: string; parts: Array<{ id: string; name: string; portions: number }>; savedAt: string; place?: 'sweetgreen' | 'chipotle' }
 export function toSaved(m: Meal, day: MenuDay, now = new Date()): SavedMeal {
   return { id: `${day.hall}:${day.date}:${m.id}`, hall: day.hall, date: day.date, period: m.period, parts: m.parts.map(x => ({ id: x.item.id, name: x.item.name, portions: x.portions })), savedAt: now.toISOString() };
 }
