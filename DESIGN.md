@@ -52,6 +52,7 @@ Radius: `--r1` 6 (inputs), `--r2` 10 (buttons; the selected option inside a segm
 ## Components
 - **Header:** white bar, sticky; the name "Hungry Heels" + "Unofficial" tag on the left, three text links (Today, Menus, Me) on the right. The active link is bold with a 3px `--carolina` underline and `aria-current="page"`. No bottom tab bar.
 - **Buttons:** primary (filled `--accent`; at most one per view, and not used for “Another idea”), secondary (card background, `--line` border), quiet (text link style). Min 44px tall. Hover darkens the border; focus shows the 3px `--focus` ring; disabled is 55% opacity with a not-allowed cursor.
+- **Place picker:** one segmented group labeled “Place”, always 2 × 2: Chase, Top of Lenoir (row 1), Sweetgreen, Chipotle (row 2). For a restaurant the date bar and meal pills are replaced by a `--card` info box: name · Franklin Street, “Hours unknown…”, and the national-menu note in `--muted`. Restaurant names are plain text in the system font; never a logo, brand color or trade dress.
 - **Selected options** (segmented controls, meal pills): `--sel-bg` tint, 2px `--accent` inset outline and a ✓, never the filled primary style.
 - **Links:** `--accent`, underlined in body text; nav links not underlined until hover.
 - **Inputs and selects:** 44px, `--r1`, `--line` border, `--bg` fill, visible label above.

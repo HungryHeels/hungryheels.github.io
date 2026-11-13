@@ -1,11 +1,12 @@
 // Hash routes so the site works from GitHub Pages and from a single file on disk, and so Back/Forward,
 // bookmarks and shared links restore what you were looking at. Pure functions (no DOM) so they can be tested.
 //   #/                    Today        #/menus              Menus         #/me                 Me
-//   query: hall=chase|top-of-lenoir, date=YYYY-MM-DD, period=Dinner, item=<recipe id>, view=update, section=<id>, profile=<shared>
+//   query: hall=chase|top-of-lenoir, place=sweetgreen|chipotle (a restaurant: no date or meal), date=YYYY-MM-DD, period=Dinner, item=<recipe id>, view=update, section=<id>, profile=<shared>
 import type { HallId } from '../core/types.ts';
+import type { RestaurantId } from '../core/restaurant.ts';
 
 export type Page = 'today' | 'menus' | 'me';
-export interface Route { page: Page; hall?: HallId; date?: string; period?: string; item?: string; view?: 'update'; section?: string; profile?: string; mode?: 'day'; about?: true }
+export interface Route { page: Page; hall?: HallId; place?: RestaurantId; date?: string; period?: string; item?: string; view?: 'update'; section?: string; profile?: string; mode?: 'day'; about?: true }
 export const PAGE_TITLES: Record<Page, string> = { today: 'Today', menus: 'Menus', me: 'Me' };
 
 export function parseHash(hash: string): Route {
@@ -17,6 +18,7 @@ export function parseHash(hash: string): Route {
   const q = new URLSearchParams(query);
   const r: Route = { page };
   const hall = q.get('hall'); if (hall === 'chase' || hall === 'top-of-lenoir') r.hall = hall;
+  const place = q.get('place'); if ((place === 'sweetgreen' || place === 'chipotle') && page !== 'me') r.place = place;
   const date = q.get('date'); if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) r.date = date;
   const period = q.get('period'); if (period && period.length < 40) r.period = period;
   const item = q.get('item'); if (item && /^[\w-]{1,20}$/.test(item)) r.item = item;
@@ -30,7 +32,11 @@ export function parseHash(hash: string): Route {
 
 export function routeHash(r: Route): string {
   const q = new URLSearchParams();
-  if (r.page !== 'me') {
+  if (r.page !== 'me' && r.place) {
+    q.set('place', r.place);   // restaurants have no dates, meal periods or item sheets
+    if (r.page === 'menus' && r.view) q.set('view', r.view);
+    if (r.page === 'today' && r.about) q.set('about', '1');
+  } else if (r.page !== 'me') {
     if (r.hall) q.set('hall', r.hall);
     if (r.date) q.set('date', r.date);
     if (r.period) q.set('period', r.period);

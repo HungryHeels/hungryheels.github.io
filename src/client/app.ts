@@ -14,6 +14,7 @@ import { DISCLAIMER } from './ui.ts';
 import { profileFromHash } from '../core/profile-io.ts';
 import { REPO_ISSUES } from '../core/trust.ts';
 import { nyNow } from '../core/schedule.ts';
+import { isRestaurant } from '../core/restaurant.ts';
 
 let root: HTMLElement;
 let lastSheet: string | null = null;
@@ -31,7 +32,8 @@ function applyDisplay() {
 // ---------- routing ----------
 function stateRoute(): Route {
   const r: Route = { page: S.page };
-  if (S.page !== 'me') { r.hall = S.hall; r.date = S.date; if (S.period) r.period = S.period; }
+  if (S.page !== 'me' && isRestaurant(S.place)) r.place = S.place;
+  else if (S.page !== 'me') { r.hall = S.hall; r.date = S.date; if (S.period) r.period = S.period; }
   if (S.sheet && S.sheet.dayKey === `${S.hall}:${S.date}` && S.page !== 'me') r.item = S.sheet.item;
   if (S.page === 'menus' && S.menusView === 'update') r.view = 'update';
   if (S.page === 'today' && S.mode === 'day') r.mode = 'day';
@@ -41,14 +43,16 @@ function stateRoute(): Route {
 function applyRoute(r: Route) {
   const pageChanged = r.page !== S.page;
   S.page = r.page;
-  if (r.hall) S.hall = r.hall;
+  if (r.place) S.place = r.place;
+  else if (r.hall) { S.hall = r.hall; S.place = r.hall; }
+  else if (r.page !== 'me' && isRestaurant(S.place) && (r.date || r.period)) S.place = S.hall;
   if (r.date && !S.loading) S.date = r.date < firstDate() ? firstDate() : r.date > lastDate() ? lastDate() : r.date;
   else if (r.date) S.date = r.date;
   if (r.period) S.period = r.period;
   S.menusView = r.view === 'update' ? 'update' : 'browse';
   S.mode = r.mode === 'day' ? 'day' : 'meal';
   S.about = r.page === 'today' && !!r.about;
-  if (r.item && r.page !== 'me') S.sheet = { item: r.item, dayKey: `${S.hall}:${S.date}`, opener: S.sheet?.opener ?? 'item:' + r.item };
+  if (r.item && r.page !== 'me' && !isRestaurant(S.place)) S.sheet = { item: r.item, dayKey: `${S.hall}:${S.date}`, opener: S.sheet?.opener ?? 'item:' + r.item };
   else { if (S.sheet) focusAfterRender(S.sheet.opener); S.sheet = null; }
   S.section = r.section ?? (pageChanged ? null : S.section);
   if (r.profile) {
@@ -83,7 +87,8 @@ function header(): HTMLElement {
 function footer(): HTMLElement {
   return h('footer', { class: 'site-footer' }, h('div', { class: 'wrap footer-in' },
     h('div', null, h('p', null, h('strong', null, DISCLAIMER)),
-      h('p', null, 'Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services. Menus come only from pages saved by hand; this site never contacts dining.unc.edu.')),
+      h('p', null, 'Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services. Menus come only from pages saved by hand; this site never contacts dining.unc.edu.'),
+      h('p', null, 'Sweetgreen and Chipotle are named only to identify them. Hungry Heels is not affiliated with, endorsed by or sponsored by either; their information is used only as they publish it.')),
     h('ul', { class: 'footer-links' },
       h('li', null, h('a', { href: routeHash({ page: 'today', about: true }) }, 'About Hungry Heels')),
       h('li', null, h('a', { href: routeHash({ page: 'me', section: 'privacy' }) }, 'Privacy')),
@@ -163,7 +168,7 @@ export async function start() {
   const first = firstDate(), last = lastDate();
   const want = initial.date ?? now.date;
   S.date = want < first ? first : want > last ? last : want;
-  if (initial.item) S.sheet = { item: initial.item, dayKey: `${S.hall}:${S.date}`, opener: 'item:' + initial.item };
+  if (initial.item && !isRestaurant(S.place)) S.sheet = { item: initial.item, dayKey: `${S.hall}:${S.date}`, opener: 'item:' + initial.item };
   render();
   window.addEventListener('hashchange', () => { if (!S.sheet) sheetPushed = false; applyRoute(parseHash(location.hash)); if (!S.sheet) sheetPushed = false; render(); });
   registerOffline();

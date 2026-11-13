@@ -4,6 +4,9 @@
 import { build } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { writeRestaurantData } from './build-restaurants.ts';
+
+writeRestaurantData();   // data/restaurants/ -> src/client/restaurant-data.ts (fails the build on invalid files)
 
 const result = await build({ entryPoints: ['src/client/standalone.ts'], bundle: true, minify: true, format: 'iife', target: ['es2020', 'safari15'], write: false, legalComments: 'none' });
 const js = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');

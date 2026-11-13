@@ -1,6 +1,6 @@
 # Hungry Heels
 
-An **unofficial, independent, unaffiliated** meal picker for the Chase and Top of Lenoir dining halls at UNC-Chapel Hill. It is not endorsed by UNC-Chapel Hill or Carolina Dining Services, and it uses no UNC logos or trademarks.
+An **unofficial, independent, unaffiliated** meal picker for the Chase and Top of Lenoir dining halls at UNC-Chapel Hill. It is not endorsed by UNC-Chapel Hill or Carolina Dining Services, and it uses no UNC logos or trademarks. It also lists two Franklin Street restaurants, **Sweetgreen** and **Chipotle**, by name only: it is not affiliated with, endorsed by or sponsored by either, and uses no logos, brand colors or trade dress.
 
 > Menus can change and data may be incomplete. If you have an allergy, confirm with dining staff. Not medical advice.
 
@@ -10,6 +10,7 @@ Live site: https://hungryheels.github.io/
 A three-page website (links in the header; the address keeps the hall, date, meal and open dish, so Back/Forward, bookmarks and shared links work):
 
 - **Today** (`#/`): first-time visitors see a short landing section (what it is, how it works, the strictness promise, what data it has and lacks, privacy, FAQ) with the diet question built in; it reopens from the footer link “About Hungry Heels” (`#/?about=1`). After that, pick a hall, date and meal and get **one complete meal** that fits your rules (a main plus sides), with “Another idea”, Save and Share. Beside it: the same meal at the other hall, and your rules. “Whole day” plans breakfast, lunch and dinner against daily targets. Details on the card list every rule with the evidence that decided it, and a “Report a wrong result” link (a prefilled GitHub issue; nothing is sent unless you submit it).
+- **Places**: the picker on Today and Menus has Chase, Top of Lenoir, Sweetgreen and Chipotle (`#/?place=chipotle`). A restaurant has no dates or meal periods; it shows one build-your-own bowl (one base, one protein or none, up to three toppings, at most one sauce) from the restaurant's own published components, its published bowls that fit, “Hours unknown: check with the restaurant”, and a note that the national menu may differ at the Franklin Street store. **Restaurant data is pending:** no official file has been added yet, so both show “No … data yet” (see `docs/RESTAURANTS.md`).
 - **Menus** (`#/menus`): every item on the saved menu with search and filters, each marked Fits / Unsure / Not for you; tap one for ingredients, allergens, nutrition and why. “Update menus” (`#/menus?view=update`) imports saved pages or a whole folder, shows what changed per day and a next-14-days checklist, and takes an official nutrition file.
 - **Me** (`#/me`): diet, allergies and strict avoids, goals (per meal and per day), saved meals (re-checked against your current rules), profiles (share link, JSON export/import), display (theme, large text, high contrast), privacy.
 
@@ -28,6 +29,8 @@ Built in:
 - **Top of Lenoir**, 2026-11-10 to 2026-12-10: 27 days with menus; Nov 25 to 28 had no menu posted; **Nov 9 was never saved**. Some Lenoir days have no Dinner tab in the saved page (Nov 13, 14, 20, 21 and Dec 5); the app shows exactly the periods the page contains and never guesses a missing one.
 - Nothing is built in after **Dec 10, 2026**.
 
+**Sweetgreen and Chipotle: pending.** Only the restaurants' own published nutrition and allergen information is accepted, saved by hand into `data/restaurants/<name>/` with its source URL, publisher, document date and retrieval time. Their sites could not be reached from the build environment on Nov 13, 2026 (so their robots.txt and terms could not be read, and nothing was downloaded). A “may contain” or shared-equipment statement counts as uncertain, so strict avoids exclude those items. Steps: `docs/RESTAURANTS.md`.
+
 ## How to refresh a day
 1. On a Mac, open dining.unc.edu in Safari > Locations > Chase or Top of Lenoir, choose the date, wait for the menu to load.
 2. File > Save As, Format: **Web Archive**. Repeat for each date; put the files in one folder.
@@ -39,10 +42,11 @@ Built in:
 ```
 npm install
 npm run check      # typecheck + unit tests (includes the preset, strict and property audits)
+npm run build:restaurants   # checks data/restaurants/ (npm run build also runs it)
 npm run build      # writes index.html, HungryHeels.html, web/, sw.js, manifest.webmanifest, icon.svg
 npm run e2e        # browser checks with Playwright (Chromium by default; pass firefox / webkit if installed)
 ```
 Zero runtime dependencies. `src/core` is the shared engine (diet rules, meals, planning, trust, refresh); `src/sources` parses pages and nutrition files; `src/client` is the site (`app.ts` shell and router, `view-today.ts`, `view-menus.ts`, `view-me.ts`, `view-sheet.ts` for dish details).
 
 ## Docs
-`docs/SETUP_GITHUB.md` (publishing and the Claude bug-fix helper), `docs/SOURCE_INTEGRATION_REPORT.md`, `docs/DATA_FLOW_AND_PRIVACY.md`, `docs/EMAIL_TO_DIETITIAN.md`.
+`docs/SETUP_GITHUB.md` (publishing and the Claude bug-fix helper), `docs/RESTAURANTS.md` (Sweetgreen and Chipotle data), `docs/SOURCE_INTEGRATION_REPORT.md`, `docs/DATA_FLOW_AND_PRIVACY.md`, `docs/EMAIL_TO_DIETITIAN.md`.

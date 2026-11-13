@@ -5,6 +5,8 @@ import { go } from './nav.ts';
 import { chip, kcalLine, provenanceLine, useEst } from './ui.ts';
 import { effective } from '../core/estimate.ts';
 import { dataSection } from './view-data.ts';
+import { restaurantMenus } from './view-restaurant.ts';
+import { PLACE_NAMES, isRestaurant } from '../core/restaurant.ts';
 import { href, noMenuNotice, openItem, pickerBar } from './view-common.ts';
 import { evaluateItem } from '../core/engine.ts';
 import { nutritionBadge } from '../sources/nutrition-import.ts';
@@ -73,12 +75,14 @@ export function menusView(): HTMLElement {
   v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, 'Menus'),
     h('p', { class: 'lede' }, S.menusView === 'update'
       ? 'Add menu pages you saved in Safari, see what changed, and check which days still need saving.'
+      : isRestaurant(S.place) ? `Every published ${PLACE_NAMES[S.place]} component, checked against your rules. Open one for ingredients, allergens and why.`
       : 'Every item on the saved menu, checked against your rules. Tap an item for ingredients, allergens and why.')));
   v.appendChild(h('nav', { class: 'subnav', 'aria-label': 'Menus' },
     h('a', { href: href('menus'), 'aria-current': S.menusView === 'browse' ? 'page' : null }, 'Browse'),
     h('a', { href: href('menus', { view: 'update' }), 'aria-current': S.menusView === 'update' ? 'page' : null }, 'Update menus')));
   if (S.loading) { v.appendChild(h('p', { class: 'muted', role: 'status' }, 'Loading menus…')); return v; }
   if (S.menusView === 'update') { v.appendChild(dataSection()); return v; }
+  if (isRestaurant(S.place)) { v.appendChild(restaurantMenus(S.place)); return v; }
   const { el, day } = pickerBar();
   v.appendChild(el);
   if (!day || day.noMenuPosted) { v.appendChild(noMenuNotice(day)); return v; }
