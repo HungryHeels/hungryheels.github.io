@@ -41,3 +41,9 @@ test('station sprite: only when the station name names a food; "Bar" never means
   assert.equal(stationSprite('The Griddle'), null);
   assert.equal(stationSprite('Stress Less Cabinet'), null);
 });
+
+test('dish sprite: local favourites get their own picture only when the dish name says so', () => {
+  cases([['Chicken Biscuit', 'biscuit'], ['Southern Biscuit', 'biscuit'], ['Eastern Carolina Pulled Pork', 'bbq'], ['Hush Puppies', 'bbq'],
+    ['Southern Sweet Tea', 'tea'], ['Tropicana® Lemonade', 'tea'], ['Hot Tea', 'coffee'], ['BBQ Chicken Pizza', 'pizza'], ['Roasted Pork Loin', 'meat'],
+    ['BBQ Baked Beans', 'beans']]);
+});

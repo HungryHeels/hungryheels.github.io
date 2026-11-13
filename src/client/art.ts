@@ -7,7 +7,7 @@
 
 export type Pose = 'idle' | 'wave' | 'think' | 'happy' | 'sad';
 export const POSES: readonly Pose[] = ['idle', 'wave', 'think', 'happy', 'sad'];
-export const SPRITES = ["plate", "soup", "bowl", "salad", "veg", "fruit", "banana", "potato", "fries", "rice", "pasta", "beans", "chicken", "meat", "fish", "shrimp", "egg", "tofu", "cheese", "bread", "sandwich", "burger", "pizza", "wrap", "taco", "sushi", "pancake", "waffle", "cereal", "cake", "cookie", "muffin", "donut", "icecream", "yogurt", "candy", "coffee", "drink", "sauce"] as const;
+export const SPRITES = ["plate", "soup", "bowl", "salad", "veg", "fruit", "banana", "potato", "fries", "rice", "pasta", "beans", "chicken", "meat", "fish", "shrimp", "egg", "tofu", "cheese", "bread", "sandwich", "burger", "pizza", "wrap", "taco", "sushi", "pancake", "waffle", "cereal", "cake", "cookie", "muffin", "donut", "icecream", "yogurt", "candy", "coffee", "drink", "sauce", "biscuit", "bbq", "tea"] as const;
 export type Sprite = typeof SPRITES[number];
 
 const svg = (viewBox: string, body: string, cls: string) =>
@@ -160,6 +160,16 @@ const SPRITE_BODY: Record<Sprite, string> = {
     '<path class="l ls-straw" d="M19 2l-2.6 20"/><path class="l" d="M8 7.5h16l-2.2 21H10.2z"/><path class="l ls-white" d="M11.5 16.5l.7 8"/>',
   sauce: '<path class="c-white" d="M4.5 14h23v8q0 5.5-11.5 5.5T4.5 22z"/><ellipse class="c-red" cx="16" cy="14" rx="11.5" ry="3.6"/>' +
     '<path class="l ls-white" d="M10.5 13.5q2-1.2 4 0"/><path class="l ls-blue" d="M5 19.5q11 3.5 22 0"/>',
+  // Local favourites, drawn generically (no restaurant's look): a chicken biscuit, a barbecue tray with hushpuppies,
+  // and a glass of sweet tea.
+  biscuit: '<path class="s-biscuit" d="M5.5 15q0-8.5 10.5-8.5T26.5 15z"/><path class="s-flake" d="M10 11.5q3-2 6-1.5M17.5 9.5q3 0 5 2"/>' +
+    '<path class="s-fried" d="M4.5 15.5h23l-.8 2.2.8 2.2-1.8.6H6.3l-1.8-.6.8-2.2z"/><path class="s-biscuit" d="M5.5 21h21q0 6.5-5 6.5h-11q-5 0-5-6.5z"/>',
+  bbq: '<path class="s-pork" d="M6 18q-1-6 4-7 2-3 6-2 4-2 7 1 4 1 3 8z"/><path class="s-pork-line" d="M9 15q2-2 4 0M14 12.5q2-1.5 4 .5M18 15q2-2 4 0"/>' +
+    '<circle class="s-pup" cx="23.5" cy="16" r="3"/><circle class="s-pup" cx="27" cy="18" r="2.6"/>' +
+    '<path class="s-tray" d="M2.5 18h27l-3 9h-21z"/><path class="s-ink" d="M5.5 22h21"/>',
+  tea: '<path class="s-glass" d="M8 6h14l-2 22h-10z"/><path class="s-tea" d="M8.7 12h12.6l-1.5 15.2h-9.6z"/>' +
+    '<rect class="s-ice" x="11" y="13.5" width="4" height="4" rx="1" transform="rotate(-12 13 15.5)"/><rect class="s-ice" x="15.5" y="17" width="3.6" height="3.6" rx="1" transform="rotate(10 17.3 18.8)"/>' +
+    '<path class="s-straw" d="M17 26L21 2.5"/><path class="s-lemon" d="M19.5 6a4.5 4.5 0 0 0 7.8 2z"/>',
 };
 
 export function spriteSvg(name: Sprite): string { return svg('0 0 32 32', SPRITE_BODY[name], `sprite sprite-${name}`); }
@@ -167,8 +177,8 @@ export function spriteSvg(name: Sprite): string { return svg('0 0 32 32', SPRITE
 // ---------- campus sprites (32 x 32) ----------
 // Small versions of the band's landmarks plus a dogwood blossom (the state flower). Original, flat, wordless and
 // purely decorative: page-title marks and the footer row. Never the Old Well, a ram, a foot or any university mark.
-export type Campus = 'belltower' | 'library' | 'stadium' | 'dogwood';
-export const CAMPUS: readonly Campus[] = ['belltower', 'library', 'stadium', 'dogwood'];
+export type Campus = 'belltower' | 'library' | 'stadium' | 'dogwood' | 'hoops';
+export const CAMPUS: readonly Campus[] = ['belltower', 'library', 'stadium', 'dogwood', 'hoops'];
 const GROUND = '<path class="s-ink" d="M3 30.5h26"/>';
 const CAMPUS_BODY: Record<Campus, string> = {
   belltower: '<rect class="q-stone2 c-o" x="11" y="27" width="10" height="3"/><rect class="q-brick c-o" x="12.5" y="14" width="7" height="13"/>' +
@@ -185,6 +195,8 @@ const CAMPUS_BODY: Record<Campus, string> = {
     '<rect class="q-brick c-o" x="2" y="24" width="28" height="6"/><path class="q-open" d="M5 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM11 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM18.6 30v-2.6a1.2 1.2 0 0 1 2.4 0V30zM24.6 30v-2.6a1.2 1.2 0 0 1 2.4 0V30z"/>',
   dogwood: [0, 90, 180, 270].map(a => `<g transform="rotate(${a} 16 16)"><path class="c-petal" d="M16 15q-5.5-2-5.2-8 .2-3 5.2-3.6 5 .6 5.2 3.6.3 6-5.2 8z"/><path class="c-tip" d="M14.7 4.3q1.3 1.4 2.6 0-1.3-.9-2.6 0z"/></g>`).join('') +
     '<circle class="c-eye" cx="16" cy="16" r="3"/><circle class="c-dot" cx="15" cy="15.2" r=".7"/><circle class="c-dot" cx="17" cy="15.4" r=".7"/><circle class="c-dot" cx="16" cy="17" r=".7"/>',
+  // A plain basketball: college hoops is a big part of campus life. Ordinary orange ball, no team colours or marks.
+  hoops: '<circle class="c-ball" cx="16" cy="16" r="12.5"/><path class="c-seam" d="M3.5 16h25M16 3.5v25M7 7q5 9 0 18M25 7q-5 9 0 18"/>',
 };
 export function campusSvg(name: Campus): string { return svg('0 0 32 32', CAMPUS_BODY[name], `sprite campus campus-${name}`); }
 
@@ -232,6 +244,35 @@ function bellTower(): string {
     '<rect class="q-stone2" x="-9" y="15.5" width="18" height="2.5"/>' +
     '<path class="q-stone" d="M-5.5 15.5L0 1L5.5 15.5Z"/>';
 }
+/** Oldest-campus-style brick hall: three storeys of windows, a hipped roof and a chimney at each end. */
+function brickHall(): string {
+  let wins = '';
+  for (const y of [62, 73, 84]) for (let x = -46; x <= 40; x += 12.3) wins += `<rect class="q-open" x="${x.toFixed(1)}" y="${y}" width="5" height="7" rx=".6"/>`;
+  return '<rect class="q-brick" x="-52" y="56" width="104" height="40"/>' + wins +
+    '<path class="q-roof" d="M-55 57L-40 42H40L55 57Z"/><rect class="q-brick2" x="-46" y="34" width="8" height="12"/><rect class="q-brick2" x="38" y="34" width="8" height="12"/>' +
+    '<rect class="q-stone" x="-6" y="86" width="12" height="10"/>';
+}
+/** A domed basketball arena: wide shallow roof, a ring of glazing and a plaza wall. */
+function arena(): string {
+  let glass = '';
+  for (let x = -76; x <= 70; x += 10) glass += `<rect class="q-open" x="${x}" y="80" width="6" height="5" rx="1"/>`;
+  return '<path class="q-stand2" d="M-92 96V78H92V96Z"/>' + glass +
+    '<path class="q-arena" d="M-88 79Q-60 44 0 42Q60 44 88 79Z"/><path class="q-tier" d="M-70 66Q0 50 70 66"/>' +
+    '<rect class="q-stone2" x="-96" y="90" width="192" height="6"/>';
+}
+/** The old poplar on the main quad: a tall, narrow crown on a thick trunk, bigger than the oaks. */
+function poplar(x: number): string {
+  return `<rect class="q-trunk" x="${x - 4.5}" y="52" width="9" height="44" rx="2.5"/>` +
+    `<ellipse class="q-oak2" cx="${x - 9}" cy="44" rx="17" ry="24"/><ellipse class="q-oak2" cx="${x + 10}" cy="42" rx="16" ry="25"/>` +
+    `<ellipse class="q-poplar" cx="${x}" cy="32" rx="18" ry="28"/><ellipse class="q-poplar" cx="${x - 2}" cy="48" rx="14" ry="12"/>`;
+}
+/** Low fieldstone wall with a capstone, the kind that edges Chapel Hill's lawns. */
+function wall(x: number, w: number): string {
+  let stones = '';
+  for (let i = x + 4; i < x + w - 6; i += 9) stones += `<rect class="q-wall2" x="${i}" y="${95 + (i % 2)}" width="6" height="3" rx="1.2"/>`;
+  return `<rect class="q-wall" x="${x}" y="92" width="${w}" height="9" rx="1.5"/><rect class="q-wall2" x="${x - 1}" y="90.5" width="${w + 2}" height="3" rx="1.5"/>` + stones;
+}
+
 /** Library: pale wings, a columned portico on steps, a drum and a dome with a small lantern. */
 function library(): string {
   let cols = '';
@@ -263,18 +304,29 @@ const SECTION = 900;
 const LANDMARKS =
   cloud(120, 22) + cloud(560, 16) + ground(SECTION) +
   at(170, stadium()) + tree(16, .75) + tree(340, .8) +
-  at(505, library()) + tree(640, .95) + lamp(700) +
+  at(505, library()) + poplar(648) + lamp(700) +
   `<g transform="translate(790 0) scale(1.4 1)">${bellTower()}</g>` + tree(860, .8);
 const TILE =
   cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + ground(1200) +
-  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9);
+  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9) +
+  wall(120, 100) + wall(560, 120) + wall(980, 90);
+/** Just left of the landmarks: the old brick hall among the oaks. */
+const TILE_LEFT =
+  cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + ground(1200) +
+  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + at(960, brickHall()) + tree(1110, .9) +
+  wall(120, 100) + wall(540, 120);
+/** Just right of the landmarks: the domed arena, then oaks. */
+const TILE_RIGHT =
+  cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + ground(1200) +
+  tree(40, .85) + at(250, arena()) + lamp(380) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9) +
+  wall(560, 120) + wall(980, 90);
 const BAND_W = 4 * 1200 + SECTION;
 // The sky follows the meal on screen (data-sky on .quad): a low sun in the morning, a high one at lunch, a setting sun
 // at dinner, moon and stars late at night. Placed in open sky near the middle so phones (which show the middle) see them.
 const STARS = Array.from({ length: 40 }, (_, i) => `<circle cx="${(i * 142.5 + (i % 3) * 37) % BAND_W}" cy="${8 + ((i * 37) % 46)}" r="1.8"/>`).join('');
 const SKY_LIGHTS =
-  '<circle class="q-sun q-sun-morning" cx="2362" cy="66" r="13"/><circle class="q-sun q-sun-day" cx="3062" cy="20" r="10"/>' +
-  '<circle class="q-sun q-sun-evening" cx="3318" cy="68" r="14"/><path class="q-moon" d="M2760 12a12 12 0 1 0 9 21 10 10 0 1 1-9-21z"/>' +
+  '<circle class="q-sun q-sun-morning" cx="2362" cy="66" r="13"/><circle class="q-sun q-sun-day" cx="2775" cy="20" r="10"/>' +
+  '<circle class="q-sun q-sun-evening" cx="3122" cy="70" r="12"/><path class="q-moon" d="M2760 12a12 12 0 1 0 9 21 10 10 0 1 1-9-21z"/>' +
   `<g class="q-stars">${STARS}</g>`;
 
 /** The decorative band under the header: two tiles of oaks each side of the landmarks. Scales by height and stays
@@ -282,7 +334,7 @@ const SKY_LIGHTS =
 export function quadSvg(): string {
   return `<svg class="quad-svg" viewBox="0 0 ${BAND_W} 120" width="${BAND_W}" height="120" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">` +
     `<rect class="q-sky" x="0" y="0" width="${BAND_W}" height="120"/>${SKY_LIGHTS}` +
-    `<g>${TILE}</g>${at(1200, TILE)}${at(2400, LANDMARKS)}${at(2400 + SECTION, TILE)}${at(3600 + SECTION, TILE)}</svg>`;
+    `<g>${TILE}</g>${at(1200, TILE_LEFT)}${at(2400, LANDMARKS)}${at(2400 + SECTION, TILE_RIGHT)}${at(3600 + SECTION, TILE)}</svg>`;
 }
 
 /** Which sky goes with a meal ("Breakfast" → morning), or with the New York clock when no meal is chosen. */
@@ -310,4 +362,7 @@ export const MASCOT_LINES = [
   'I checked every dish against your rules.',
   'Fueling up between classes? Same.',
   'Tap any dish to see why it fits.',
+  'Sweet tea or coffee today?',
+  'Meet you by the Bell Tower after lunch.',
+  'Brick paths, big oaks, and lunch. Let’s go.',
 ];

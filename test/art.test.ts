@@ -64,3 +64,4 @@ test('art: the campus band draws each landmark once, in the middle, and scales b
 test('art: each campus sprite is drawn differently', () => {
   assert.equal(new Set(CAMPUS.map(campusSvg)).size, CAMPUS.length);
 });
+

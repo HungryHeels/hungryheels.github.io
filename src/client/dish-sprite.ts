@@ -9,11 +9,13 @@ const w = (words: string) => new RegExp(`\\b(?:${words})\\b`, 'g');
 
 /** Words that name what kind of dish it is. Checked first, on the whole name (before any "with …"). */
 const DISH: Rule[] = [
-  ['drink', w('dr pepper|diet dr pepper|gatorade[a-z ]*|sunkist[a-z ]*|powerade[a-z ]*|sweet tea|unsweet tea|iced tea|root beer')],
+  ['tea', w('sweet tea|unsweet tea|unsweetened tea|iced tea|lemonade')],   // a glass of sweet tea (local favourite)
+  ['drink', w('dr pepper|diet dr pepper|gatorade[a-z ]*|sunkist[a-z ]*|powerade[a-z ]*|root beer')],
   ['cereal', w('cinnamon toast crunch|apple jacks|cocoa puffs|lucky charms|froot loops|frosted flakes|frosted mini wheats|golden grahams|honey nut cheerios|cheerios|rice krispies|raisin bran|corn flakes|special k|kix|chex|corn pops')],
   ['yogurt', w('yogurt(?: [a-z]+)?|greek yogurt|parfaits?|pudding|mousse(?: cups)?|yogurt cups?')],
   ['candy', w('krispie treats|marshmallow treats|treats|m&ms?|brown sugar|cinnamon sugar(?: mix)?|toasted coconut|squares|bears in a cup|gummy bears')],
-  ['sandwich', w('(?:chicken|sausage|ham|bacon|egg) biscuit|chicken ciabatta|(?:ham|sausage|bacon),? egg,? and cheese muffins?')],
+  ['biscuit', w('biscuits?')],   // biscuits, plain or filled (local favourite)
+  ['sandwich', w('chicken ciabatta|(?:ham|sausage|bacon),? egg,? and cheese muffins?')],
   ['pasta', w('mac (?:&|and) cheese|macaroni (?:&|and) cheese|bow ties|farfalle|cellentani')],
   ['cake', w('bread pudding|mocha cups')],
   ['cookie', w('macaroons?|cream pies')],
@@ -49,6 +51,7 @@ const DISH: Rule[] = [
 /** Main-ingredient words, used only when no dish word matched. Checked on the first part of an "X and Y" name. */
 const INGREDIENT: Rule[] = [
   ['cereal', w('grits')],
+  ['bbq', w('pulled pork|barbecue|barbeque|bbq|pork butt|hush ?puppies')],   // a barbecue tray (local favourite)
   ['meat', w('(?:sausage|turkey sausage) patt(?:y|ies)|(?:corn|hot|cheese|chili cheese) dogs?|brats?|ropa vieja')],
   ['tofu', w('soy bites')],
   ['egg', w('strata')],
@@ -66,7 +69,7 @@ const INGREDIENT: Rule[] = [
   ['potato', w('potato(?:es)?|mashed|hash|yams?|sweet potato(?:es)?|yuca|cassava')],
   ['rice', w('rice|arroz|pilaf|risotto|quinoa|farro|couscous|bulgur|barley|paella|biryani|congee|grains?')],
   ['beans', w('beans?|lentils?|chickpeas?|garbanzos?|black-eyed peas|black eyed peas|edamame|dal|dahl|falafel|refried')],
-  ['bread', w('bread|breads|toast|bagels?|rolls?|buns?|biscuits?|cornbread|pita|naan|focaccia|ciabatta|baguette|sourdough|english muffins?|croutons|stuffing|dressing cornbread|pretzels?|hush ?puppies')],
+  ['bread', w('bread|breads|toast|bagels?|rolls?|buns?|cornbread|pita|naan|focaccia|ciabatta|baguette|sourdough|english muffins?|croutons|stuffing|dressing cornbread|pretzels?')],
   ['cheese', w('cheese|cheddar|mozzarella|parmesan|provolone|swiss|feta|brie|gouda|pepper jack|american cheese|ricotta|cottage cheese|paneer|halloumi')],
   ['fruit', w('fruits?|apples?|applesauce|oranges?|grapes?|melons?|cantaloupe|honeydew|watermelon|pineapples?|mango(?:es)?|peach(?:es)?|pears?|berries|strawberr(?:y|ies)|blueberr(?:y|ies)|raspberr(?:y|ies)|blackberr(?:y|ies)|cherr(?:y|ies)|kiwi|plums?|grapefruit|clementines?|cranberr(?:y|ies)|raisins|dates|figs|apricots?|papaya|fruit cup|fruit salad')],
   ['veg', w('vegetables?|veggies?|broccoli|carrots?|green beans|string beans|zucchini|squash|cauliflower|cabbage|collards?|collard greens|greens|kale|spinach|chard|peppers?|onions?|mushrooms?|corn|peas|brussels?|sprouts|bok choy|asparagus|eggplant|okra|tomato(?:es)?|cucumbers?|celery|beets?|radish(?:es)?|turnips?|parsnips?|artichokes?|olives?|jalapenos?|scallions?|leeks?|avocado|medley|succotash|ratatouille|edamame salad')],

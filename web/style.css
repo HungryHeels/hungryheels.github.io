@@ -37,7 +37,7 @@
   /* Art (decorative, aria-hidden): mascot, food sprites, campus band */
   --m-ink:#13294b; --m-limb:#13294b; --m-fork:#7d8796; --m-sole:#ffffff; --m-cheek:#f2a7a0; --s-ink:#13294b;
   --q-sky:#d3e6f4; --q-cloud:#ffffff; --q-grass:#86b36f; --q-oak:#3f7a4a; --q-oak2:#2f6340; --q-trunk:#6b4a33; --q-brick:#b5523b; --q-joint:#e8c4b5; --q-post:#13294b; --q-light:#fff4d0;
-  --q-stone:#f3eee3; --q-stone2:#d8cdb8; --q-dome:#e6dfd0; --q-shade:#8c8170; --q-open:#5f574b; --q-brick2:#96412e; --q-stand:#cfcac0; --q-stand2:#b9b3a7; --q-tier:#a9a296;
+  --q-roof:#5b5f6b; --q-poplar:#55924d; --q-wall:#a89f8f; --q-wall2:#8a8172; --q-stone:#f3eee3; --q-stone2:#d8cdb8; --q-dome:#e6dfd0; --q-shade:#8c8170; --q-open:#5f574b; --q-brick2:#96412e; --q-stand:#cfcac0; --q-stand2:#b9b3a7; --q-tier:#a9a296;
   --e1:0 1px 2px rgba(15,23,41,.05),0 1px 1px rgba(15,23,41,.03);
   --e2:0 1px 2px rgba(15,23,41,.05),0 10px 28px -12px rgba(15,23,41,.16);
   --e3:0 24px 64px -16px rgba(9,13,22,.35);
@@ -59,7 +59,7 @@
   --primary:#7bafd4; --primary-text:#0b1322; --primary-hover:#8fbcdc; --primary-active:#a6cbe5; --say-bg:#dce8f7; --say-text:#13294b;
   --m-ink:#0b1322; --m-limb:#dce8f7; --m-fork:#c3cddb; --m-sole:#eef3fa; --s-ink:#dce8f7;
   --q-sky:#162238; --q-cloud:#25344f; --q-grass:#1c3627; --q-oak:#2c5839; --q-oak2:#21442d; --q-trunk:#4a3426; --q-brick:#743829; --q-joint:#9b5c4b; --q-post:#a4adbb; --q-light:#ffd88a;
-  --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
+  --q-roof:#2a3040; --q-poplar:#336842; --q-wall:#3d4456; --q-wall2:#2f3546; --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
     --e1:none; --e2:0 18px 40px -20px rgba(0,0,0,.7); --e3:0 24px 80px -16px rgba(0,0,0,.8);
     --edge:inset 0 1px 0 rgba(255,255,255,.045);
     --header-bg:rgba(9,12,18,.78); --glow:rgba(123,175,212,.8);
@@ -77,7 +77,7 @@
   --primary:#7bafd4; --primary-text:#0b1322; --primary-hover:#8fbcdc; --primary-active:#a6cbe5; --say-bg:#dce8f7; --say-text:#13294b;
   --m-ink:#0b1322; --m-limb:#dce8f7; --m-fork:#c3cddb; --m-sole:#eef3fa; --s-ink:#dce8f7;
   --q-sky:#162238; --q-cloud:#25344f; --q-grass:#1c3627; --q-oak:#2c5839; --q-oak2:#21442d; --q-trunk:#4a3426; --q-brick:#743829; --q-joint:#9b5c4b; --q-post:#a4adbb; --q-light:#ffd88a;
-  --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
+  --q-roof:#2a3040; --q-poplar:#336842; --q-wall:#3d4456; --q-wall2:#2f3546; --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
   --e1:none; --e2:0 18px 40px -20px rgba(0,0,0,.7); --e3:0 24px 80px -16px rgba(0,0,0,.8);
   --edge:inset 0 1px 0 rgba(255,255,255,.045);
   --header-bg:rgba(9,12,18,.78); --glow:rgba(123,175,212,.8);
@@ -541,7 +541,7 @@ body.sheet-open{overflow:hidden}
 .plate-row:active .glyph svg{transform:scale(.86) rotate(-6deg)}
 .station{display:flex;align-items:center;gap:var(--s2)}
 /* Sprite fills: food colors (decorative only). Shapes are outlined in the theme ink unless marked .n; .l is a line. */
-.sprite:not(.campus) :is(path,circle,ellipse,rect){stroke:var(--s-ink);stroke-width:1.3;stroke-linejoin:round;stroke-linecap:round}
+:where(.sprite:not(.campus)) :where(path,circle,ellipse,rect){stroke:var(--s-ink);stroke-width:1.3;stroke-linejoin:round;stroke-linecap:round}
 .sprite .n{stroke:none} .sprite .l{fill:none}
 .c-white{fill:var(--s-white)} .c-cream{fill:#f6e7c1} .c-tan{fill:#e2a95a} .c-brown{fill:#8a5a35} .c-red{fill:#d9534f} .c-orange{fill:#f0883e}
 .c-yellow{fill:#f6d06b} .c-yellow2{fill:#ecbe45} .c-yellowd{fill:#d9a72e} .c-green{fill:#5c9e4e} .c-lime{fill:#8cc56a} .c-pink{fill:#f29bb8}
@@ -552,6 +552,11 @@ body.sheet-open{overflow:hidden}
 .sprite .ls-yellow{stroke:#f6d06b;stroke-width:1.4} .sprite .ls-white{stroke:#fff;stroke-width:1.3} .sprite .ls-grey{stroke:#9aa6b5;stroke-width:1.8}
 .sprite .ls-straw{stroke:#d9534f;stroke-width:2} .sprite .ls-seed{stroke:#fff6e0;stroke-width:1.2} .sprite .ls-grain{stroke:#cfc6b0;stroke-width:1.1}
 .sprite .ls-thin{stroke-width:.9} .sprite .ls-steam{stroke:var(--muted);stroke-width:1.5}
+/* Local favourites (biscuit, barbecue tray, sweet tea) and the footer basketball keep their own outlines */
+.s-biscuit{fill:#e8b766;stroke:var(--s-ink);stroke-width:1.4} .s-flake{fill:none;stroke:#fff3d6;stroke-width:1.2} .s-fried{fill:#a5642f;stroke:var(--s-ink);stroke-width:1.3}
+.s-pork{fill:#9a5a35;stroke:var(--s-ink);stroke-width:1.2} .s-pork-line{fill:none;stroke:#5e3219;stroke-width:1} .s-pup{fill:#d9a04a;stroke:var(--s-ink);stroke-width:1.2} .s-tray{fill:var(--carolina);stroke:var(--s-ink);stroke-width:1.4}
+.s-glass{fill:rgba(255,255,255,.35);stroke:var(--s-ink);stroke-width:1.4} .s-tea{fill:#b8742a} .s-ice{fill:#eef6fb;stroke:var(--s-ink);stroke-width:.8} .s-straw{fill:none;stroke:var(--carolina);stroke-width:2} .s-lemon{fill:#f5d547;stroke:var(--s-ink);stroke-width:1}
+.c-ball{fill:#e07a2e;stroke:var(--s-ink);stroke-width:1.2} .c-seam{fill:none;stroke:var(--s-ink);stroke-width:1.1}
 /* Campus sprites: small landmarks and a dogwood, before page titles and in the footer. Decorative, aria-hidden. */
 .campus .s-ink{fill:none;stroke:var(--s-ink);stroke-width:1.8} .campus .c-o{stroke:var(--s-ink);stroke-width:.9} .campus .q-tier{stroke-width:.9}
 .c-petal{fill:#fbf6ef;stroke:var(--s-ink);stroke-width:1} .c-tip{fill:#c4536f} .c-eye{fill:#a9c24a;stroke:var(--s-ink);stroke-width:.8} .c-dot{fill:#5d7a1f}
@@ -583,7 +588,7 @@ body.sheet-open{overflow:hidden}
 .q-brick{fill:var(--q-brick)} .q-joint{fill:none;stroke:var(--q-joint);stroke-width:1.5;stroke-dasharray:14 8}
 .q-post{stroke:var(--q-post);stroke-width:2.5} .q-light{fill:var(--q-light)}
 .q-stone{fill:var(--q-stone)} .q-stone2{fill:var(--q-stone2)} .q-dome{fill:var(--q-dome)} .q-shade{fill:var(--q-shade)} .q-open{fill:var(--q-open)} .q-brick2{fill:var(--q-brick2)}
-.q-stand{fill:var(--q-stand)} .q-stand2{fill:var(--q-stand2)} .q-tier{fill:none;stroke:var(--q-tier);stroke-width:1.5} .q-post-fill{fill:var(--q-post)}
+.q-arena{fill:var(--q-dome)} .q-roof{fill:var(--q-roof)} .q-poplar{fill:var(--q-poplar)} .q-wall{fill:var(--q-wall)} .q-wall2{fill:var(--q-wall2)} .q-stand{fill:var(--q-stand)} .q-stand2{fill:var(--q-stand2)} .q-tier{fill:none;stroke:var(--q-tier);stroke-width:1.5} .q-post-fill{fill:var(--q-post)}
 :root[data-contrast=high] .quad{display:none}
 /* Sky follows the meal: sun low in the morning, high at lunch, setting at dinner; moon and stars late at night. */
 .q-sun,.q-moon,.q-stars,.q-bloom,.q-snow{display:none}
