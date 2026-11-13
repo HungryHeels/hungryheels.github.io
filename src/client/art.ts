@@ -348,6 +348,18 @@ export function skyFor(period: string | null, minutes: number): Sky {
   const h = Math.floor(minutes / 60);
   return h >= 5 && h < 10 ? 'morning' : h >= 10 && h < 17 ? 'day' : h >= 17 && h < 20 ? 'evening' : 'night';
 }
+const RAYS = (cx: number, cy: number, r1: number, r2: number, angles: number[]) =>
+  `<path class="t-ray" d="${angles.map(a => { const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180);
+    return `M${(cx + c * r1).toFixed(1)} ${(cy - s * r1).toFixed(1)}L${(cx + c * r2).toFixed(1)} ${(cy - s * r2).toFixed(1)}`; }).join('')}"/>`;
+const SKY_BODY: Record<Sky, string> = {
+  morning: RAYS(16, 22, 10, 14, [20, 55, 90, 125, 160]) + '<path class="t-sun-am" d="M8 22a8 8 0 0 1 16 0z"/><path class="t-ground" d="M3 22.5h26"/>',
+  day: RAYS(16, 15, 9, 13, [0, 45, 90, 135, 180, 225, 270, 315]) + '<circle class="t-sun" cx="16" cy="15" r="6.5"/>',
+  evening: '<path class="t-sun-pm" d="M9 23a7 7 0 0 1 14 0z"/><path class="t-ground" d="M3 23.5h26"/><path class="t-glow" d="M6 27.5h20M10 30h12"/>',
+  night: '<path class="t-moon" d="M17 5a10 10 0 1 0 9 15 8 8 0 1 1-9-15z"/><path class="t-star" d="M7 7l1 2.2 2.2 1-2.2 1L7 13.4l-1-2.2-2.2-1 2.2-1z"/>',
+};
+/** A small time-of-day picture (sunrise, midday sun, sunset, moon) for meal-slot headings. Decorative only. */
+export function skySvg(sky: Sky): string { return svg('0 0 32 32', SKY_BODY[sky], `sprite skyglyph sky-${sky}`); }
+
 /** The season for the oaks, from a New York date (YYYY-MM-DD). */
 export type Season = 'spring' | 'summer' | 'fall' | 'winter';
 export function seasonFor(date: string): Season {

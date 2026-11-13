@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CAMPUS, MASCOT_LINES, POSES, SPRITES, campusSvg, mascotSvg, quadSvg, seasonFor, skyFor, spriteSvg } from '../src/client/art.ts';
+import { CAMPUS, MASCOT_LINES, POSES, SPRITES, campusSvg, mascotSvg, quadSvg, seasonFor, skyFor, skySvg, spriteSvg } from '../src/client/art.ts';
 
-const all = () => [...POSES.map(p => mascotSvg(p)), ...POSES.map(p => mascotSvg(p, true)), ...SPRITES.map(spriteSvg), ...CAMPUS.map(campusSvg), quadSvg()];
+const all = () => [...POSES.map(p => mascotSvg(p)), ...POSES.map(p => mascotSvg(p, true)), ...SPRITES.map(spriteSvg), ...CAMPUS.map(campusSvg), ...(['morning', 'day', 'evening', 'night'] as const).map(skySvg), quadSvg()];
 
 test('art: every picture is decorative (aria-hidden, not focusable)', () => {
   for (const s of all()) {

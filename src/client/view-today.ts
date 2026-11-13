@@ -6,7 +6,8 @@ import { chip, copyText, DISCLAIMER, kcalLine, provenanceLine, sourceBadge, tt, 
 import { contributionTable, gapList, ideasTable, profileSummary, ruleTable } from './views.ts';
 import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.ts';
 import { landingView } from './view-landing.ts';
-import { campus, cheer, figure, sprite } from './mascot.ts';
+import { campus, cheer, figure, skyGlyph, sprite } from './mascot.ts';
+import { skyFor } from './art.ts';
 import { spriteForDish } from './dish-sprite.ts';
 import { nearbyCard, restaurantToday } from './view-restaurant.ts';
 import { isRestaurant } from '../core/restaurant.ts';
@@ -126,7 +127,7 @@ function wholeDay(day: MenuDay): HTMLElement {
   if (S.profile.allergens.length) sec.appendChild(h('p', { class: 'staff', role: 'note' }, h('strong', null, '⚠ Confirm with staff. '), 'You have an allergy set. Menus and recipes can change, so confirm with dining staff before eating.'));
   for (const n of plan.notes) sec.appendChild(h('p', { class: 'banner warn', role: 'status' }, n));
   sec.appendChild(h('ol', { class: 'dayplan' }, plan.slots.map(s => h('li', { class: 'card' },
-    h('h2', null, (s.result.period ?? s.period) === s.slot ? s.slot : `${s.slot} · ${s.result.period ?? s.period}`),
+    h('h2', null, skyGlyph(skyFor(s.result.period ?? s.period ?? s.slot, 12 * 60)), (s.result.period ?? s.period) === s.slot ? s.slot : `${s.slot} · ${s.result.period ?? s.period}`),
     s.meal ? [
       plateList(s.meal, day, 'plan:'),
       h('p', { class: 'muted' }, `${tt(s.meal.totals.calories, 'calories')} · ${tt(s.meal.totals.protein, 'protein')} protein · ${s.meal.tier === 'confirmed' ? '✓ fits your rules' : '△ mostly confirmed'}`),

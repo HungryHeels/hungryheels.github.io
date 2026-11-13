@@ -107,6 +107,7 @@ for (const name of engines) {
     ok(await p.locator('.site-nav a').allInnerTexts().then((t: string[]) => t.join('|') === 'Today|Menus|Me'), 'header has exactly three pages: Today, Menus, Me');
     ok(await p.locator('.site-nav a[aria-current=page]').innerText() === 'Today', 'current page is marked with aria-current');
     ok(await p.locator('.brand-tag').innerText() === 'Unofficial', 'unofficial tag next to the name');
+    ok(await p.evaluate(() => { const l = document.querySelector('link[rel=icon]') as HTMLLinkElement | null; return !!l && l.href.startsWith('data:image/svg+xml,') && decodeURIComponent(l.href).includes('m-upper'); }), 'the tab icon is the mascot, inline (no request)');
     // Original art: the mascot is one labeled button that waves on tap; the quad band stays out of the way.
     const mascot = p.getByRole('button', { name: 'Hungry Heel mascot: tap to say hello' });
     ok(await mascot.count() === 1, 'mascot is one labeled button');
@@ -236,6 +237,7 @@ for (const name of engines) {
     await p.getByRole('button', { name: 'Whole day' }).click();
     ok((await p.evaluate(() => location.hash)).includes('mode=day'), 'whole-day view is in the address');
     ok(await p.locator('.dayplan > li').count() >= 1, 'whole-day plan shows meals');
+    ok(await p.locator('.dayplan > li h2 .skyglyph').count() === await p.locator('.dayplan > li').count(), 'each whole-day meal heading has its time-of-day picture');
     ok(await p.locator('.dayplan .plate-row').count() >= 1, 'whole-day meals use the same dish rows as one meal (review fix 5)');
     ok(await p.locator('.card.day-total .totals').count() === 1, 'day total sits in a card (review fix 4)');
     const fc = await p.locator('.day-total').innerText();
