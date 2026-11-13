@@ -11,6 +11,12 @@ export type RestaurantId = 'sweetgreen' | 'chipotle';
 export const RESTAURANT_IDS: RestaurantId[] = ['sweetgreen', 'chipotle'];
 export const RESTAURANT_NAMES: Record<RestaurantId, string> = { sweetgreen: 'Sweetgreen', chipotle: 'Chipotle' };
 /** The restaurant's own web domain: an official source must be on it. */
+/** The restaurant's own nutrition and allergen page, as linked from its own site (checked Nov 12, 2026). A link only:
+ *  the app never fetches it and copies nothing from it. */
+export const RESTAURANT_INFO: Record<RestaurantId, { url: string; label: string }> = {
+  sweetgreen: { url: 'https://www.sweetgreen.com/nutrition', label: 'Sweetgreen’s Nutrition + Allergens Guide' },
+  chipotle: { url: 'https://www.chipotle.com/nutrition-calculator', label: 'Chipotle’s nutrition calculator' },
+};
 export const RESTAURANT_DOMAINS: Record<RestaurantId, string> = { sweetgreen: 'sweetgreen.com', chipotle: 'chipotle.com' };
 /** A place on the picker: a dining hall (dated menus with meal periods) or a restaurant (one always-on menu). */
 export type PlaceId = HallId | RestaurantId;

@@ -18,8 +18,12 @@ environment's network settings:
 Publishing either restaurant's nutrition or allergen tables on a public website (GitHub Pages) would be copying,
 distributing and displaying their content. That is true whether a tool downloads it or a person types it in by hand,
 so **saving the files by hand does not get around this**. The data stays out until a restaurant gives written
-permission (draft requests: `docs/EMAIL_TO_RESTAURANTS.md`). Facts such as a single number may not be protected the
+permission. Facts such as a single number may not be protected the
 same way everywhere, but this project does not rely on that: the terms say no, so the answer is no until they say yes.
+
+Meanwhile, each restaurant page links to the restaurant's own nutrition and allergen page (found from the links on
+their own sites, Nov 12, 2026): Sweetgreen https://www.sweetgreen.com/nutrition (“Nutrition + Allergens Guide”),
+Chipotle https://www.chipotle.com/nutrition-calculator (“Nutrition”). A link copies nothing; the app never fetches it.
 
 If permission arrives, keep the email (or a note of who granted it and when) next to the data, record it in
 `source.json` (`"permission"`, below), and only then follow the steps below.

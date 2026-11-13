@@ -263,3 +263,12 @@ test('data/restaurants: every folder is either pending or imports cleanly', () =
     if (r.menu) assert.equal(r.menu.provenance.kind, 'official');
   }
 });
+
+test('official info links point to each restaurant’s own site over https', async () => {
+  const { RESTAURANT_INFO, RESTAURANT_DOMAINS, RESTAURANT_IDS } = await import('../src/core/restaurant.ts');
+  for (const id of RESTAURANT_IDS) {
+    const u = new URL(RESTAURANT_INFO[id].url);
+    assert.equal(u.protocol, 'https:');
+    assert.ok(u.hostname === RESTAURANT_DOMAINS[id] || u.hostname.endsWith('.' + RESTAURANT_DOMAINS[id]), id);
+  }
+});

@@ -1,6 +1,6 @@
 // Hungry Heels offline cache. Same-origin only: it stores this site's own page, manifest and icon so the app
 // opens without a connection. It never contacts any other site (and never dining.unc.edu).
-const CACHE = 'hh-736e02f6a027';
+const CACHE = 'hh-e352f762d79e';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

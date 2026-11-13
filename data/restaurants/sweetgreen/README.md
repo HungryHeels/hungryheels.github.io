@@ -1,6 +1,6 @@
 # Sweetgreen (Franklin Street, Chapel Hill): official data goes here
 
-**Status: blocked until Sweetgreen gives written permission.** Sweetgreen's terms of use forbid copying or republishing its content (checked Nov 12, 2026; see `docs/RESTAURANTS.md`). Do not add any Sweetgreen data here, by hand or otherwise, until permission is granted. Draft request: `docs/EMAIL_TO_RESTAURANTS.md`.
+**Status: blocked until Sweetgreen gives written permission.** Sweetgreen's terms of use forbid copying or republishing its content (checked Nov 12, 2026; see `docs/RESTAURANTS.md`). Do not add any Sweetgreen data here, by hand or otherwise, until permission is granted.
 
 After permission:
 

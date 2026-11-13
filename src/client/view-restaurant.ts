@@ -14,11 +14,10 @@ import { formatSaved } from '../core/schedule.ts';
 import type { Meal, MealPart } from '../core/meals.ts';
 import type { MenuItem } from '../core/types.ts';
 import {
-  HOURS_UNKNOWN, LOCATION_NOTE, NATIONAL_MENU_NOTE, NOT_AFFILIATED, RESTAURANT_NAMES, ROLE_LABELS, ROLE_PLURAL, ROLES,
+  HOURS_UNKNOWN, LOCATION_NOTE, RESTAURANT_INFO, NATIONAL_MENU_NOTE, NOT_AFFILIATED, RESTAURANT_NAMES, ROLE_LABELS, ROLE_PLURAL, ROLES,
   type ComponentRole, type RestaurantId, type RestaurantMenu,
 } from '../core/restaurant.ts';
 
-const DOCS = 'https://github.com/HungryHeels/hungryheels.github.io/blob/main/docs/RESTAURANTS.md';
 
 export function menuFor(id: RestaurantId): RestaurantMenu | null { return S.restaurants.find(m => m.id === id) ?? null; }
 
@@ -52,10 +51,14 @@ function crossContactBox(menu: RestaurantMenu): HTMLElement | null {
 
 function pendingCard(id: RestaurantId): HTMLElement {
   const name = RESTAURANT_NAMES[id];
+  const info = RESTAURANT_INFO[id];
   return h('section', { class: 'card pending', 'aria-labelledby': 'pending-h' },
     h('h2', { id: 'pending-h' }, `No ${name} data yet`),
-    h('p', null, `Hungry Heels would only use ${name}’s own published nutrition and allergen information, but ${name}’s terms of use don’t allow copying it without permission. Until ${name} agrees, there is nothing to recommend here. Nothing is guessed in the meantime.`),
-    h('p', null, h('a', { href: DOCS, target: '_blank', rel: 'noopener noreferrer' }, 'Why, and what happens next'), h('small', null, ' (opens the project’s instructions on GitHub)')),
+    h('p', null, `${name}’s terms of use don’t allow copying its nutrition and allergen information, so Hungry Heels can’t check ${name} dishes against your rules or build a bowl. Nothing is guessed.`),
+    h('p', null, 'Check the restaurant’s own information instead:'),
+    h('p', null, h('a', { class: 'btn primary', href: info.url, target: '_blank', rel: 'noopener noreferrer', 'data-fk': 'official-info' }, `Open ${info.label}`),
+      h('small', { class: 'block' }, `Opens ${name}’s website in a new tab. Hungry Heels doesn’t contact ${name}; it’s only a link.`)),
+    h('p', { class: 'muted' }, `If you have an allergy, confirm with ${name} staff before ordering.`),
     h('div', { class: 'actions' }, h('button', { type: 'button', 'data-fk': 'pending-chase', onClick: () => go(() => { S.place = S.hall; S.idea = 0; }) }, 'Back to the dining halls')));
 }
 

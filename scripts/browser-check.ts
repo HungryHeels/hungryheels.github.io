@@ -259,6 +259,7 @@ for (const name of engines) {
     ok((await p.evaluate(() => location.hash)) === '#/?place=sweetgreen', 'restaurant is in the address, without a date or meal');
     const sgTxt = await p.locator('main').innerText();
     ok(/No Sweetgreen data yet/.test(sgTxt) && /Nothing is guessed/.test(sgTxt), 'Sweetgreen without official data says so and recommends nothing');
+    ok(await p.locator('a[data-fk=official-info]').getAttribute('href') === 'https://www.sweetgreen.com/nutrition' && await p.locator('a[data-fk=official-info]').getAttribute('target') === '_blank', 'links to Sweetgreen’s own nutrition page (opens in a new tab, nothing fetched)');
     ok(/Hours unknown/.test(sgTxt) && /national published menu/.test(sgTxt) && /Franklin Street/.test(sgTxt), 'hours unknown and national-menu caveat shown');
     ok(await p.locator('.datebar').count() === 0 && await p.locator('.pills').count() === 0 && await p.locator('article.meal').count() === 0, 'no date bar, meal pills or meal for a restaurant');
     ok((await p.locator('.site-footer').innerText()).includes('not affiliated with, endorsed by or sponsored by either'), 'footer: restaurants named only to identify them');
