@@ -29,7 +29,7 @@ Built in:
 - **Top of Lenoir**, 2026-11-10 to 2026-12-10: 27 days with menus; Nov 25 to 28 had no menu posted; **Nov 9 was never saved**. Some Lenoir days have no Dinner tab in the saved page (Nov 13, 14, 20, 21 and Dec 5); the app shows exactly the periods the page contains and never guesses a missing one.
 - Nothing is built in after **Dec 10, 2026**.
 
-**Sweetgreen and Chipotle: waiting for permission.** Only the restaurants' own published nutrition and allergen information would be accepted, with its source URL, publisher, document date and retrieval time. On Nov 12, 2026 their robots.txt files allowed access but both terms of use forbid copying or republishing their content without written permission, so nothing was downloaded or copied. Each restaurant page links to the restaurant's own nutrition and allergen page instead. A “may contain” or shared-equipment statement counts as uncertain, so strict avoids exclude those items. Steps: `docs/RESTAURANTS.md`.
+**Sweetgreen and Chipotle: waiting for permission.** Only the restaurants' own published nutrition and allergen information would be accepted, with its source URL, publisher, document date and retrieval time. On Nov 12, 2026 their robots.txt files allowed access but both terms of use forbid copying or republishing their content without written permission, so nothing was downloaded or copied. Each restaurant page links to the restaurant's own nutrition and allergen page instead. Permission requests to send: `docs/EMAIL_TO_RESTAURANTS.md`. A “may contain” or shared-equipment statement counts as uncertain, so strict avoids exclude those items. Steps: `docs/RESTAURANTS.md`.
 
 ## How to refresh a day
 1. On a Mac, open dining.unc.edu in Safari > Locations > Chase or Top of Lenoir, choose the date, wait for the menu to load.
@@ -49,4 +49,4 @@ npm run e2e        # browser checks with Playwright (Chromium by default; pass f
 Zero runtime dependencies. `src/core` is the shared engine (diet rules, meals, planning, trust, refresh); `src/sources` parses pages and nutrition files; `src/client` is the site (`app.ts` shell and router, `view-today.ts`, `view-menus.ts`, `view-me.ts`, `view-sheet.ts` for dish details).
 
 ## Docs
-`docs/SETUP_GITHUB.md` (publishing and the Claude bug-fix helper), `docs/RESTAURANTS.md` (Sweetgreen and Chipotle data), `docs/SOURCE_INTEGRATION_REPORT.md`, `docs/DATA_FLOW_AND_PRIVACY.md`, `docs/EMAIL_TO_DIETITIAN.md`.
+`docs/SETUP_GITHUB.md` (publishing and the Claude bug-fix helper), `docs/RESTAURANTS.md` (Sweetgreen and Chipotle data), `docs/EMAIL_TO_RESTAURANTS.md`, `docs/SOURCE_INTEGRATION_REPORT.md`, `docs/DATA_FLOW_AND_PRIVACY.md`, `docs/EMAIL_TO_DIETITIAN.md`.

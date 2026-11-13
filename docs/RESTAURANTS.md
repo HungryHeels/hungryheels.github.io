@@ -18,7 +18,7 @@ environment's network settings:
 Publishing either restaurant's nutrition or allergen tables on a public website (GitHub Pages) would be copying,
 distributing and displaying their content. That is true whether a tool downloads it or a person types it in by hand,
 so **saving the files by hand does not get around this**. The data stays out until a restaurant gives written
-permission. Facts such as a single number may not be protected the
+permission (requests to send: `docs/EMAIL_TO_RESTAURANTS.md`). Facts such as a single number may not be protected the
 same way everywhere, but this project does not rely on that: the terms say no, so the answer is no until they say yes.
 
 Meanwhile, each restaurant page links to the restaurant's own nutrition and allergen page (found from the links on
