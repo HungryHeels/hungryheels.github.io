@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MASCOT_LINES, POSES, SPRITES, keywordSprite, mascotSvg, quadSvg, spriteFor, spriteSvg } from '../src/client/art.ts';
+import { MASCOT_LINES, POSES, SPRITES, mascotSvg, quadSvg, spriteSvg } from '../src/client/art.ts';
 
 const all = () => [...POSES.map(mascotSvg), ...SPRITES.map(spriteSvg), quadSvg()];
 
@@ -24,15 +24,8 @@ test('art: each mascot pose is drawn differently', () => {
   assert.equal(new Set(POSES.map(mascotSvg)).size, POSES.length);
 });
 
-test('art: food glyphs come from words that clearly name the food, never from a guess', () => {
-  assert.equal(keywordSprite('Pepperoni Pizza'), 'pizza');
-  assert.equal(keywordSprite('Garden Salad'), 'salad');
-  assert.equal(keywordSprite('Diced Pineapple'), 'fruit');
-  assert.equal(keywordSprite('Orange Chicken'), null);
-  assert.equal(keywordSprite('Grilled Chicken'), null);
-  assert.equal(keywordSprite('The Griddle'), null);
-  assert.equal(spriteFor('Grilled Chicken', 'Grill', 'main'), 'plate');
-  assert.equal(spriteFor('Steamed Broccoli', 'Sides', 'side'), 'bowl');
+test('art: every food sprite is drawn differently', () => {
+  assert.equal(new Set(SPRITES.map(spriteSvg)).size, SPRITES.length);
 });
 
 test('art: mascot lines stay friendly and claim nothing', () => {

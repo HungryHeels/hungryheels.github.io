@@ -9,7 +9,7 @@ import { restaurantMenus } from './view-restaurant.ts';
 import { PLACE_NAMES, isRestaurant } from '../core/restaurant.ts';
 import { href, noMenuNotice, openItem, pickerBar } from './view-common.ts';
 import { sprite } from './mascot.ts';
-import { keywordSprite } from './art.ts';
+import { stationSprite } from './dish-sprite.ts';
 import { evaluateItem } from '../core/engine.ts';
 import { nutritionBadge } from '../sources/nutrition-import.ts';
 import type { MenuDay, MenuItem } from '../core/types.ts';
@@ -49,7 +49,7 @@ function browse(day: MenuDay): HTMLElement {
       const groups = new Map<string, Row[]>();
       for (const r of rows) (groups.get(r.st) ?? groups.set(r.st, []).get(r.st)!).push(r);
       for (const [st, rs] of groups) {
-        const g = keywordSprite(st);   // a picture only when the station name clearly names the food
+        const g = stationSprite(st);   // a picture only when the station name clearly names the food
         list.appendChild(h('section', { class: 'station-group' }, h('h2', { class: 'station' }, g ? sprite(g, 'glyph glyph-sm') : null, st), h('ul', { class: 'list' }, rs.map(rowEl))));
       }
     } else if (rows.length) list.appendChild(h('ul', { class: 'list' }, rows.map(rowEl)));
