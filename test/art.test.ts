@@ -41,3 +41,13 @@ test('art: mascot lines stay friendly and claim nothing', () => {
     assert.ok(l.length <= 60);
   }
 });
+
+test('art: the campus band draws each landmark once, in the middle, and scales by height', () => {
+  const s = quadSvg();
+  const vb = /viewBox="0 0 (\d+) 120" width="(\d+)" height="120"/.exec(s);
+  assert.ok(vb && vb[1] === vb[2], 'width and height match the viewBox so the band keeps its proportions');
+  assert.equal((s.match(/class="q-dome"/g) ?? []).length, 1, 'one library');
+  assert.equal((s.match(/class="q-stand"/g) ?? []).length, 1, 'one stadium');
+  const mid = Number(vb![1]) / 2, at = [...s.matchAll(/translate\((\d+) 0\)/g)].map(m => Number(m[1]));
+  assert.ok(at.some(x => x <= mid) && at.some(x => x > mid - 900 && x < mid + 900), 'landmarks sit around the centre');
+});
