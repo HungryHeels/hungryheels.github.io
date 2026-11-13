@@ -541,6 +541,14 @@ body.sheet-open{overflow:hidden}
 .plate-row:active .glyph svg{transform:scale(.86) rotate(-6deg)}
 .station{display:flex;align-items:center;gap:var(--s2)}
 .sprite *{stroke-linejoin:round;stroke-linecap:round}
+/* Campus sprites: small landmarks and a dogwood, before page titles and in the footer. Decorative, aria-hidden. */
+.campus .c-o{stroke:var(--s-ink);stroke-width:.9} .campus .q-tier{stroke-width:.9}
+.c-petal{fill:#fbf6ef;stroke:var(--s-ink);stroke-width:1} .c-tip{fill:#c4536f} .c-eye{fill:#a9c24a;stroke:var(--s-ink);stroke-width:.8} .c-dot{fill:#5d7a1f}
+.h-glyph{display:inline-block;width:.9em;height:.9em;margin-right:.28em;vertical-align:-.1em}
+.h-glyph svg,.f-glyph svg{display:block;width:100%;height:100%;overflow:visible}
+.footer-art{display:flex;gap:var(--s2);align-items:flex-end;margin-bottom:var(--s3)}
+.f-glyph{display:block;width:28px;height:28px}
+.sheet-head{align-items:center} .sheet-glyph{width:36px;height:36px}
 .s-ink{fill:none;stroke:var(--s-ink);stroke-width:1.8}
 .s-plate,.s-cup{fill:#fff;stroke:var(--s-ink);stroke-width:1.5}
 .s-plate-in{fill:none;stroke:var(--carolina);stroke-width:1.5}

@@ -6,7 +6,7 @@ import { chip, copyText, DISCLAIMER, kcalLine, provenanceLine, sourceBadge, tt, 
 import { contributionTable, gapList, ideasTable, profileSummary, ruleTable } from './views.ts';
 import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.ts';
 import { landingView } from './view-landing.ts';
-import { cheer, figure, sprite } from './mascot.ts';
+import { campus, cheer, figure, sprite } from './mascot.ts';
 import { spriteFor } from './art.ts';
 import { nearbyCard, restaurantToday } from './view-restaurant.ts';
 import { isRestaurant } from '../core/restaurant.ts';
@@ -158,7 +158,7 @@ export function todayView(): HTMLElement {
   if (!S.onboarded || S.about) return landingView();
   if (isRestaurant(S.place)) return restaurantToday(S.place);
   const v = h('div', { class: 'page today' });
-  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, mealHeading(S.date, nyNow().date)),
+  v.appendChild(h('div', { class: 'page-head' }, h('h1', { id: 'page-h', tabindex: '-1' }, campus('belltower'), mealHeading(S.date, nyNow().date)),
     h('p', { class: 'lede' }, 'A meal from Chase or Top of Lenoir that fits your rules.')));
   if (S.loading) { v.appendChild(h('div', { class: 'loading' }, figure('think', 'loading-fig'), h('p', { class: 'muted', role: 'status' }, 'Lacing up… loading menus.'))); return v; }
   const { el, day } = pickerBar();
