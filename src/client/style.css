@@ -32,7 +32,7 @@
   --ok-bg:#e5f4ea; --ok:#13692f; --warn-bg:#fdf1da; --warn:#7a4800; --bad-bg:#fde9e8; --bad:#a3201f; --info-bg:#eaf1fb; --info:#0f2a52;
   --focus:#1b5c8c; --row-hi:#eaf2fb; --label-bg:#ffffff; --label-fg:#000000;
   /* Carolina-blue-style layer (generic colors, no marks): light-blue fills with navy text; deeper blue for edges. */
-  --navy:#13294b; --carolina:#7bafd4; --carolina-edge:#4a86b8; --badge-text:#13294b; --warm:#f6f1e8;
+   --carolina:#7bafd4; --carolina-edge:#4a86b8; --badge-text:#13294b; --warm:#f6f1e8;
   --primary:#7bafd4; --primary-text:#13294b; --primary-hover:#6aa3cc; --primary-active:#5b97c2; --say-bg:#13294b; --say-text:#ffffff;
   /* Art (decorative, aria-hidden): mascot, food sprites, campus band */
   --m-ink:#13294b; --m-limb:#13294b; --m-fork:#7d8796; --m-sole:#ffffff; --m-cheek:#f2a7a0; --s-ink:#13294b;

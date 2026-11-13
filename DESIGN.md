@@ -23,10 +23,10 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. The word 
 | `--muted` | `#525d6e` | `#a4adbb` | Secondary text (≥ 4.5:1 on every surface, measured) |
 | `--line` | `#e1e5eb` | `#252b37` | Hairline borders and dividers (decorative) |
 | `--line-strong` | `#8b95a5` | `#6a7486` | Input and switch borders (≥ 3:1 on `--card`) |
-| `--accent` (+ `-hover`, `-active`) | `#1b5c8c` | `#7bafd4` | Links, selection check marks, focus (7.10:1 on white; 6.6:1+ on dark surfaces) |
+| `--accent` / `--accent-hover` / `--accent-active` | `#1b5c8c` / `#174f79` / `#13436a` | `#7bafd4` / `#8fbcdc` / `#a6cbe5` | Links, selection check marks, focus (7.10:1 on white; 6.6:1+ on dark surfaces) |
 | `--accent-text` | `#ffffff` | `#0b1322` | Text on `--accent` |
 | `--accent-tint` / `--sel-bg` | `#e6eff8` | `#18263b` | Quiet-button hover, chosen quiz answer |
-| `--primary` (+ `-text`, `-hover`, `-active`) | `#7bafd4` / `#13294b` | `#7bafd4` / `#0b1322` | **Primary action:** light-blue fill with navy text (6.17:1 light, 7.89:1 dark; hover 5.34:1 / 9.19:1) |
+| `--primary` / `--primary-text` (hover `--primary-hover`, press `--primary-active`) | `#7bafd4` / `#13294b` (hover `#6aa3cc`, press `#5b97c2`) | `#7bafd4` / `#0b1322` (hover `#8fbcdc`, press `#a6cbe5`) | **Primary action:** light-blue fill with navy text (6.17:1 light, 7.89:1 dark; hover 5.34:1 / 9.19:1) |
 | `--carolina` | `#7bafd4` | `#7bafd4` | Brand light blue: portion badge (navy `--badge-text`, 6.17:1), meal-card top light, art fills. Never text on white (2.35:1) |
 | `--carolina-edge` | `#4a86b8` | `#7bafd4` | Marks and edges that must read on light surfaces: active-nav bar, primary button border, "Unofficial" tag border (3.89:1 on white) |
 | `--warm` | `#f6f1e8` | `#17191d` | Warm neutral: footer and "Unofficial" tag |
@@ -38,11 +38,38 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. The word 
 | `--label-bg` / `--label-fg` | `#ffffff` / `#000000` | `#000000` / `#ffffff` | Ingredients label panel in dish details only (store-label look: black on white, inverted in dark) |
 | `--focus` | `#1b5c8c` | `#9cc3ff` | Focus ring (3px, 2px offset; inset inside tracks) |
 | `--overlay` | `rgba(9,13,22,.42)` | `rgba(0,0,0,.6)` | Dims the page behind dish details |
+| `--row-hi` | `#eaf2fb` | `#172338` | The current idea's row in the “All ideas” table (with a ▶ marker, not color alone) |
+
+### Art palette (decorative only)
+These fill the original drawings in `src/client/art.ts` and nothing else. The art is always `aria-hidden` and sits beside words, so these colors carry no meaning and have no contrast requirement; never use them for text, status or controls.
+
+| Token | Light | Dark | Fills |
+|---|---|---|---|
+| `--m-ink` | `#13294b` | `#0b1322` | Mascot outline, face |
+| `--m-limb` | `#13294b` | `#dce8f7` | Mascot legs and arms |
+| `--m-fork` | `#7d8796` | `#c3cddb` | Mascot's fork |
+| `--m-sole` | `#ffffff` | `#eef3fa` | Sneaker sole and laces |
+| `--m-cheek` | `#f2a7a0` | `#f2a7a0` | Cheeks (light value in both themes) |
+| `--s-ink` | `#13294b` | `#dce8f7` | Food sprite outlines (course and station glyphs, empty-list picture) |
+| `--q-sky` / `--q-cloud` | `#d3e6f4` / `#ffffff` | `#162238` / `#25344f` | Campus band sky and clouds |
+| `--q-grass` | `#86b36f` | `#1c3627` | Lawn |
+| `--q-oak` / `--q-oak2` / `--q-trunk` | `#3f7a4a` / `#2f6340` / `#6b4a33` | `#2c5839` / `#21442d` / `#4a3426` | Round oaks (two greens) and trunks |
+| `--q-brick` / `--q-joint` | `#b5523b` / `#e8c4b5` | `#743829` / `#9b5c4b` | Brick walk and mortar |
+| `--q-post` / `--q-light` | `#13294b` / `#fff4d0` | `#a4adbb` / `#ffd88a` | Lamp posts and their light |
+| `--q-stone` / `--q-stone2` | `#f3eee3` / `#d8cdb8` | `#56607a` / `#454e66` | Landmark stone: walls, columns, belfry and spire (`--q-stone2` for bases, cornices and shaded faces) |
+| `--q-dome` / `--q-shade` | `#e6dfd0` / `#8c8170` | `#4d5770` / `#1b2232` | The library dome; shadows and recesses |
+| `--q-open` | `#5f574b` | `#ffd88a` | Windows, portals and belfry openings: dark by day, lit at night |
+| `--q-brick2` | `#96412e` | `#5e2c20` | The bell tower's darker brick piers |
+| `--q-stand` / `--q-stand2` / `--q-tier` | `#cfcac0` / `#b9b3a7` / `#a9a296` | `#353d51` / `#2c3345` / `#232a3a` | Stadium stands (two tones) and tier lines |
+
+The sneaker body and food fills use `--carolina` and the surface tokens above. High contrast hides the campus band.
 
 High contrast (`data-contrast=high`) darkens `--muted`, `--line` and the status colors, turns primary buttons solid (`#063a7a`/white; dark `#a9d1f0`/black), hides the campus band, removes translucency and glow, flattens fills to the card color and gives controls 2px borders, in both themes. Status is never color alone: every status also has a symbol (✓ △ ✕ ?) and a word.
 
 ## Typography
-System UI stack only (no web fonts, no outbound requests): `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` (`"SF Pro Display"` first for headings). No font files are shipped. Tabular numbers for totals, nutrition, hours and tables. Headings use `text-wrap: balance`.
+System UI stack only (no web fonts, no outbound requests): `--font` = `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`; `--font-display` swaps in `"SF Pro Display"` for headings and large totals. No font files are shipped. Tabular numbers for totals, nutrition, hours and tables. Headings use `text-wrap: balance`.
+
+Line heights: `--lh-tight` 1.15 (display text and totals), `--lh-snug` 1.3 (titles, the ingredients label), `--lh-body` 1.5 (reading text). Tracking tokens: `--tr-display` −.028em, `--tr-title` −.018em, `--tr-head` −.01em, `--tr-body` −.003em, `--tr-eyebrow` +.06em (uppercase only).
 
 | Token | Size | Role | Tracking |
 |---|---|---|---|
@@ -58,7 +85,7 @@ System UI stack only (no web fonts, no outbound requests): `-apple-system, Blink
 Weights: 400 body, 600 labels and buttons, 650 dish names and h3, 700 headings and totals. Paragraphs max 68ch.
 
 ## Spacing, layout and motion
-4-based scale: `--s1` 4, `--s2` 8, `--s3` 12, `--s4` 16, `--s5` 24, `--s6` 32, `--s7` 48, `--s8` 64. Gutter 16px on phones, 24px from 760px, 32px from 1200px, never less than the safe-area inset. Content width 1120px.
+4-based scale: `--s1` 4, `--s2` 8, `--s3` 12, `--s4` 16, `--s5` 24, `--s6` 32, `--s7` 48, `--s8` 64. `--gutter` 16px on phones, 24px from 760px, 32px from 1200px, never less than the safe-area inset. `--width` (content) 1120px. `--header-h` 56px: the sticky header's height, also the offset for sticky sidebars and in-page scroll targets. `--pill` 999px: the pill radius.
 - **Today:** one column on phones; from 960px, meal card (wide column) + side column (other hall, your rules).
 - **Menus:** filters above the list on phones; from 960px, a sticky filter sidebar (260px) + item list. Item details open as a bottom sheet on phones (with a grabber) and a floating right panel on desktop.
 - **Me:** one column of sections with a chip row of section links on phones; from 960px, a sticky section list on the left.
@@ -79,7 +106,26 @@ Radius: `--r1` 8 (inputs), `--r2` 12 (buttons, tracks, banners), `--r3` 18 (card
 - **Lists** (plate, menu items, Me rows): an inset group with hairline separators; whole rows are native buttons with a hover tint.
 - **Disclosures:** `<details>` with one hairline chevron that turns when open.
 - **Ingredients label** (dish details): one bordered panel in `--label-bg`/`--label-fg`, `--fs-sm` at 1.3 leading, square corners (it imitates a printed label, not the app's material). Bold uppercase “INGREDIENTS:” heading (a real h3, uppercased by CSS) followed by the ingredients as one flowing paragraph that is an inline `ul` (commas and brackets are real text). A ruled “CONTAINS:” line lists only allergens UNC declares. Under it: a `.prov` source line and a “Show original text” disclosure. Never claims weight order, “free of” or allergy safety.
-- **Chips:** status words with a symbol, `--fs-2xs`, pill radius.
+- **Chips:** status words with a symbol, `--fs-2xs`, pill radius: `chip-ok` (✓ Fits), `chip-warn` (△ Unsure, stale), `chip-bad` (✕ Not for you, no meal).
+- **Nutrition source line:** “Nutrition: Official / Entered by you / Eat UNC (3rd party) / Estimate / Not published” in `--fs-xs`, `--muted` (Official in `--ok`). Never amber: it is information, not a warning. The allergen line (“△ Contains …”) is its own line, bold, in `--warn`.
+- **Banners:** full-width notes, `--r2`, `--fs-sm`, a 35%-tinted border of their color: `info` (neutral facts, fallbacks explained, the shared-profile offer), `warn` (no menu posted, rules forced fewer sides), `bad` (no meal fits). The flash banner is `info` with an OK button and `role="status"`. High contrast gives warn and bad a solid border.
+- **Confirm-with-staff box:** `--warn-bg` panel, `--r2`, a bold “⚠ Confirm with staff” line, then one bullet per reason (allergy set, unconfirmed dish, label contradicts allergens). Sits between the totals and the meal actions; in Whole day the allergy line appears once above the plan.
+- **Totals tiles:** a responsive grid (min 130px) of `--surface-2` tiles: `--fs-xs` label (+ “(estimate)” when it includes one), value in `--font-display`, `--fs-2xl`, tabular. “Fat and carbs: not published” is one muted line, never an “unknown · unknown” tile.
+- **Target gaps:** a list under the totals, `--fs-sm`, 600 weight, symbol first: ✓ on target (`--ok`), ↓ short or ? can't tell (`--warn`), ↑ over (`--bad`). Estimated gaps say “about … (estimate)”.
+- **Rule checklist** (Details, dish details, restaurant rows): rows on `--surface-2`, `--r2`; a symbol column (✓ `--ok`, ✕ `--bad`, ? `--warn`), the rule in bold, then “Strict avoid / Diet rule · reason · decided by <evidence>” in `--fs-xs` `--muted`. The meal version adds one muted line per dish.
+- **Tables** (breakdown, all ideas, coverage, next 14 days): inside a scrolling `.tablewrap` (`--card`, hairline, `--r2`), `--fs-sm`, tabular numbers, a muted caption; numbers right-aligned; “?” not published, “+” at least, “~” estimate (italic).
+- **Side cards** (Today, from 960px beside the meal): “Both halls · <meal>” (each hall's best idea with a status chip and a quiet “Switch to …”), “Your rules” (summary + link), then the provenance line (`.prov`, `--fs-xs`, `--muted`). Below the meal on phones.
+- **Whole day:** one card per meal (Breakfast, Lunch, Dinner; the period name only when it differs) with the same dish rows as the meal card and a muted totals line, then a “Day total” card with totals tiles and gaps.
+- **Landing** (first visit, and About): a two-column hero from 960px (fluid headline 32–52px, line height 1.05, max 15ch; muted lede; primary “Find my meal” or “Back to my meal” + secondary “Browse the full menu”; the unofficial line) beside the diet question card; then plain sections separated by a hairline and `--s6`, max 760px: numbered steps (accent numbers), bullet points with muted markers, the disclaimer in the staff style, and the FAQ as disclosures. No illustrations of people, no testimonials, no feature-card grid.
+- **Menus item rows:** whole-row buttons in an inset list: name (600), a `--fs-xs` muted line (station when not grouped, calories/protein with “~” for estimates, source), a status chip on the right. Station groups have an uppercase `--fs-2xs` eyebrow heading.
+- **Restaurant rows** (Sweetgreen): the same row as a `<summary>` of a `details.comp`; opening it shows a `comp-body` with the nutrition grid, source line, allergen lines, ingredients, the restaurant's labels, warnings and the rule checklist. Only one open at a time is remembered.
+- **Restaurant “No data yet” card:** a normal card: “No <name> data yet”, why in one sentence, a primary link to the restaurant's own nutrition page (opens a new tab; the small print says it is only a link), the staff reminder, and “Back to the dining halls”.
+- **Update menus:** a dashed drop zone (`--line-strong` 1.5px dashed on `--surface-2`; `--accent` border and `--accent-tint` while dragging) with “Choose saved pages” (primary) and “Choose a folder”; import results as cards (status chip, “What changed” disclosure); the “Next 14 days” card with a one-line summary and a “Day by day” table that opens by itself only when something needs saving; nutrition sources card; “Remove imported pages” as a danger button.
+- **Me:** sections with `--header-h` scroll margin; section links as `--fill` chips on phones and a sticky muted list from 960px. Diet as radio rows, allergies and avoids as switch rows (51×31 switch, `--fill-active` track, accent when on), custom avoids as removable `--fill` chips, goals as labeled number fields in a responsive grid (columns at least 140px), saved meals as cards with a status chip.
+- **Dish details:** order is verdict chip, confirm-with-staff box, nutrition grid (estimate cells dashed), source line, estimate note, “Enter values from UNC's item panel” form, allergens, ingredients label, “Why, labels and source”, report link, disclaimer. Bottom sheet with a grabber on phones; a floating right panel from 760px. Focus moves in, Tab is trapped, Escape and Back close it.
+- **Form errors** (nutrition entry): the message in `warn-text`, invalid fields get `aria-invalid`, a 2px `--bad` border and `aria-describedby` pointing at the message; focus moves to the first one.
+- **States:** loading = the thinking mascot (56px) and “Loading menus…”; no meal = a card with the sad mascot (88px), why, and “Browse the full menu”; no menu posted = a warn banner with “Go to <next date>” and “Add a saved page”; empty filter = “Nothing matches these filters.” (with the plate sprite on the dining-hall list).
+- **Print:** white page, black text; header, picker, filters, actions, disclosures and section lists hidden; cards keep a grey hairline and lose shadows and the top light.
 - **Footer:** hairline top, no fill: the allergy disclaimer, the unaffiliated notice, and links to About, Privacy, Update menus, Report a problem and Source code.
 
 ## Estimates
