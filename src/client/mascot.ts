@@ -3,7 +3,7 @@
 // anything, and with prefers-reduced-motion the poses still change but nothing moves (see style.css).
 import { h } from './dom.ts';
 import { announce } from './nav.ts';
-import { MASCOT_LINES, campusSvg, mascotSvg, spriteSvg, type Campus, type Pose, type Sprite } from './art.ts';
+import { MASCOT_LINES, campusSvg, mascotSvg, skySvg, spriteSvg, type Campus, type Pose, type Sky, type Sprite } from './art.ts';
 
 /** An inline SVG string inside a span. Only ever used with the constant art strings from art.ts. */
 export function artSpan(svgText: string, cls: string): HTMLElement {
@@ -15,6 +15,8 @@ export const sprite = (name: Sprite, cls = 'glyph') => artSpan(spriteSvg(name), 
 export const figure = (pose: Pose, cls = 'mascot-fig') => artSpan(mascotSvg(pose), cls);
 /** A small campus mark (landmark or dogwood), e.g. before a page title. Decorative only. */
 export const campus = (name: Campus, cls = 'h-glyph') => artSpan(campusSvg(name), cls);
+/** A small time-of-day picture before a meal-slot heading (Breakfast → sunrise). Decorative only. */
+export const skyGlyph = (sky: Sky, cls = 'h-glyph') => artSpan(skySvg(sky), cls);
 
 let wrap: HTMLElement | null = null;
 let fig: HTMLElement | null = null;

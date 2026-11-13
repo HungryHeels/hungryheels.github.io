@@ -5,18 +5,19 @@ import { build } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { writeRestaurantData } from './build-restaurants.ts';
+import { iconDataUri, iconSvg } from '../src/pwa/icon.ts';
 
 writeRestaurantData();   // data/restaurants/ -> src/client/restaurant-data.ts (fails the build on invalid files)
 
 const result = await build({ entryPoints: ['src/client/standalone.ts'], bundle: true, minify: true, format: 'iife', target: ['es2020', 'safari15'], write: false, legalComments: 'none' });
 const js = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 const css = readFileSync('src/client/style.css', 'utf8');
-const tpl = readFileSync('src/client/index.template.html', 'utf8');
+const tpl = readFileSync('src/client/index.template.html', 'utf8').replace('/*ICON*/', () => iconDataUri());
 const single = tpl.replace('/*CSS*/', () => css).replace('/*JS*/', () => js);
 const version = createHash('sha256').update(single).digest('hex').slice(0, 12);
 const sw = readFileSync('src/pwa/sw.template.js', 'utf8').replace('/*VERSION*/', version);
 const manifest = readFileSync('src/pwa/manifest.webmanifest', 'utf8');
-const icon = readFileSync('src/pwa/icon.svg', 'utf8');
+const icon = iconSvg();   // the mascot, from src/pwa/icon.ts
 writeFileSync('HungryHeels.html', single);
 writeFileSync('index.html', single);
 mkdirSync('web', { recursive: true });
