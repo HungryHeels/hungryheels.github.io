@@ -571,7 +571,7 @@ body.sheet-open{overflow:hidden}
 .quad{height:72px;overflow:hidden;line-height:0;border-bottom:1px solid var(--line);display:flex;justify-content:center;background:var(--q-sky)}
 .quad svg{display:block;flex:none;height:100%;width:auto}
 @media (max-width:959px){.quad{height:48px}}
-@media (max-width:759px){.quad{height:14px}}
+@media (max-width:759px){.quad{height:40px}}
 .q-sky{fill:var(--q-sky)} .q-cloud{fill:var(--q-cloud)} .q-grass{fill:var(--q-grass)} .q-oak{fill:var(--q-oak)} .q-oak2{fill:var(--q-oak2)} .q-trunk{fill:var(--q-trunk)}
 .q-brick{fill:var(--q-brick)} .q-joint{fill:none;stroke:var(--q-joint);stroke-width:1.5;stroke-dasharray:14 8}
 .q-post{stroke:var(--q-post);stroke-width:2.5} .q-light{fill:var(--q-light)}
