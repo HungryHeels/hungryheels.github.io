@@ -28,6 +28,7 @@ No UNC logos, wordmarks, seals or trademarked colors used as branding. The word 
 | `--warn` / `--warn-bg` | `#7a4800` / `#fdf1da` | `#ffd27f` / `#33260b` | **Warnings only:** “Contains …”, unsure, stale, confirm with staff. Never for neutral information. |
 | `--bad` / `--bad-bg` | `#a3201f` / `#fde9e8` | `#ffaaa5` / `#3a1514` | Not for you, removed |
 | `--info` / `--info-bg` | `#0f2a52` / `#eaf1fb` | `#dbe7f8` / `#15213a` | Neutral notes (estimates, shared profile) |
+| `--label-bg` / `--label-fg` | `#ffffff` / `#000000` | `#000000` / `#ffffff` | Ingredients label panel in dish details only (store-label look: black on white, inverted in dark) |
 | `--focus` | `#0a60cc` | `#8cc2ff` | Focus ring (3px, 2px offset; inset inside tracks) |
 | `--overlay` | `rgba(9,13,22,.42)` | `rgba(0,0,0,.6)` | Dims the page behind dish details |
 
@@ -70,6 +71,7 @@ Radius: `--r1` 8 (inputs), `--r2` 12 (buttons, tracks, banners), `--r3` 18 (card
 - **Cards:** `--card`, 1px `--line`, `--r3`, 16px padding (24px from 760px). One card per idea; never a grid of identical marketing cards.
 - **Lists** (plate, menu items, Me rows): an inset group with hairline separators; whole rows are native buttons with a hover tint.
 - **Disclosures:** `<details>` with one hairline chevron that turns when open.
+- **Ingredients label** (dish details): one bordered panel in `--label-bg`/`--label-fg`, `--fs-sm` at 1.3 leading, square corners (it imitates a printed label, not the app's material). Bold uppercase “INGREDIENTS:” heading (a real h3, uppercased by CSS) followed by the ingredients as one flowing paragraph that is an inline `ul` (commas and brackets are real text). A ruled “CONTAINS:” line lists only allergens UNC declares. Under it: a `.prov` source line and a “Show original text” disclosure. Never claims weight order, “free of” or allergy safety.
 - **Chips:** status words with a symbol, `--fs-2xs`, pill radius.
 - **Footer:** hairline top, no fill: the allergy disclaimer, the unaffiliated notice, and links to About, Privacy, Update menus, Report a problem and Source code.
 

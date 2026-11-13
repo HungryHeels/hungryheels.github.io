@@ -4,6 +4,7 @@ import { closeSheet, render, announce } from './nav.ts';
 import { chip, DISCLAIMER, nutritionGrid, provenanceLine, sourceBadge, useEst } from './ui.ts';
 import { checkList, profileSummary } from './views.ts';
 import { saveManual } from './imports.ts';
+import { ingredientsLabel } from './view-label.ts';
 import { evaluateItem, explainChecks } from '../core/engine.ts';
 import { labelConflict, reportIssueUrl } from '../core/trust.ts';
 import { checkManual, type ManualEntry } from '../sources/nutrition-import.ts';
@@ -68,9 +69,7 @@ export function sheetView(): HTMLElement | null {
       : [n.calories, n.fat, n.carbs].some(v => v === null || v === undefined) ? h('p', { class: 'muted' }, 'Missing values are shown as unknown.') : null,
     it.warnings.filter(w => /not plausible/.test(w)).map(w => h('p', { class: 'warn-text' }, w)),
     h('details', { class: 'more' }, h('summary', null, n.source === 'user' ? 'Edit the values you entered' : 'Enter values from UNC’s item panel'), manualForm(day, it)),
-    h('h3', null, 'Allergens'),
-    h('p', null, it.allergens.length ? `UNC lists: ${it.allergens.map(a => a.replace('_', ' ')).join(', ')}.` : 'UNC lists no major allergens.', ' ', h('span', { class: 'muted' }, 'Lists can be incomplete.')),
-    h('h3', null, 'Ingredients'), h('p', { class: 'ingr' }, it.ingredients ?? 'Not published (treated as unknown).'),
+    ingredientsLabel(day, it),
     h('details', { class: 'more' }, h('summary', null, 'Why, labels and source'),
       h('h4', null, 'Rule checks'), checkList(explainChecks(it, S.profile)),
       h('h4', null, 'UNC labels'), h('p', null, labels.join(' · ') || 'None published.'),
