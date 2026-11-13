@@ -55,3 +55,13 @@ test('art: the campus band draws each landmark once, in the middle, and scales b
 test('art: each campus sprite is drawn differently', () => {
   assert.equal(new Set(CAMPUS.map(campusSvg)).size, CAMPUS.length);
 });
+
+test('art: local favourites get their own glyph only when the dish name says so', () => {
+  assert.equal(keywordSprite('Chicken Biscuit'), 'biscuit');
+  assert.equal(keywordSprite('Eastern Carolina Pulled Pork'), 'bbq');
+  assert.equal(keywordSprite('Hushpuppies'), 'bbq');
+  assert.equal(keywordSprite('Sweet Tea'), 'tea');
+  assert.equal(keywordSprite('Hot Tea'), 'coffee');
+  assert.equal(keywordSprite('BBQ Chicken Pizza'), 'pizza');
+  assert.equal(keywordSprite('Roasted Pork Loin'), null);
+});

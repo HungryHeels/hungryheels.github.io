@@ -89,7 +89,7 @@ function header(): HTMLElement {
 }
 function footer(): HTMLElement {
   return h('footer', { class: 'site-footer' }, h('div', { class: 'wrap footer-in' },
-    h('div', null, h('div', { class: 'footer-art', 'aria-hidden': 'true' }, campus('stadium', 'f-glyph'), campus('library', 'f-glyph'), campus('belltower', 'f-glyph'), campus('dogwood', 'f-glyph')),
+    h('div', null, h('div', { class: 'footer-art', 'aria-hidden': 'true' }, campus('stadium', 'f-glyph'), campus('library', 'f-glyph'), campus('belltower', 'f-glyph'), campus('dogwood', 'f-glyph'), campus('hoops', 'f-glyph')),
       h('p', null, h('strong', null, DISCLAIMER)),
       h('p', null, 'Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services. Menus come only from pages saved by hand; this site never contacts dining.unc.edu.'),
       h('p', null, 'Sweetgreen and Chipotle are named only to identify them. Hungry Heels is not affiliated with, endorsed by or sponsored by either; their information is used only as they publish it.')),
