@@ -139,6 +139,15 @@ const parts = (m: { parts: Array<{ item: MenuItem; component?: string }> }) => m
 function assertValidBowl(m: { parts: Array<{ item: MenuItem }> }, menu: RestaurantMenu, p: Profile, where: string) {
   const ps = parts(m);
   const n = (r: string) => ps.filter(x => x.component === r).length;
+  for (const x of ps) assert.ok(['match', 'potential'].includes(evaluateItem(x.item, p).status), `${where}: ${x.item.name} passes the rules`);
+  if (!menu.components.some(c => c.role === 'base')) {
+    // Menu-item restaurants: one published item, at most one published side, nothing else, and never a kids' meal.
+    assert.equal(n('dish'), 1, `${where}: exactly one menu item`);
+    assert.ok(n('side') <= 1 && ps.length === n('dish') + n('side'), `${where}: at most one side and nothing else`);
+    const dish = menu.components.find(c => c.item === ps.find(x => x.component === 'dish')!.item)!;
+    assert.ok(!/kids?/i.test(dish.category ?? ''), `${where}: no kids' meal suggested`);
+    return;
+  }
   assert.equal(n('base'), 1, `${where}: exactly one base`);
   const prot = ps.filter(x => x.component === 'protein');
   assert.ok(prot.length <= 1 || (prot.length === 2 && menu.components.some(c => c.extra?.item === prot[1].item)), `${where}: one protein (plus its published extra at most)`);
@@ -188,7 +197,7 @@ for (const [label, menu] of MENUS) {
       } else {
         assert.ok(r.meals.length > 0, where);
         for (const b of r.meals) assertValidBowl(b, menu, p, where);
-        if (pat === 'carnivore' || pat === 'animal_based') for (const b of r.meals) assert.ok(parts(b).some(x => x.component === 'protein'), `${where}: animal protein required`);
+        if ((pat === 'carnivore' || pat === 'animal_based') && menu.components.some(c => c.role === 'base')) for (const b of r.meals) assert.ok(parts(b).some(x => x.component === 'protein'), `${where}: animal protein required`);
       }
     }
     if (label === 'synthetic fixture') {
@@ -271,4 +280,61 @@ test('official info links point to each restaurant’s own site over https', asy
     assert.equal(u.protocol, 'https:');
     assert.ok(u.hostname === RESTAURANT_DOMAINS[id] || u.hostname.endsWith('.' + RESTAURANT_DOMAINS[id]), id);
   }
+});
+
+// ---------------- real data: Sweetgreen, 122 East Franklin Street (official store page, Nov 12, 2026) ----------------
+const SG = REAL.find(m => m.id === 'sweetgreen');
+test('Sweetgreen (real): provenance, permission, hours and the store address are recorded', { skip: !SG && 'no Sweetgreen data' }, () => {
+  const m = SG!;
+  assert.equal(m.provenance.sourceUrl, 'https://www.sweetgreen.com/nutrition/chapel-hill');
+  assert.equal(m.provenance.documentDate, 'November 12, 2026');
+  assert.equal(m.provenance.retrievedAt, '2026-11-12T20:36:26-05:00');
+  assert.match(m.provenance.permission, /The sweetgreen team/);
+  assert.ok(!/Joshua/.test(m.provenance.permission), 'no personal name in the public repo');
+  assert.equal(m.scope, 'store');
+  assert.equal(m.address, '122 East Franklin Street, Chapel Hill, NC');
+  assert.deepEqual(m.hours, { text: 'Mon - Sun 10:00am - 10:00pm', sourceUrl: 'https://www.sweetgreen.com/locations/chapel-hill' });
+  assert.equal(m.components.length, 57, 'all 57 rows of the eight published tables');
+});
+test('Sweetgreen (real): rows are copied exactly as published', { skip: !SG && 'no Sweetgreen data' }, () => {
+  const by = (name: string) => SG!.components.find(c => c.item.name === name)!;
+  const j = by('Jammy Sunday Chicken');
+  assert.deepEqual([j.item.nutrition.calories, j.item.nutrition.protein, j.item.nutrition.fat, j.item.nutrition.carbs, j.item.nutrition.sodium], [960, 40, 47, 99, 2210]);
+  assert.deepEqual(j.item.allergens, ['milk', 'egg', 'wheat', 'soy', 'gluten']);
+  assert.equal(j.category, 'Warm Plates');
+  assert.equal(j.serving, '582 g');
+  assert.match(j.item.ingredients!, /^Umami Rice \(190g\), Spicy Broccoli/);
+  assert.deepEqual(by('Caramelized Garlic Steak').item.allergens, [], 'Sweetgreen declares "None"');
+  assert.deepEqual(by('Miso Glazed Salmon').item.allergens.sort(), ['fish', 'gluten', 'sesame', 'soy', 'tree_nut', 'wheat']);
+  assert.equal(by('Ginger Greens (Regular)').item.ingredients, null, '"not available online" stays unknown');
+  assert.equal(by('Jammy Sunday Chicken').item.nutrition.source, 'official');
+});
+test('Sweetgreen (real): the kitchen-wide cross-contamination statement excludes everything for every allergy and strict avoid', { skip: !SG && 'no Sweetgreen data' }, () => {
+  const m = SG!;
+  assert.match(m.crossContact[0].text, /not allergen-free environments and cross-contamination may occur/);
+  for (const c of m.components) assert.ok(['milk', 'egg', 'wheat', 'gluten', 'soy', 'sesame', 'fish', 'shellfish', 'peanut', 'tree_nut'].every(a => c.item.allergens.includes(a) || c.item.mayContain!.includes(a)), c.item.name);
+  for (const rule of [...ALLERGEN_IDS.map(a => ({ allergens: [a] })), { avoidGluten: true }, { avoidDairy: true }, { avoidEgg: true }] as Array<Partial<Profile>>) {
+    const r = buildBowls(m, { ...defaultProfile('none'), ...rule });
+    assert.ok(r.noMeal && /not loosened/.test(r.banner!), JSON.stringify(rule));
+  }
+  const none = buildBowls(m, defaultProfile('none'));
+  assert.ok(!none.noMeal && none.meals.every(x => x.tier === 'confirmed'), 'no diet, no allergy: confirmed picks');
+  const vegan = buildBowls(m, defaultProfile('vegan'));
+  assert.ok(vegan.meals.every(x => x.tier === 'possible'), 'vegan: only possible picks, because of the may-contain statement');
+  assert.ok(vegan.meals.every(x => !/chicken|steak|salmon|tuna|caesar|ranch/i.test(x.parts.map(q => q.item.name + ' ' + (q.item.ingredients ?? '')).join(' '))));
+});
+
+test('Sweetgreen: components.csv is exactly what the extractor produces from the saved official page', async t => {
+  const { existsSync } = await import('node:fs');
+  const src = 'data/restaurants/sweetgreen/source/nutrition-chapel-hill.html';
+  if (!existsSync(src)) { t.skip('saved page is git-ignored and not present in this checkout'); return; }
+  const { createHash } = await import('node:crypto');
+  const html = readFileSync(src, 'utf8');
+  assert.equal(createHash('sha256').update(html).digest('hex'), SG!.provenance.sha256, 'the saved page is the one recorded in source.json');
+  const { extractSweetgreen } = await import('../scripts/extract-sweetgreen.ts');
+  const x = extractSweetgreen(html);
+  const csv = (v: string) => (/[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v);
+  assert.equal([x.header, ...x.rows].map(r => r.map(csv).join(',')).join('\n') + '\n', readFileSync('data/restaurants/sweetgreen/components.csv', 'utf8'));
+  assert.equal(x.lastUpdated, 'November 12, 2026');
+  assert.equal(x.crossContact, SG!.crossContact[0].text);
 });

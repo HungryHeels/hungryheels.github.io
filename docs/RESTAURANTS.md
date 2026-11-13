@@ -1,10 +1,45 @@
 # Franklin Street restaurants: Sweetgreen and Chipotle
 
-Status (Nov 12, 2026, New York time): **blocked by the restaurants' terms of use; waiting for written permission.**
-The place picker, importer, bowl builder and audits are built and tested, but no Sweetgreen or Chipotle data is in
-the app. Both places show “No … data yet” and recommend nothing. Nothing from either site was downloaded or copied.
+Status (Nov 12, 2026, New York time):
+- **Sweetgreen: live.** Official data for the 122 East Franklin Street store, from Sweetgreen's own page
+  https://www.sweetgreen.com/nutrition/chapel-hill (“Last updated November 12, 2026”), retrieved once at
+  2026-11-12T20:36:26-05:00, used under the permission recorded in `data/restaurants/sweetgreen/source.json`
+  (condition: the site stays unofficial and for personal use only). Official store hours from
+  https://www.sweetgreen.com/locations/chapel-hill. 57 published items, extracted by `scripts/extract-sweetgreen.ts`.
+- **Chipotle: permission recorded, no data yet** (see “Chipotle” below).
 
-## Why there is no data
+## Permission (recorded Nov 12, 2026)
+The site owner provided two emails and stated they came from the restaurants. Neither could be verified from the
+build environment (no sender address or date was provided); keep the originals. If either restaurant says it did not
+grant this, remove its data.
+- Sweetgreen, signed “The sweetgreen team”: use is fine “as long as you keep the site for unofficial and personal use only”.
+- Chipotle, signed “The Team at Chipotle”: access to its Chapel Hill store information, “as long as you keep this open
+  source and don't charge for it”; later relayed as “can't be used in a monetized site”. Hungry Heels charges nothing
+  and has no ads. Note: the repository has **no open-source license file yet**; adding one is the owner's decision.
+
+## Sweetgreen: what the data is
+- Sweetgreen's page lists **finished menu items** (Warm Plates, Wraps, Bowls, Salads, Kids Meals, Sides, Dessert,
+  Drinks) with serving size, calories, fat, carbs, protein, sodium, fiber, sugar, “Contains gluten?” and allergens,
+  plus each item's ingredient list (by component name and grams). Custom-bowl ingredient nutrition is only in
+  Sweetgreen's ordering system, which is not used, so the app recommends **one published item** (plus a published
+  side when you set targets), never a custom bowl. Kids' meals, desserts and drinks are listed on Menus, never suggested.
+- Sweetgreen's statement “Sweetgreen kitchens are not allergen-free environments and cross-contamination may occur”
+  covers every allergen, so anyone with an allergy or a gluten, dairy or egg avoid gets an honest “No meal fits”, and
+  vegetarian and vegan picks are “possible” (cross-contact with fish, milk and egg can't be ruled out).
+- No vegan or vegetarian labels are published; diet rules use the allergen declarations and ingredient lists.
+- To refresh: save https://www.sweetgreen.com/nutrition/chapel-hill to
+  `data/restaurants/sweetgreen/source/nutrition-chapel-hill.html`, run `npx tsx scripts/extract-sweetgreen.ts`, update
+  `retrievedAt`, `sha256` and `documentDate` in `source.json`, then `npm run check` and `npm run build`.
+
+## Chipotle
+Chipotle's nutrition calculator (https://www.chipotle.com/nutrition-calculator) and its allergen chart
+(https://www.chipotle.com/allergens) are not in the pages themselves: both are filled in by Chipotle's ordering app
+from `services.chipotle.com`. The original sourcing rule for this feature excludes ordering systems and APIs, so that
+was not called, and nothing was copied. Ways forward: ask Chipotle for a file (PDF or spreadsheet) of the Chapel Hill
+store's nutrition and allergens; or type the values in by hand from the calculator into `components.csv` following
+the rules below; or the owner explicitly lifts the no-API rule for this one source.
+
+## History: why there was no data at first
 The rule for these places: use only each restaurant's **own officially published** nutrition and allergen
 information, and before downloading anything read the site's `robots.txt` and terms of use; fetch only if both allow
 it. On Nov 12, 2026 (about 8 pm New York time) both were read, after the two hosts were allowed in the cloud
@@ -18,7 +53,7 @@ environment's network settings:
 Publishing either restaurant's nutrition or allergen tables on a public website (GitHub Pages) would be copying,
 distributing and displaying their content. That is true whether a tool downloads it or a person types it in by hand,
 so **saving the files by hand does not get around this**. The data stays out until a restaurant gives written
-permission. Facts such as a single number may not be protected the
+permission (requests to send: `docs/EMAIL_TO_RESTAURANTS.md`). Facts such as a single number may not be protected the
 same way everywhere, but this project does not rely on that: the terms say no, so the answer is no until they say yes.
 
 Meanwhile, each restaurant page links to the restaurant's own nutrition and allergen page (found from the links on
