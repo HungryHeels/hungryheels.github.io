@@ -8,6 +8,8 @@ import { chip, copyText, DISCLAIMER, downloadText, numField, sw, UNOFFICIAL } fr
 import { routeHash } from './router.ts';
 import { expandAvoid } from '../core/engine.ts';
 import { recheckSaved } from '../core/plan.ts';
+import { recheckRestaurantSaved } from '../core/restaurant-meals.ts';
+import { RESTAURANT_NAMES } from '../core/restaurant.ts';
 import { ALLERGEN_IDS, ALLERGEN_LABELS, ANIMAL_BASED_DEFAULT, PATTERN_DEFINITIONS, PATTERN_LABELS, defaultProfile, type PatternId } from '../core/profile.ts';
 import { EXTRA_PRESETS, exportProfiles, importProfiles, profileToHash } from '../core/profile-io.ts';
 import { HALL_NAMES } from '../core/types.ts';
@@ -88,13 +90,13 @@ function saved(): HTMLElement {
   if (!S.saved.length) return sec('saved', 'Saved meals', h('div', { class: 'with-fig' }, figure('idle', 'state-fig'), h('p', { class: 'muted' }, 'Tap ☆ Save on a meal to keep it here. Saved meals are re-checked against your current rules, and their mains are suggested a little later for a week so you get variety.')));
   return sec('saved', `Saved meals (${S.saved.length})`,
     h('ul', { class: 'saved' }, S.saved.map(s => {
-      const chk = recheckSaved(s, dayFor(s.hall, s.date), S.profile);
+      const chk = s.place ? recheckRestaurantSaved(s, S.restaurants.find(x => x.id === s.place) ?? null, S.profile) : recheckSaved(s, dayFor(s.hall, s.date), S.profile);
       return h('li', { class: 'card' },
-        h('div', { class: 'cmp-head' }, h('strong', null, `${s.period} · ${HALL_NAMES[s.hall]} · ${formatDate(s.date)}`), chk.ok ? (chk.notes.length ? chip('Mostly confirmed', 'warn') : chip('Still fits', 'ok')) : chip('No longer fits', 'bad')),
+        h('div', { class: 'cmp-head' }, h('strong', null, s.place ? `${RESTAURANT_NAMES[s.place]} · saved ${formatDate(s.date)}` : `${s.period} · ${HALL_NAMES[s.hall]} · ${formatDate(s.date)}`), chk.ok ? (chk.notes.length ? chip('Mostly confirmed', 'warn') : chip('Still fits', 'ok')) : chip('No longer fits', 'bad')),
         h('p', null, s.parts.map(x => x.name + (x.portions > 1 ? ` ×${x.portions}` : '')).join(' + ')),
         chk.problems.length ? h('ul', { class: 'notes' }, chk.problems.map(x => h('li', null, x))) : null,
         h('div', { class: 'actions' },
-          chk.ok ? h('a', { class: 'btn', href: routeHash({ page: 'today', hall: s.hall, date: s.date, period: s.period }) }, 'Open') : null,
+          chk.ok ? h('a', { class: 'btn', href: s.place ? routeHash({ page: 'today', place: s.place }) : routeHash({ page: 'today', hall: s.hall, date: s.date, period: s.period }) }, 'Open') : null,
           h('button', { type: 'button', class: 'quiet danger', 'aria-label': `Remove saved meal ${s.parts[0]?.name ?? ''}`, onClick: () => go(() => { S.saved = S.saved.filter(x => x !== s); saveSaved(); }, 'Removed.') }, 'Remove')));
     })));
 }

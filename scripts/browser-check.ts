@@ -265,8 +265,8 @@ for (const name of engines) {
     ok(boxes.every((b: any) => b.h >= 44 && b.w >= 100 && b.r <= w) && new Set(boxes.map((b: any) => Math.round(b.y))).size === 2, `place buttons are 2 x 2, at least 44px tall and fully visible at ${w}px`);
     // Sweetgreen: real official data for the Franklin Street store. The profile here is "Vegan · Peanut allergy", and
     // Sweetgreen says cross-contamination may occur with any allergen, so the honest answer is "No meal fits".
-    await p.getByRole('button', { name: 'Sweetgreen' }).click();
-    ok(await p.getByRole('button', { name: 'Sweetgreen' }).getAttribute('aria-pressed') === 'true', 'Sweetgreen selected (aria-pressed)');
+    await p.locator('[data-fk="place:sweetgreen"]').click();
+    ok(await p.locator('[data-fk="place:sweetgreen"]').getAttribute('aria-pressed') === 'true', 'Sweetgreen selected (aria-pressed)');
     ok((await p.evaluate(() => location.hash)) === '#/?place=sweetgreen', 'restaurant is in the address, without a date or meal');
     const sgTxt = await p.locator('main').innerText();
     ok(/122 East Franklin Street/.test(sgTxt) && /Mon - Sun 10:00am - 10:00pm/.test(sgTxt) && /last updated November 12, 2026/.test(sgTxt), 'Sweetgreen shows the store address, official hours and the page date');
@@ -282,22 +282,35 @@ for (const name of engines) {
     const pick = await p.locator('article.meal').innerText();
     ok(/Menu item/.test(pick) && /Nutrition: Official/.test(pick) && /Fits your rules/.test(pick), 'the pick is a published item with official numbers');
     ok(!/Kids/.test(await p.locator('article.meal .plate').innerText()), 'no kids’ meal suggested');
+    const pickName = (await p.locator('article.meal .plate-name').first().innerText()).trim();
+    await p.locator('[data-fk=save-meal]').click();
+    ok(await p.locator('[data-fk=save-meal]').getAttribute('aria-pressed') === 'true', 'a Sweetgreen pick can be saved');
+    await p.locator('[data-fk="nav:me"]').click();
+    await p.waitForSelector('#me-saved');
+    const savedTxt = await p.locator('#me-saved').innerText();
+    ok(/Sweetgreen · saved/.test(savedTxt) && savedTxt.includes(pickName) && /Still fits/.test(savedTxt), 'the saved Sweetgreen pick is on Me and re-checked (still fits)');
+    ok(await p.locator('#me-saved a.btn', { hasText: 'Open' }).first().getAttribute('href') === '#/?place=sweetgreen', 'Open goes back to Sweetgreen');
+    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.profile = { ...hh.S.profile, allergens: ['peanut'] }; hh.render(); });
+    ok(/No longer fits/.test(await p.locator('#me-saved').innerText()), 'with a peanut allergy the saved Sweetgreen pick no longer fits (cross-contamination statement)');
+    await p.evaluate(() => { const hh = (window as any).__hh; hh.S.profile = { ...hh.S.profile, allergens: [] }; hh.render(); });
+    await p.locator('#me-saved a.btn', { hasText: 'Open' }).first().click();
+    await p.waitForSelector('article.meal');
     await p.locator('.site-nav a', { hasText: 'Menus' }).click();
     await p.waitForSelector('details.comp');
     ok(await p.locator('.station-group h2', { hasText: 'Warm Plates' }).count() === 1 && await p.locator('.station-group h2', { hasText: 'Drinks' }).count() === 1, 'Sweetgreen Menus uses Sweetgreen’s own sections');
     ok(await noHScroll(p), `no horizontal scroll on Sweetgreen Menus at ${w}px`);
     await p.locator('.site-nav a', { hasText: 'Today' }).click();
     // Chipotle: no data yet; links to Chipotle's own page.
-    await p.getByRole('button', { name: 'Chipotle' }).click();
+    await p.locator('[data-fk="place:chipotle"]').click();
     const cpTxt = await p.locator('main').innerText();
     ok(/No Chipotle data yet/.test(cpTxt) && /Nothing is guessed/.test(cpTxt), 'Chipotle without data says so and recommends nothing');
     ok(await p.locator('a[data-fk=official-info]').getAttribute('href') === 'https://www.chipotle.com/nutrition-calculator' && await p.locator('a[data-fk=official-info]').getAttribute('target') === '_blank', 'links to Chipotle’s own nutrition page (opens in a new tab, nothing fetched)');
     ok(/Hours unknown/.test(cpTxt) && /national published menu/.test(cpTxt), 'Chipotle: hours unknown and national-menu caveat');
     ok((await p.locator('.site-footer').innerText()).includes('not affiliated with, endorsed by or sponsored by either'), 'footer: restaurants named only to identify them');
     await p.evaluate((sp: string) => { const hh = (window as any).__hh; hh.S.profile = JSON.parse(sp); hh.render(); }, savedProfile);
-    await p.getByRole('button', { name: 'Chase' }).click();
+    await p.locator('[data-fk="place:chase"]').click();
     await p.evaluate((m: unknown) => { const hh = (window as any).__hh; hh.S.restaurants = [m]; hh.render(); }, FIXTURE_MENU);
-    await p.getByRole('button', { name: 'Chipotle' }).click();
+    await p.locator('[data-fk="place:chipotle"]').click();
     await p.waitForSelector('article.meal');
     ok(await p.locator('#meal-h').innerText() === 'Bowl at Chipotle', 'Chipotle (synthetic fixture) shows a bowl');
     const bowl = await p.locator('article.meal .plate').innerText();
@@ -319,9 +332,15 @@ for (const name of engines) {
     ok(await noHScroll(p), `no horizontal scroll on restaurant Menus at ${w}px`);
     await p.goBack(); await p.waitForSelector('article.meal');
     ok((await p.evaluate(() => location.hash)) === '#/?place=chipotle', 'Back returns to the restaurant bowl');
-    await p.getByRole('button', { name: 'Chase' }).click();
+    await p.locator('[data-fk="place:chase"]').click();
     await p.waitForSelector('article.meal');
     ok((await p.evaluate(() => location.hash)).includes('hall=chase') && /at Chase/.test(await p.locator('#meal-h').innerText()), 'switching back to Chase restores the dining-hall meal');
+    const near = await p.locator('#nearby-h').locator('..').innerText();
+    ok(/On Franklin Street/.test(near) && /Sweetgreen/.test(near) && /Chipotle/.test(near), 'dining-hall Today has an "On Franklin Street" card');
+    await p.locator('[data-fk="nearby:sweetgreen"]').click();
+    ok((await p.evaluate(() => location.hash)) === '#/?place=sweetgreen', 'the card switches to Sweetgreen');
+    await p.locator('[data-fk="place:chase"]').click();
+    await p.waitForSelector('article.meal');
 
     // Estimates: marked with "~" and explained; never shown when switched off.
     await go('#/menus?hall=chase&date=2026-11-16&period=Dinner'); await asNone();

@@ -338,3 +338,22 @@ test('Sweetgreen: components.csv is exactly what the extractor produces from the
   assert.equal(x.lastUpdated, 'November 12, 2026');
   assert.equal(x.crossContact, SG!.crossContact[0].text);
 });
+
+// ---------------- saved restaurant picks ----------------
+test('saved restaurant pick: re-checked against the current rules and data, never bypassing them', async () => {
+  const { toSavedRestaurant, recheckRestaurantSaved } = await import('../src/core/restaurant-meals.ts');
+  const m = fixture();
+  const meal = buildBowls(m, defaultProfile('none')).meals[0];
+  const s = toSavedRestaurant(meal, m, 'chase', new Date('2026-11-13T03:00:00Z'));
+  assert.equal(s.place, 'chipotle');
+  assert.equal(s.date, '2026-11-12', 'saved date is New York time');
+  assert.equal(s.id, 'chipotle:' + meal.id);
+  assert.deepEqual(recheckRestaurantSaved(s, m, defaultProfile('none')).ok, true);
+  // A rule added later is applied to the saved pick.
+  const anyDeclared = meal.parts.flatMap(x => x.item.allergens)[0] as any;
+  if (anyDeclared && ALLERGEN_IDS.includes(anyDeclared)) assert.equal(recheckRestaurantSaved(s, m, { ...defaultProfile('none'), allergens: [anyDeclared] }).ok, false);
+  assert.equal(recheckRestaurantSaved(s, m, { ...defaultProfile('none'), avoidIngredients: [meal.parts[0].item.name.toLowerCase()] }).ok, false, 'a custom avoid of the item itself fails');
+  assert.equal(recheckRestaurantSaved(s, null, defaultProfile('none')).ok, false, 'data gone: says so');
+  const gone = { ...s, parts: [...s.parts, { id: 'chipotle:not-there', name: 'Gone Item', portions: 1 }] };
+  assert.match(recheckRestaurantSaved(gone, m, defaultProfile('none')).problems.join(), /Gone Item is no longer on Chipotle/);
+});

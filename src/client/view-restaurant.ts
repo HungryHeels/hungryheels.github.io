@@ -1,12 +1,12 @@
 // Franklin Street restaurants (Sweetgreen, Chipotle): a bowl built from the restaurant's own published components,
 // and the full component list. No dates or meal periods; hours are unknown unless an official source states them.
 import { h, clear } from './dom.ts';
-import { S, activeName } from './state.ts';
+import { S, activeName, saveSaved } from './state.ts';
 import { go } from './nav.ts';
 import { chip, copyText, DISCLAIMER, kcalLine, nutritionGrid, sourceBadge, tt } from './ui.ts';
 import { checkList, contributionTable, gapList, profileSummary, ruleTable } from './views.ts';
 import { href, placeSwitch } from './view-common.ts';
-import { buildBowls, bowlText, mealTitle, type BowlResult } from '../core/restaurant-meals.ts';
+import { buildBowls, bowlText, mealTitle, toSavedRestaurant, type BowlResult } from '../core/restaurant-meals.ts';
 import { evaluateItem, explainChecks } from '../core/engine.ts';
 import { gapReadout } from '../core/plan.ts';
 import { mealChecklist, reportIssueUrl, staffFlags } from '../core/trust.ts';
@@ -14,7 +14,7 @@ import { formatSaved } from '../core/schedule.ts';
 import type { Meal, MealPart } from '../core/meals.ts';
 import type { MenuItem } from '../core/types.ts';
 import {
-  HOURS_UNKNOWN, LOCATION_NOTE, RESTAURANT_INFO, STORE_MENU_NOTE, NATIONAL_MENU_NOTE, NOT_AFFILIATED, RESTAURANT_NAMES, ROLE_LABELS, ROLE_PLURAL, ROLES,
+  HOURS_UNKNOWN, LOCATION_NOTE, RESTAURANT_IDS, RESTAURANT_INFO, STORE_MENU_NOTE, NATIONAL_MENU_NOTE, NOT_AFFILIATED, RESTAURANT_NAMES, ROLE_LABELS, ROLE_PLURAL, ROLES,
   type ComponentRole, type RestaurantId, type RestaurantMenu,
 } from '../core/restaurant.ts';
 
@@ -101,6 +101,8 @@ function totals(m: Meal): HTMLElement {
 }
 
 function bowlCard(m: Meal, menu: RestaurantMenu, r: BowlResult, idx: number): HTMLElement {
+  const sid = `${menu.id}:${m.id}`;
+  const saved = S.saved.some(s => s.id === sid);
   const share = async () => {
     const t = bowlText(m, menu, DISCLAIMER);
     if (typeof navigator.share === 'function') { try { await navigator.share({ text: t }); return; } catch { /* fall back to copying */ } }
@@ -117,7 +119,11 @@ function bowlCard(m: Meal, menu: RestaurantMenu, r: BowlResult, idx: number): HT
     gapList(gapReadout(m.totals, S.profile.targets, null, false)),
     m.unknownNutrition.length ? h('p', { class: 'muted' }, `${menu.name} publishes no value for some numbers of ${m.unknownNutrition.join(', ')}, so “+” totals are minimums. Nothing is estimated here.`) : null,
     staffBox(m, menu),
-    h('div', { class: 'meal-actions' }, h('button', { type: 'button', 'data-fk': 'share-meal', onClick: () => void share() }, 'Share')),
+    h('div', { class: 'meal-actions' },
+      h('button', { type: 'button', 'aria-pressed': saved, 'data-fk': 'save-meal', onClick: () => go(() => {
+        S.saved = saved ? S.saved.filter(s => s.id !== sid) : [toSavedRestaurant(m, menu, S.hall), ...S.saved]; saveSaved();
+      }, saved ? 'Removed from saved meals.' : 'Saved. Find it on the Me page.') }, saved ? '★ Saved' : '☆ Save'),
+      h('button', { type: 'button', 'data-fk': 'share-meal', onClick: () => void share() }, 'Share')),
     h('details', { class: 'more' }, h('summary', null, 'Why it fits, ingredients and other ideas'),
       h('h3', null, 'Rule checklist'), ruleTable(mealChecklist(m, S.profile)),
       h('h3', null, 'Ingredients'),
@@ -232,3 +238,20 @@ export function restaurantMenus(id: RestaurantId): HTMLElement {
   return v;
 }
 
+
+/** Side card on the dining-hall Today page: the best pick at each Franklin Street restaurant for your rules. */
+export function nearbyCard(): HTMLElement {
+  return h('section', { class: 'card side', 'aria-labelledby': 'nearby-h' },
+    h('h2', { id: 'nearby-h' }, 'On Franklin Street'),
+    h('ol', { class: 'cmp' }, RESTAURANT_IDS.map(id => {
+      const menu = menuFor(id);
+      const r = menu ? buildBowls(menu, S.profile) : null;
+      const best = r && !r.noMeal ? r.meals[0] : null;
+      return h('li', null,
+        h('div', { class: 'cmp-head' }, h('strong', null, RESTAURANT_NAMES[id]),
+          !menu ? chip('No data yet', 'info') : best ? (best.tier === 'confirmed' ? chip('Fits', 'ok') : chip('Mostly confirmed', 'warn')) : chip('No meal', 'bad')),
+        best ? [h('p', null, best.parts.map(x => x.item.name).join(' + ')), h('small', null, `${tt(best.totals.calories, 'calories')} · ${tt(best.totals.protein, 'protein')} protein · ${menu!.hours ? 'Hours ' + menu!.hours.text : 'hours unknown'}`)]
+          : h('small', null, !menu ? `No published ${RESTAURANT_NAMES[id]} data in Hungry Heels yet.` : 'Nothing there passes your rules.'),
+        h('div', null, h('button', { type: 'button', class: 'quiet', 'data-fk': 'nearby:' + id, onClick: () => go(() => { S.place = id; S.idea = 0; }, `Showing ${RESTAURANT_NAMES[id]}.`) }, `Switch to ${RESTAURANT_NAMES[id]}`)));
+    })));
+}

@@ -98,7 +98,7 @@ function footer(): HTMLElement {
       h('li', null, h('a', { href: routeHash({ page: 'me', section: 'privacy' }) }, 'Privacy')),
       h('li', null, h('a', { href: routeHash({ page: 'menus', view: 'update' }) }, 'Update menus')),
       h('li', null, h('a', { href: REPO_ISSUES, target: '_blank', rel: 'noopener noreferrer' }, 'Report a problem')),
-      h('li', null, h('a', { href: REPO, target: '_blank', rel: 'noopener noreferrer' }, 'Source code')))));
+      h('li', null, h('a', { href: REPO, target: '_blank', rel: 'noopener noreferrer' }, 'Source code (MIT license)')))));
 }
 /** Decorative campus-quad band under the header (built once; a thin strip on phones). */
 let quadEl: HTMLElement | null = null;

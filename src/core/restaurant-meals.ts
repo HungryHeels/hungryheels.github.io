@@ -6,7 +6,8 @@
 // up to three toppings, at most one sauce or dressing, and at most one side (only when you set targets).
 import { animalEvidence, evaluateItem, profileKey, type Evaluation } from './engine.ts';
 import { totalsFor, type Meal, type MealPart, type MealTotals } from './meals.ts';
-import { targetError } from './plan.ts';
+import { targetError, type SavedMeal } from './plan.ts';
+import { nyNow } from './schedule.ts';
 import type { Profile } from './profile.ts';
 import type { MenuItem } from './types.ts';
 import { ROLE_LABELS, ROLE_PLURAL, ROLES, type ComponentRole, type RestaurantComponent, type RestaurantMenu, type RestaurantPreset } from './restaurant.ts';
@@ -212,4 +213,23 @@ export function bowlText(m: Meal, menu: RestaurantMenu, disclaimer: string): str
   lines.push(`About ${v(m.totals.calories)} kcal, ${v(m.totals.protein)} g protein (${menu.name}'s published values).`);
   lines.push('', `From Hungry Heels (unofficial; not affiliated with ${menu.name} or UNC). ` + disclaimer);
   return lines.join('\n');
+}
+
+/** A restaurant pick as a saved meal (no hall, date or meal period: the date is when it was saved, New York time). */
+export function toSavedRestaurant(m: Meal, menu: RestaurantMenu, hall: SavedMeal['hall'], now = new Date()): SavedMeal {
+  return { id: `${menu.id}:${m.id}`, place: menu.id, hall, date: nyNow(now).date, period: mealTitle(menu),
+    parts: m.parts.map(x => ({ id: x.item.id, name: x.item.name, portions: x.portions })), savedAt: now.toISOString() };
+}
+/** Re-check a saved restaurant pick against the CURRENT restaurant data and profile. It never bypasses the rules. */
+export function recheckRestaurantSaved(s: SavedMeal, menu: RestaurantMenu | null, p: Profile): { ok: boolean; problems: string[]; notes: string[] } {
+  const problems: string[] = [], notes: string[] = [];
+  if (!menu) return { ok: false, problems: ['This restaurant’s data is no longer available here.'], notes };
+  for (const part of s.parts) {
+    const it = menu.components.find(c => c.item.id === part.id)?.item ?? menu.components.find(c => c.extra?.item.id === part.id)?.extra?.item;
+    if (!it) { problems.push(`${part.name} is no longer on ${menu.name}’s published menu.`); continue; }
+    const ev = evaluateItem(it, p);
+    if (ev.status === 'excluded') problems.push(`${part.name} no longer fits your rules: ${(ev.excludedBy ?? '').replace(/^Excluded: |^Not [a-z-]+: /, '')}`);
+    else if (ev.status !== 'match') notes.push(`${part.name} can't be fully confirmed for your diet.`);
+  }
+  return { ok: problems.length === 0, problems, notes };
 }

@@ -77,7 +77,7 @@ export function loadProfile() {
   S.profiles = list;
   S.activeId = list.some(x => x.id === v2?.active) ? v2!.active! : list[0].id;
   S.profile = list.find(x => x.id === S.activeId)!.profile;
-  S.saved = readJson<SavedMeal[]>(KEY_SAVED, []).filter(x => x && Array.isArray(x.parts)).slice(0, 100);
+  S.saved = readJson<SavedMeal[]>(KEY_SAVED, []).filter(x => x && Array.isArray(x.parts) && (x.place === undefined || x.place === 'sweetgreen' || x.place === 'chipotle')).slice(0, 100);
   const d = readJson<Partial<Display>>(KEY_DISPLAY, {});
   S.display = { theme: d.theme === 'light' || d.theme === 'dark' ? d.theme : 'system', text: d.text === 'large' ? 'large' : 'normal', contrast: d.contrast === 'high' ? 'high' : 'normal' };
 }

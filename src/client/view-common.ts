@@ -21,7 +21,7 @@ export function href(page: Page, extra: Partial<Route> = {}): string {
 }
 export const openItem = (day: MenuDay, from: string) => (id: string) => go(() => { S.sheet = { item: id, dayKey: `${day.hall}:${day.date}`, opener: from + id }; });
 /** Saved meals double as "what I plan to eat": their mains are suggested a little later for a week, for variety. */
-export const recent = () => recentMains(S.saved.map((s): HistoryEntry => ({ date: s.date, hall: s.hall, period: s.period, main: s.parts[0]?.name ?? '', items: [], at: s.savedAt })), S.date);
+export const recent = () => recentMains(S.saved.filter(s => !s.place).map((s): HistoryEntry => ({ date: s.date, hall: s.hall, period: s.period, main: s.parts[0]?.name ?? '', items: [], at: s.savedAt })), S.date);
 
 /** The place picker: the two dining halls, then the two Franklin Street restaurants (2 × 2 on every width). */
 export function placeSwitch(): HTMLElement {

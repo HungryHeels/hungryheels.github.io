@@ -2,6 +2,7 @@
   "name": "hungry-heels",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Hungry Heels: unofficial, unaffiliated meal picker for Chase and Top of Lenoir menus you save yourself.",
   "type": "module",
   "scripts": {
