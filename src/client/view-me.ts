@@ -1,6 +1,7 @@
 // Me: your rules, goals, saved meals, profiles and display settings. Everything here stays in this browser.
 import { campus } from './mascot.ts';
 import { h } from './dom.ts';
+import { figure } from './mascot.ts';
 import { S, activeName, addProfile, dayFor, deleteProfile, renameProfile, saveDisplay, saveProfile, saveSaved, setPattern, switchProfile } from './state.ts';
 import { announce, go, render } from './nav.ts';
 import { chip, copyText, DISCLAIMER, downloadText, numField, sw, UNOFFICIAL } from './ui.ts';
@@ -86,7 +87,7 @@ function goals(): HTMLElement {
 }
 
 function saved(): HTMLElement {
-  if (!S.saved.length) return sec('saved', 'Saved meals', h('p', { class: 'muted' }, 'Tap ☆ Save on a meal to keep it here. Saved meals are re-checked against your current rules, and their mains are suggested a little later for a week so you get variety.'));
+  if (!S.saved.length) return sec('saved', 'Saved meals', h('div', { class: 'with-fig' }, figure('idle', 'state-fig'), h('p', { class: 'muted' }, 'Tap ☆ Save on a meal to keep it here. Saved meals are re-checked against your current rules, and their mains are suggested a little later for a week so you get variety.')));
   return sec('saved', `Saved meals (${S.saved.length})`,
     h('ul', { class: 'saved' }, S.saved.map(s => {
       const chk = s.place ? recheckRestaurantSaved(s, S.restaurants.find(x => x.id === s.place) ?? null, S.profile) : recheckSaved(s, dayFor(s.hall, s.date), S.profile);

@@ -114,6 +114,8 @@ for (const name of engines) {
     ok(await p.locator('.mascot .pose-wave').count() === 1 && await p.locator('.mascot-say').isVisible(), 'tapping the mascot waves and shows a line');
     const quadH = await p.locator('.quad').evaluate((e: Element) => e.getBoundingClientRect().height);
     ok(w < 760 ? quadH <= 40 : quadH <= 72, `campus band stays small (${quadH}px)`);
+    ok(await p.locator('.quad').getAttribute('data-sky') === 'evening', 'campus sky follows the meal (Dinner → evening)');
+    ok(['spring', 'summer', 'fall', 'winter'].includes(await p.locator('.quad').getAttribute('data-season') ?? ''), 'campus oaks follow the season');
     ok((await p.locator('.site-footer').innerText()).includes('If you have an allergy, confirm with dining staff. Not medical advice.'), 'disclaimer in the footer');
     const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
     ok(scheme === 'dark' ? bg === 'rgb(9, 12, 18)' : bg === 'rgb(245, 246, 248)', `${scheme} theme applied (${bg})`);
@@ -406,6 +408,9 @@ for (const name of engines) {
     await p.getByRole('button', { name: 'Vegan' }).click();
     await p.waitForSelector('article.meal');
     ok(await p.locator('.mascot .pose-happy').count() === 1, 'a newly built meal shows the happy pose');
+    await p.waitForTimeout(1000);
+    await p.locator('[data-fk=idea-next]').click();
+    ok(await p.locator('.mascot .pose-happy').count() === 0, 'another idea under the same rules does not hop again');
     await p.getByRole('button', { name: 'Hungry Heel mascot: tap to say hello' }).click();
     ok(await p.locator('.mascot .pose-wave').count() === 1, 'reduced motion: tapping still shows the wave pose');
     ok(await p.evaluate(() => document.getAnimations().length === 0), 'reduced motion: nothing animates');

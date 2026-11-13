@@ -1,5 +1,5 @@
 import { sprite } from './mascot.ts';
-import { keywordSprite } from './art.ts';
+import { spriteForDish } from './dish-sprite.ts';
 import { h } from './dom.ts';
 import { S, allDays } from './state.ts';
 import { closeSheet, render, announce } from './nav.ts';
@@ -58,7 +58,7 @@ export function sheetView(): HTMLElement | null {
     checks: [{ name: it.name, rows: explainChecks(it, S.profile) }], verdict: verdict + (ev.excludedBy ? `: ${ev.excludedBy}` : ''), savedAt: day.provenance.retrievedAt });
   const n = it.nutrition;
   const box = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'sheet-h', tabindex: '-1' },
-    h('div', { class: 'sheet-head' }, sprite(keywordSprite(it.name) ?? 'plate', 'glyph sheet-glyph'), h('h2', { id: 'sheet-h' }, it.name), h('button', { type: 'button', class: 'close', 'data-fk': 'sheet-close', onClick: closeSheet }, 'Close')),
+    h('div', { class: 'sheet-head' }, sprite(spriteForDish(it.name), 'glyph sheet-glyph'), h('h2', { id: 'sheet-h' }, it.name), h('button', { type: 'button', class: 'close', 'data-fk': 'sheet-close', onClick: closeSheet }, 'Close')),
     h('p', { class: 'verdict' }, ev.status === 'match' ? chip(verdict, 'ok') : ev.status === 'excluded' ? chip(verdict, 'bad') : chip(verdict, 'warn'), ' ',
       ev.status === 'excluded' ? (ev.excludedBy ?? '').replace(/^Excluded: |^Not [a-z-]+: /, '') : ev.status !== 'match' ? `Couldn’t confirm: ${ev.unconfirmed.join('; ')}` : ''),
     conflict || ev.status !== 'match' || S.profile.allergens.length ? h('p', { class: 'staff' }, h('strong', null, '⚠ Confirm with staff. '),

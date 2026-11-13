@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CAMPUS, MASCOT_LINES, POSES, SPRITES, campusSvg, keywordSprite, mascotSvg, quadSvg, spriteFor, spriteSvg } from '../src/client/art.ts';
+import { CAMPUS, MASCOT_LINES, POSES, SPRITES, campusSvg, mascotSvg, quadSvg, seasonFor, skyFor, spriteSvg } from '../src/client/art.ts';
 
-const all = () => [...POSES.map(mascotSvg), ...SPRITES.map(spriteSvg), ...CAMPUS.map(campusSvg), quadSvg()];
+const all = () => [...POSES.map(p => mascotSvg(p)), ...POSES.map(p => mascotSvg(p, true)), ...SPRITES.map(spriteSvg), ...CAMPUS.map(campusSvg), quadSvg()];
 
 test('art: every picture is decorative (aria-hidden, not focusable)', () => {
   for (const s of all()) {
@@ -21,18 +21,11 @@ test('art: self-contained, no outbound references, no scripts, no text', () => {
 });
 
 test('art: each mascot pose is drawn differently', () => {
-  assert.equal(new Set(POSES.map(mascotSvg)).size, POSES.length);
+  assert.equal(new Set(POSES.map(p => mascotSvg(p))).size, POSES.length);
 });
 
-test('art: food glyphs come from words that clearly name the food, never from a guess', () => {
-  assert.equal(keywordSprite('Pepperoni Pizza'), 'pizza');
-  assert.equal(keywordSprite('Garden Salad'), 'salad');
-  assert.equal(keywordSprite('Diced Pineapple'), 'fruit');
-  assert.equal(keywordSprite('Orange Chicken'), null);
-  assert.equal(keywordSprite('Grilled Chicken'), null);
-  assert.equal(keywordSprite('The Griddle'), null);
-  assert.equal(spriteFor('Grilled Chicken', 'Grill', 'main'), 'plate');
-  assert.equal(spriteFor('Steamed Broccoli', 'Sides', 'side'), 'bowl');
+test('art: every food sprite is drawn differently', () => {
+  assert.equal(new Set(SPRITES.map(spriteSvg)).size, SPRITES.length);
 });
 
 test('art: mascot lines stay friendly and claim nothing', () => {
@@ -40,6 +33,22 @@ test('art: mascot lines stay friendly and claim nothing', () => {
     assert.doesNotMatch(l, /official|safe|certif|guarantee|allerg|go heels|tar heel|hark|rameses|\bunc\b/i);
     assert.ok(l.length <= 60);
   }
+});
+
+test('art: the sky follows the meal, then the New York clock; the oaks follow the season', () => {
+  assert.equal(skyFor('Breakfast', 0), 'morning');
+  assert.equal(skyFor('Late Lunch', 0), 'day');
+  assert.equal(skyFor('Dinner', 0), 'evening');
+  assert.equal(skyFor('Late Dinner', 0), 'night');
+  assert.equal(skyFor('Late Night', 12 * 60), 'night');
+  assert.equal(skyFor(null, 7 * 60), 'morning');
+  assert.equal(skyFor(null, 13 * 60), 'day');
+  assert.equal(skyFor(null, 18 * 60 + 30), 'evening');
+  assert.equal(skyFor(null, 23 * 60), 'night');
+  assert.equal(seasonFor('2026-11-13'), 'fall');
+  assert.equal(seasonFor('2026-04-02'), 'spring');
+  assert.equal(seasonFor('2026-07-04'), 'summer');
+  assert.equal(seasonFor('2027-01-20'), 'winter');
 });
 
 test('art: the campus band draws each landmark once, in the middle, and scales by height', () => {
@@ -55,3 +64,4 @@ test('art: the campus band draws each landmark once, in the middle, and scales b
 test('art: each campus sprite is drawn differently', () => {
   assert.equal(new Set(CAMPUS.map(campusSvg)).size, CAMPUS.length);
 });
+

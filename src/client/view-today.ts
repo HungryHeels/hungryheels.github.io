@@ -7,7 +7,7 @@ import { contributionTable, gapList, ideasTable, profileSummary, ruleTable } fro
 import { href, noMenuNotice, openItem, pickerBar, recent } from './view-common.ts';
 import { landingView } from './view-landing.ts';
 import { campus, cheer, figure, sprite } from './mascot.ts';
-import { spriteFor } from './art.ts';
+import { spriteForDish } from './dish-sprite.ts';
 import { nearbyCard, restaurantToday } from './view-restaurant.ts';
 import { isRestaurant } from '../core/restaurant.ts';
 import { buildMeals, type BuildResult, type Meal } from '../core/meals.ts';
@@ -32,7 +32,7 @@ function plateList(m: Meal, day: MenuDay, prefix: string): HTMLElement {
   const roleOf = (p: Meal['parts'][number]) => (m.simplified === 'animal_plate' ? 'Animal food' : p.role === 'main' ? 'Main' : 'Side');
   return h('ul', { class: 'plate' }, m.parts.map(p => h('li', null,
     h('button', { type: 'button', class: 'plate-row', 'data-fk': prefix + p.item.id, onClick: () => open(p.item.id) },
-      sprite(spriteFor(p.item.name, p.station, p.role)),
+      sprite(spriteForDish(p.item.name, p.station)),
       h('span', { class: 'plate-main' },
         h('span', { class: 'plate-name' }, p.item.name, p.portions > 1 ? h('span', { class: 'badge' }, `${p.portions}×`) : null),
         h('small', null, `${roleOf(p)} · ${p.station} · ${kcalLine(p.item, p.portions)}`),
@@ -112,7 +112,7 @@ function oneMeal(day: MenuDay): HTMLElement {
     n > 1 ? h('button', { type: 'button', 'aria-label': 'Previous idea', 'data-fk': 'idea-prev', onClick: () => go(() => { S.idea = (i - 1 + n) % n; }, `Idea ${((i - 1 + n) % n) + 1} of ${n}.`) }, '‹ Back') : null,
     h('button', { class: 'grow', type: 'button', disabled: n < 2, 'data-fk': 'idea-next', onClick: () => go(() => { S.idea = (i + 1) % n; }, `Idea ${((i + 1) % n) + 1} of ${n}.`) }, n < 2 ? 'Only idea' : `Another idea (${i + 1} of ${n})`)));
   wrap.appendChild(mealCard(r.meals[i], day, r, i));
-  cheer(savedId(r.meals[i], day));
+  cheer(profileSummary(S.profile));
   return wrap;
 }
 

@@ -37,7 +37,7 @@
   /* Art (decorative, aria-hidden): mascot, food sprites, campus band */
   --m-ink:#13294b; --m-limb:#13294b; --m-fork:#7d8796; --m-sole:#ffffff; --m-cheek:#f2a7a0; --s-ink:#13294b;
   --q-sky:#d3e6f4; --q-cloud:#ffffff; --q-grass:#86b36f; --q-oak:#3f7a4a; --q-oak2:#2f6340; --q-trunk:#6b4a33; --q-brick:#b5523b; --q-joint:#e8c4b5; --q-post:#13294b; --q-light:#fff4d0;
-  --q-stone:#f3eee3; --q-stone2:#d8cdb8; --q-dome:#e6dfd0; --q-shade:#8c8170; --q-open:#5f574b; --q-brick2:#96412e; --q-stand:#cfcac0; --q-stand2:#b9b3a7; --q-tier:#a9a296;
+  --q-roof:#5b5f6b; --q-poplar:#55924d; --q-wall:#a89f8f; --q-wall2:#8a8172; --q-stone:#f3eee3; --q-stone2:#d8cdb8; --q-dome:#e6dfd0; --q-shade:#8c8170; --q-open:#5f574b; --q-brick2:#96412e; --q-stand:#cfcac0; --q-stand2:#b9b3a7; --q-tier:#a9a296;
   --e1:0 1px 2px rgba(15,23,41,.05),0 1px 1px rgba(15,23,41,.03);
   --e2:0 1px 2px rgba(15,23,41,.05),0 10px 28px -12px rgba(15,23,41,.16);
   --e3:0 24px 64px -16px rgba(9,13,22,.35);
@@ -59,7 +59,7 @@
   --primary:#7bafd4; --primary-text:#0b1322; --primary-hover:#8fbcdc; --primary-active:#a6cbe5; --say-bg:#dce8f7; --say-text:#13294b;
   --m-ink:#0b1322; --m-limb:#dce8f7; --m-fork:#c3cddb; --m-sole:#eef3fa; --s-ink:#dce8f7;
   --q-sky:#162238; --q-cloud:#25344f; --q-grass:#1c3627; --q-oak:#2c5839; --q-oak2:#21442d; --q-trunk:#4a3426; --q-brick:#743829; --q-joint:#9b5c4b; --q-post:#a4adbb; --q-light:#ffd88a;
-  --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
+  --q-roof:#2a3040; --q-poplar:#336842; --q-wall:#3d4456; --q-wall2:#2f3546; --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
     --e1:none; --e2:0 18px 40px -20px rgba(0,0,0,.7); --e3:0 24px 80px -16px rgba(0,0,0,.8);
     --edge:inset 0 1px 0 rgba(255,255,255,.045);
     --header-bg:rgba(9,12,18,.78); --glow:rgba(123,175,212,.8);
@@ -77,7 +77,7 @@
   --primary:#7bafd4; --primary-text:#0b1322; --primary-hover:#8fbcdc; --primary-active:#a6cbe5; --say-bg:#dce8f7; --say-text:#13294b;
   --m-ink:#0b1322; --m-limb:#dce8f7; --m-fork:#c3cddb; --m-sole:#eef3fa; --s-ink:#dce8f7;
   --q-sky:#162238; --q-cloud:#25344f; --q-grass:#1c3627; --q-oak:#2c5839; --q-oak2:#21442d; --q-trunk:#4a3426; --q-brick:#743829; --q-joint:#9b5c4b; --q-post:#a4adbb; --q-light:#ffd88a;
-  --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
+  --q-roof:#2a3040; --q-poplar:#336842; --q-wall:#3d4456; --q-wall2:#2f3546; --q-stone:#56607a; --q-stone2:#454e66; --q-dome:#4d5770; --q-shade:#1b2232; --q-open:#ffd88a; --q-brick2:#5e2c20; --q-stand:#353d51; --q-stand2:#2c3345; --q-tier:#232a3a;
   --e1:none; --e2:0 18px 40px -20px rgba(0,0,0,.7); --e3:0 24px 80px -16px rgba(0,0,0,.8);
   --edge:inset 0 1px 0 rgba(255,255,255,.045);
   --header-bg:rgba(9,12,18,.78); --glow:rgba(123,175,212,.8);
@@ -508,9 +508,9 @@ body.sheet-open{overflow:hidden}
 .mascot-fig{display:block;width:40px;height:40px;transition:transform .12s ease-out}
 .mascot-btn:active .mascot-fig{transform:scale(.9)}
 .mascot-fig svg,.empty-fig svg,.loading-fig svg,.hero-fig svg,.glyph svg{display:block;width:100%;height:100%;overflow:visible}
-.mascot-say{position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:max-content;max-width:min(260px,calc(100vw - 32px));background:var(--say-bg);color:var(--say-text);
+.mascot-say{position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);z-index:30;width:max-content;max-width:min(240px,calc(100vw - 96px));background:var(--say-bg);color:var(--say-text);
   font-size:var(--fs-sm);font-weight:600;line-height:1.35;padding:var(--s2) var(--s3);border-radius:var(--r2);pointer-events:none}
-.mascot-say::before{content:"";position:absolute;left:16px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:var(--say-bg)}
+.mascot-say::before{content:"";position:absolute;left:-6px;top:50%;margin-top:-6px;border:6px solid transparent;border-left:0;border-right-color:var(--say-bg)}
 .mascot-say[hidden]{display:none}
 @keyframes hh-hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-7px) rotate(-5deg)}55%{transform:translateY(0)}75%{transform:translateY(-3px) rotate(3deg)}}
 @keyframes hh-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-20deg)}50%{transform:rotate(12deg)}75%{transform:rotate(-14deg)}}
@@ -540,27 +540,31 @@ body.sheet-open{overflow:hidden}
 .plate-row{gap:var(--s3)}
 .plate-row:active .glyph svg{transform:scale(.86) rotate(-6deg)}
 .station{display:flex;align-items:center;gap:var(--s2)}
-.sprite *{stroke-linejoin:round;stroke-linecap:round}
+/* Sprite fills: food colors (decorative only). Shapes are outlined in the theme ink unless marked .n; .l is a line. */
+:where(.sprite:not(.campus)) :where(path,circle,ellipse,rect){stroke:var(--s-ink);stroke-width:1.3;stroke-linejoin:round;stroke-linecap:round}
+.sprite .n{stroke:none} .sprite .l{fill:none}
+.c-white{fill:var(--s-white)} .c-cream{fill:#f6e7c1} .c-tan{fill:#e2a95a} .c-brown{fill:#8a5a35} .c-red{fill:#d9534f} .c-orange{fill:#f0883e}
+.c-yellow{fill:#f6d06b} .c-yellow2{fill:#ecbe45} .c-yellowd{fill:#d9a72e} .c-green{fill:#5c9e4e} .c-lime{fill:#8cc56a} .c-pink{fill:#f29bb8}
+.c-purple{fill:#8e5bb5} .c-grey{fill:#9fb4c8} .c-salmon{fill:#f4a07a} .c-nori{fill:#2f4a3a} .c-amber{fill:#f2b84b} .c-syrup{fill:#a8642a}
+.c-tofu{fill:#f6efdc} .c-tofu2{fill:#e6d9b4} .c-tofu3{fill:#d3c293} .c-blue{fill:var(--carolina)} .c-ink{fill:var(--s-ink)}
+.sprite .ls-blue{stroke:var(--carolina);stroke-width:1.5} .sprite .ls-green{stroke:#5c9e4e;stroke-width:1.8} .sprite .ls-brown{stroke:#8a5a35;stroke-width:1.6}
+.sprite .ls-red{stroke:#d9534f;stroke-width:1.4} .sprite .ls-orange{stroke:#f0883e;stroke-width:1.4} .sprite .ls-purple{stroke:#8e5bb5;stroke-width:1.4}
+.sprite .ls-yellow{stroke:#f6d06b;stroke-width:1.4} .sprite .ls-white{stroke:#fff;stroke-width:1.3} .sprite .ls-grey{stroke:#9aa6b5;stroke-width:1.8}
+.sprite .ls-straw{stroke:#d9534f;stroke-width:2} .sprite .ls-seed{stroke:#fff6e0;stroke-width:1.2} .sprite .ls-grain{stroke:#cfc6b0;stroke-width:1.1}
+.sprite .ls-thin{stroke-width:.9} .sprite .ls-steam{stroke:var(--muted);stroke-width:1.5}
+/* Local favourites (biscuit, barbecue tray, sweet tea) and the footer basketball keep their own outlines */
+.s-biscuit{fill:#e8b766;stroke:var(--s-ink);stroke-width:1.4} .s-flake{fill:none;stroke:#fff3d6;stroke-width:1.2} .s-fried{fill:#a5642f;stroke:var(--s-ink);stroke-width:1.3}
+.s-pork{fill:#9a5a35;stroke:var(--s-ink);stroke-width:1.2} .s-pork-line{fill:none;stroke:#5e3219;stroke-width:1} .s-pup{fill:#d9a04a;stroke:var(--s-ink);stroke-width:1.2} .s-tray{fill:var(--carolina);stroke:var(--s-ink);stroke-width:1.4}
+.s-glass{fill:rgba(255,255,255,.35);stroke:var(--s-ink);stroke-width:1.4} .s-tea{fill:#b8742a} .s-ice{fill:#eef6fb;stroke:var(--s-ink);stroke-width:.8} .s-straw{fill:none;stroke:var(--carolina);stroke-width:2} .s-lemon{fill:#f5d547;stroke:var(--s-ink);stroke-width:1}
+.c-ball{fill:#e07a2e;stroke:var(--s-ink);stroke-width:1.2} .c-seam{fill:none;stroke:var(--s-ink);stroke-width:1.1}
 /* Campus sprites: small landmarks and a dogwood, before page titles and in the footer. Decorative, aria-hidden. */
-.campus .c-o{stroke:var(--s-ink);stroke-width:.9} .campus .q-tier{stroke-width:.9}
+.campus .s-ink{fill:none;stroke:var(--s-ink);stroke-width:1.8} .campus .c-o{stroke:var(--s-ink);stroke-width:.9} .campus .q-tier{stroke-width:.9}
 .c-petal{fill:#fbf6ef;stroke:var(--s-ink);stroke-width:1} .c-tip{fill:#c4536f} .c-eye{fill:#a9c24a;stroke:var(--s-ink);stroke-width:.8} .c-dot{fill:#5d7a1f}
 .h-glyph{display:inline-block;width:.9em;height:.9em;margin-right:.28em;vertical-align:-.1em}
 .h-glyph svg,.f-glyph svg{display:block;width:100%;height:100%;overflow:visible}
 .footer-art{display:flex;gap:var(--s2);align-items:flex-end;margin-bottom:var(--s3)}
 .f-glyph{display:block;width:28px;height:28px}
 .sheet-head{align-items:center} .sheet-glyph{width:36px;height:36px}
-.s-ink{fill:none;stroke:var(--s-ink);stroke-width:1.8}
-.s-plate,.s-cup{fill:#fff;stroke:var(--s-ink);stroke-width:1.5}
-.s-plate-in{fill:none;stroke:var(--carolina);stroke-width:1.5}
-.s-bowl{fill:var(--carolina);stroke:var(--s-ink);stroke-width:1.5}
-.s-band{fill:var(--carolina)}
-.s-food{fill:#f3d9a4;stroke:var(--s-ink);stroke-width:1.2}
-.s-steam{fill:none;stroke:var(--muted);stroke-width:1.5}
-.s-apple{fill:#d9534f;stroke:var(--s-ink);stroke-width:1.4}
-.s-leaf{fill:#5c9e4e;stroke:var(--s-ink);stroke-width:1.2} .s-leaf2{fill:#7dbb5f;stroke:var(--s-ink);stroke-width:1.2}
-.s-shine{fill:#fff;opacity:.6} .s-tomato{fill:#e0574a}
-.s-bun{fill:#e2a95a;stroke:var(--s-ink);stroke-width:1.4} .s-patty{fill:#7a4a2b;stroke:var(--s-ink);stroke-width:1.4} .s-seed{fill:none;stroke:#fff6e0;stroke-width:1.2}
-.s-cheese{fill:#f6d06b;stroke:var(--s-ink);stroke-width:1.4} .s-crust{fill:#d99a4e;stroke:var(--s-ink);stroke-width:1.2} .s-pep{fill:#c9473a}
 
 /* Landing: the notice stays readable at full strength; a static mascot fills the hero's spare space on desktop only. */
 .unofficial-note{color:var(--text);font-weight:600}
@@ -584,6 +588,45 @@ body.sheet-open{overflow:hidden}
 .q-brick{fill:var(--q-brick)} .q-joint{fill:none;stroke:var(--q-joint);stroke-width:1.5;stroke-dasharray:14 8}
 .q-post{stroke:var(--q-post);stroke-width:2.5} .q-light{fill:var(--q-light)}
 .q-stone{fill:var(--q-stone)} .q-stone2{fill:var(--q-stone2)} .q-dome{fill:var(--q-dome)} .q-shade{fill:var(--q-shade)} .q-open{fill:var(--q-open)} .q-brick2{fill:var(--q-brick2)}
-.q-stand{fill:var(--q-stand)} .q-stand2{fill:var(--q-stand2)} .q-tier{fill:none;stroke:var(--q-tier);stroke-width:1.5} .q-post-fill{fill:var(--q-post)}
+.q-arena{fill:var(--q-dome)} .q-roof{fill:var(--q-roof)} .q-poplar{fill:var(--q-poplar)} .q-wall{fill:var(--q-wall)} .q-wall2{fill:var(--q-wall2)} .q-stand{fill:var(--q-stand)} .q-stand2{fill:var(--q-stand2)} .q-tier{fill:none;stroke:var(--q-tier);stroke-width:1.5} .q-post-fill{fill:var(--q-post)}
 :root[data-contrast=high] .quad{display:none}
+/* Sky follows the meal: sun low in the morning, high at lunch, setting at dinner; moon and stars late at night. */
+.q-sun,.q-moon,.q-stars,.q-bloom,.q-snow{display:none}
+.q-sun{fill:#ffd36b} .q-sun-morning{fill:#ffc27a} .q-sun-evening{fill:#f39a5a} .q-moon{fill:#f4f1dc} .q-stars{fill:#fff6d8} .q-bloom{fill:#fbe3ee} .q-snow{fill:#f7fbff}
+.quad[data-sky=morning]{--q-sky:#fbe3cc;--q-cloud:#fff6ec} .quad[data-sky=morning] .q-sun-morning,.quad[data-sky=day] .q-sun-day{display:inline}
+.quad[data-sky=evening]{--q-sky:#f2cdbf;--q-cloud:#fbe7de} .quad[data-sky=evening] .q-sun-evening{display:inline}
+.quad[data-sky=night]{--q-sky:#1e3152;--q-cloud:#2a3f61;--q-grass:#3f6b3c;--q-oak:#2d5a37;--q-oak2:#21462b} .quad[data-sky=night] :is(.q-moon,.q-stars){display:inline}
+/* Seasons in New York: dogwood-style blossoms in spring, color in fall, frost in winter */
+.quad[data-season=spring] .q-bloom,.quad[data-season=winter] .q-snow{display:inline}
+.quad[data-season=fall]{--q-oak:#d9822b;--q-oak2:#b5541f}
+.quad[data-season=winter]{--q-oak:#8fa79a;--q-oak2:#71897c}
+.quad[data-season=fall][data-sky=night]{--q-oak:#a35f22;--q-oak2:#7f3f18}
 @media print{.mascot,.quad{display:none!important}}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--s-white:#e4e9f0}
+  :root:not([data-theme=light]) .quad[data-sky=morning]{--q-sky:#2d2c45;--q-cloud:#3c3a58} :root:not([data-theme=light]) .quad[data-sky=day]{--q-sky:#1b2c48} :root:not([data-theme=light]) .quad[data-sky=evening]{--q-sky:#33253f;--q-cloud:#45334f} :root:not([data-theme=light]) .quad[data-sky=night]{--q-sky:#0d1526;--q-cloud:#1a2438;--q-grass:#1c3627}
+  :root:not([data-theme=light]) .quad[data-season=fall]{--q-oak:#9a5a20;--q-oak2:#7a3e17} :root:not([data-theme=light]) .quad[data-season=winter]{--q-oak:#5f7468;--q-oak2:#4b5d52} :root:not([data-theme=light]) .q-snow{fill:#c9d6e6} :root:not([data-theme=light]) .q-bloom{fill:#d9b8c9}}
+:root[data-theme=dark]{--s-white:#e4e9f0}
+:root[data-theme=dark] .quad[data-sky=morning]{--q-sky:#2d2c45;--q-cloud:#3c3a58} :root[data-theme=dark] .quad[data-sky=day]{--q-sky:#1b2c48} :root[data-theme=dark] .quad[data-sky=evening]{--q-sky:#33253f;--q-cloud:#45334f} :root[data-theme=dark] .quad[data-sky=night]{--q-sky:#0d1526;--q-cloud:#1a2438;--q-grass:#1c3627}
+:root[data-theme=dark] .quad[data-season=fall]{--q-oak:#9a5a20;--q-oak2:#7a3e17} :root[data-theme=dark] .quad[data-season=winter]{--q-oak:#5f7468;--q-oak2:#4b5d52} :root[data-theme=dark] .q-snow{fill:#c9d6e6} :root[data-theme=dark] .q-bloom{fill:#d9b8c9}
+
+/* Brick-walk divider (landing sections, footer): the campus band's brick, as a running-bond strip */
+:root{--s-white:#ffffff;--brick:linear-gradient(90deg,var(--q-joint) 1.5px,var(--q-brick) 0) 0 3px/14px 3px repeat-x,linear-gradient(90deg,var(--q-joint) 1.5px,var(--q-brick) 0) 7px 6px/14px 3px repeat-x,var(--q-joint)}
+.band{border-top:none;position:relative}
+.band::before{content:"";position:absolute;left:0;right:0;top:0;height:9px;border-radius:2px;background:linear-gradient(var(--q-grass) 0 3px,transparent 3px),var(--brick);opacity:.9}
+.site-footer{border-top:none;position:relative}
+.site-footer::before{content:"";display:block;height:9px;background:linear-gradient(var(--q-grass) 0 3px,transparent 3px),var(--brick)}
+:root[data-contrast=high] .band::before,:root[data-contrast=high] .site-footer::before{background:var(--line);height:1px;opacity:1}
+@media print{.band::before,.site-footer::before{display:none}}
+
+/* Rounded brand name where the system has a rounded face (Apple devices); others keep the display font */
+.brand-name{font-family:ui-rounded,"SF Pro Rounded",var(--font-display)}
+
+/* Small header mascot: thicker lines and no cheeks so it reads at 40px */
+.mascot-small .m-upper,.mascot-small .m-sole,.mascot-small .m-toe{stroke-width:2.2}
+.mascot-small .m-limb{stroke-width:3} .mascot-small .m-fork{stroke-width:2.2} .mascot-small :is(.m-line,.m-lace,.m-mouth){stroke-width:2} .mascot-small .m-cheek{display:none}
+
+/* Mascot beside empty and success states (decorative; the words carry the meaning) */
+.with-fig{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:var(--s3);align-items:center}
+.with-fig>.state-fig{grid-row:1 / span 3;align-self:start;display:block;width:48px;height:52px}
+.with-fig>:not(.state-fig){grid-column:2}
+.state-fig svg{display:block;width:100%;height:100%;overflow:visible}

@@ -28,7 +28,7 @@ let line = 0;
 
 function paint(p: Pose) {
   if (!fig || shown === p) return;
-  fig.innerHTML = mascotSvg(p); shown = p;
+  fig.innerHTML = mascotSvg(p, true); shown = p;
 }
 function play(p: Pose, anim: 'wave' | 'hop', ms: number) {
   if (!wrap) return;
@@ -64,7 +64,7 @@ export function headerMascot(pose: Pose): HTMLElement {
   return wrap;
 }
 
-/** A meal was built. Hop once per new meal (not on every redraw of the same one). */
+/** A meal was built. Hop on the first meal and when your rules change, not on every new idea, hall or redraw. */
 export function cheer(key: string) {
   if (key === lastCheer) return;
   lastCheer = key;

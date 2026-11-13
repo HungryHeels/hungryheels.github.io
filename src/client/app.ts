@@ -12,7 +12,7 @@ import { sheetView } from './view-sheet.ts';
 import { profileSummary } from './views.ts';
 import { DISCLAIMER } from './ui.ts';
 import { campus, headerMascot } from './mascot.ts';
-import { quadSvg } from './art.ts';
+import { quadSvg, seasonFor, skyFor } from './art.ts';
 import { profileFromHash } from '../core/profile-io.ts';
 import { REPO_ISSUES } from '../core/trust.ts';
 import { nyNow } from '../core/schedule.ts';
@@ -89,7 +89,7 @@ function header(): HTMLElement {
 }
 function footer(): HTMLElement {
   return h('footer', { class: 'site-footer' }, h('div', { class: 'wrap footer-in' },
-    h('div', null, h('div', { class: 'footer-art', 'aria-hidden': 'true' }, campus('stadium', 'f-glyph'), campus('library', 'f-glyph'), campus('belltower', 'f-glyph'), campus('dogwood', 'f-glyph')),
+    h('div', null, h('div', { class: 'footer-art', 'aria-hidden': 'true' }, campus('stadium', 'f-glyph'), campus('library', 'f-glyph'), campus('belltower', 'f-glyph'), campus('dogwood', 'f-glyph'), campus('hoops', 'f-glyph')),
       h('p', null, h('strong', null, DISCLAIMER)),
       h('p', null, 'Hungry Heels is an independent, unofficial project for personal use. It is not affiliated with or endorsed by UNC-Chapel Hill or Carolina Dining Services. Menus come only from pages saved by hand; this site never contacts dining.unc.edu.'),
       h('p', null, 'Sweetgreen and Chipotle are named only to identify them. Hungry Heels is not affiliated with, endorsed by or sponsored by either; their information is used only as they publish it.')),
@@ -104,6 +104,9 @@ function footer(): HTMLElement {
 let quadEl: HTMLElement | null = null;
 function quad(): HTMLElement {
   if (!quadEl) { quadEl = h('div', { class: 'quad', 'aria-hidden': 'true' }); quadEl.innerHTML = quadSvg(); }
+  const now = nyNow();   // the sky follows the meal on screen (or the clock); the oaks follow the season
+  quadEl.dataset.sky = skyFor(S.page !== 'me' && S.period ? S.period : null, now.minutes);
+  quadEl.dataset.season = seasonFor(now.date);
   return quadEl;
 }
 function banners(): Array<HTMLElement | null> {
