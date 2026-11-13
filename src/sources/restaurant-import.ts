@@ -103,6 +103,8 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
   if (typeof src.publisher !== 'string' || !src.publisher.trim()) errors.push('source.json needs "publisher" (who published the document).');
   if (!isHttps(src.sourceUrl)) errors.push('source.json needs "sourceUrl", an https link to the official document or page.');
   else if (!onDomain(src.sourceUrl, domain)) errors.push(`source.json "sourceUrl" must be on ${domain} (the restaurant’s own site).`);
+  // Both restaurants' terms of use forbid copying their content without written permission (docs/RESTAURANTS.md).
+  if (typeof src.permission !== 'string' || src.permission.trim().length < 10) errors.push('source.json needs "permission": who at the restaurant gave written permission to republish this data, and when. Their terms of use forbid copying it otherwise.');
   if (typeof src.documentTitle !== 'string' || !src.documentTitle.trim()) errors.push('source.json needs "documentTitle" (as printed on the document or page).');
   if (src.documentDate !== null && typeof src.documentDate !== 'string') errors.push('source.json "documentDate" must be the date printed on the document, or null when it shows none.');
   if (src.documentDate === null) warnings.push('The document shows no date; it is listed as “date not stated”.');
@@ -228,7 +230,7 @@ export function importRestaurant(sourceJson: string, componentsCsv: string, expe
   const menu: RestaurantMenu = {
     id, name: RESTAURANT_NAMES[id],
     provenance: { kind: 'official', publisher, sourceUrl: src.sourceUrl, documentTitle: src.documentTitle.trim(), documentDate: src.documentDate ?? null,
-      documentVersion: typeof src.documentVersion === 'string' ? src.documentVersion : null, retrievedAt: src.retrievedAt, sha256: src.sha256 ?? null },
+      documentVersion: typeof src.documentVersion === 'string' ? src.documentVersion : null, retrievedAt: src.retrievedAt, sha256: src.sha256 ?? null, permission: src.permission.trim() },
     components, presets, crossContact, hours, notes: warnings.slice(),
   };
   return { menu, errors, warnings };

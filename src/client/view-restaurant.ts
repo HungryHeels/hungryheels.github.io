@@ -54,8 +54,8 @@ function pendingCard(id: RestaurantId): HTMLElement {
   const name = RESTAURANT_NAMES[id];
   return h('section', { class: 'card pending', 'aria-labelledby': 'pending-h' },
     h('h2', { id: 'pending-h' }, `No ${name} data yet`),
-    h('p', null, `Hungry Heels only uses ${name}’s own published nutrition and allergen information, saved by hand. It has not been added yet, so there is nothing to recommend here. Nothing is guessed in the meantime.`),
-    h('p', null, h('a', { href: DOCS, target: '_blank', rel: 'noopener noreferrer' }, 'How the official file gets added'), h('small', null, ' (opens the project’s instructions on GitHub)')),
+    h('p', null, `Hungry Heels would only use ${name}’s own published nutrition and allergen information, but ${name}’s terms of use don’t allow copying it without permission. Until ${name} agrees, there is nothing to recommend here. Nothing is guessed in the meantime.`),
+    h('p', null, h('a', { href: DOCS, target: '_blank', rel: 'noopener noreferrer' }, 'Why, and what happens next'), h('small', null, ' (opens the project’s instructions on GitHub)')),
     h('div', { class: 'actions' }, h('button', { type: 'button', 'data-fk': 'pending-chase', onClick: () => go(() => { S.place = S.hall; S.idea = 0; }) }, 'Back to the dining halls')));
 }
 

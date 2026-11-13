@@ -1,20 +1,30 @@
 # Franklin Street restaurants: Sweetgreen and Chipotle
 
-Status (Nov 13, 2026): **data pending.** The place picker, importer, bowl builder and audits are built and tested, but
-no official Sweetgreen or Chipotle data is in the app yet. Both places show “No … data yet” and recommend nothing.
+Status (Nov 12, 2026, New York time): **blocked by the restaurants' terms of use; waiting for written permission.**
+The place picker, importer, bowl builder and audits are built and tested, but no Sweetgreen or Chipotle data is in
+the app. Both places show “No … data yet” and recommend nothing. Nothing from either site was downloaded or copied.
 
-## Why there is no data yet
-The rule for these places: use only each restaurant's **own officially published** nutrition and allergen information,
-and before downloading anything, read the site's `robots.txt` and terms of use; fetch once at development time only
-if both allow it; never crawl, scrape or call ordering systems or APIs; the app itself never fetches anything.
+## Why there is no data
+The rule for these places: use only each restaurant's **own officially published** nutrition and allergen
+information, and before downloading anything read the site's `robots.txt` and terms of use; fetch only if both allow
+it. On Nov 12, 2026 (about 8 pm New York time) both were read, after the two hosts were allowed in the cloud
+environment's network settings:
 
-On Nov 13, 2026 the build environment could not reach either site: `www.sweetgreen.com` and `www.chipotle.com` were
-both refused by the environment's network policy (HTTP 403 at the proxy; DNS failure for the fetch tool). Without
-reading `robots.txt` and the terms, fetching was not allowed, so **nothing was downloaded** and nothing was
-transcribed from memory. The data has to be saved by hand (below), or a later session can do it once those two hosts
-are allowed in the cloud environment's network settings **and** their `robots.txt` and terms allow it.
+| | robots.txt | Terms of use | Result |
+|---|---|---|---|
+| Sweetgreen (https://www.sweetgreen.com/terms) | Allows everything (`User-agent: *`, no Disallow) | §7.1: a limited license “solely for your personal non-commercial purposes”. §8(e): “you shall not use any manual or automated software, devices or other processes … to ‘scrape’ or download data from the Services”. §8(g): “no part of Services may be copied, reproduced, distributed, republished, downloaded, displayed, posted or transmitted in any form or by any means”. | **Not allowed** |
+| Chipotle (https://www.chipotle.com/terms-of-use) | Allows everything except `/error-page` (file dated Aug 6, 2026) | “Access to the Services”: use “solely for your personal, noncommercial use” and “you will not copy or distribute any part of the Services in any medium without Chipotle’s prior written authorization”. Chipotle Content “is not to be copied, distributed, displayed, reproduced, or transmitted in any form, by any means, without the prior express written consent of Chipotle”. | **Not allowed** |
 
-## What to save, and where
+Publishing either restaurant's nutrition or allergen tables on a public website (GitHub Pages) would be copying,
+distributing and displaying their content. That is true whether a tool downloads it or a person types it in by hand,
+so **saving the files by hand does not get around this**. The data stays out until a restaurant gives written
+permission (draft requests: `docs/EMAIL_TO_RESTAURANTS.md`). Facts such as a single number may not be protected the
+same way everywhere, but this project does not rely on that: the terms say no, so the answer is no until they say yes.
+
+If permission arrives, keep the email (or a note of who granted it and when) next to the data, record it in
+`source.json` (`"permission"`, below), and only then follow the steps below.
+
+## What to save, and where (only after written permission)
 For each restaurant, save the official document by hand in a browser (File > Save As / Download), then transcribe it.
 
 | Restaurant | Save this (from the restaurant's own site) | Put it in |
@@ -51,6 +61,7 @@ data/restaurants/chipotle/
   "retrievedAt": "2026-11-20T14:05:00-05:00",
   "sha256": "sha256 of the saved file, or null",
   "hours": null,
+  "permission": "who at the restaurant granted written permission, and the date",
   "crossContact": [
     { "text": "the restaurant's own statement, copied word for word", "allergens": "all" }
   ],
@@ -60,6 +71,7 @@ data/restaurants/chipotle/
 }
 ```
 - `retrievedAt` is when you saved the file, in New York time **with the offset New York had that day** (`-05:00` Nov to mid-March, `-04:00` otherwise). The importer checks this.
+- `permission`: required in practice: who granted written permission and when (the terms of both restaurants forbid copying without it). Keep the email itself out of the public repo if it has personal details.
 - `hours`: leave `null`. Only fill it (`{ "text": "…", "sourceUrl": "https://…" }`) from the restaurant's own page **for the Franklin Street store**. Otherwise the app shows “Hours unknown: check with the restaurant”.
 - `crossContact`: every “may contain”, “shared equipment”, “cross-contact” or “we cannot guarantee” statement, word for word, with the allergens it covers (`"all"` when it covers everything). These make the covered allergens *unknown* for every item, so strict avoids exclude them. A blanket `"all"` statement means anyone with an allergy, gluten, dairy or egg avoid gets an honest “No meal fits”.
 - `presets`: only bowls/salads the restaurant itself publishes, listing their components by id. `nutrition` only if the restaurant publishes the preset's own totals; omit it otherwise (the app then sums the components and says so). A preset may not use a component that is not in `components.csv`.

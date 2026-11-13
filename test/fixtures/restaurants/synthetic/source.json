@@ -10,6 +10,7 @@
   "retrievedAt": "2026-11-13T10:05:00-05:00",
   "sha256": null,
   "hours": null,
+  "permission": "SYNTHETIC TEST FIXTURE: no real permission exists or is needed for made-up data",
   "crossContact": [],
   "presets": [
     { "name": "TEST Chicken Rice Bowl", "components": ["b-rice", "p-chicken", "t-corn", "s-vin"], "nutrition": { "calories": 600, "protein": 37, "fat": 22, "carbs": 52 } },

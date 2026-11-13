@@ -33,6 +33,7 @@ export interface RestaurantProvenance {
   documentVersion: string | null;
   retrievedAt: string;          // ISO with the America/New_York offset
   sha256: string | null;        // of the saved source file, when one was saved
+  permission: string;           // who granted written permission to republish, and when (required by their terms)
 }
 export interface CrossContact { text: string; allergens: string[] }  // verbatim statement + which allergen flags it covers
 export interface PlaceHours { text: string; sourceUrl: string }

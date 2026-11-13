@@ -9,6 +9,7 @@
   "retrievedAt": "YYYY-MM-DDTHH:MM:SS-05:00",
   "sha256": null,
   "hours": null,
+  "permission": "",
   "crossContact": [],
   "presets": []
 }

@@ -63,6 +63,8 @@ test('importer: the synthetic fixture imports with provenance and nothing invent
 
 test('importer: refuses anything that is not official, on the restaurant domain, in New York time', () => {
   assert.match(load(withSrc({ kind: 'third_party' })).errors.join(), /must be "official"/);
+  assert.match(load(withSrc({ permission: '' })).errors.join(), /needs "permission"/, 'no written permission: refused (their terms forbid copying)');
+  assert.match(load(withSrc({ permission: undefined })).errors.join(), /needs "permission"/);
   assert.match(load(withSrc({ sourceUrl: 'https://example.com/chipotle.pdf' })).errors.join(), /must be on chipotle\.com/);
   assert.match(load(withSrc({ sourceUrl: 'http://www.chipotle.com/x.pdf' })).errors.join(), /https link/);
   assert.match(load(withSrc({ retrievedAt: '2026-11-13T10:05:00-04:00' })).errors.join(), /New York time/, 'November is EST (-05:00)');
