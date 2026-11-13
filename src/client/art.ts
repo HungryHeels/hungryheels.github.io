@@ -1,6 +1,7 @@
 // Original inline SVG art for Hungry Heels: the "Hungry Heel" mascot (a walking sneaker with a fork), a few food
-// sprites and a generic campus-quad band. Drawn from scratch for this project. Deliberately NOT a footprint, a bare
-// foot, a ram, a domed or columned landmark, an interlocking monogram or any university mark.
+// sprites and a campus band with simplified Chapel Hill landmarks (bell tower, library, stadium). Drawn from scratch
+// for this project as plain silhouettes. Deliberately NOT a footprint, a bare foot, a ram, the Old Well, an
+// interlocking monogram or any university logo or mark.
 // Pure strings (no DOM) so they can be tested in Node. Colors come from CSS custom properties (see style.css), so
 // the art follows light, dark and high-contrast themes. No external references of any kind.
 
@@ -98,8 +99,11 @@ export function keywordSprite(text: string): Sprite | null {
   return null;
 }
 
-// ---------- campus quad band ----------
-// Generic and not of any real place: sky, a few round oak trees, lamp posts, lawn and a brick walk. No buildings.
+// ---------- campus band ----------
+// Sky, round oaks, lamp posts, lawn and a brick walk, with three simplified campus silhouettes in the middle:
+// a brick bell tower with a pale belfry and spire, a domed library with a columned portico, and a stadium bowl
+// with light towers. Original, flat and wordless: impressions of the places, not logos or traced drawings.
+// Ground line y = 96 everywhere; the brick walk repeats every 300 units so sections join without a seam.
 function tree(x: number, s: number): string {
   const r = (n: number) => (n * s).toFixed(1);
   return `<rect class="q-trunk" x="${(x - 3 * s).toFixed(1)}" y="${(96 - 26 * s).toFixed(1)}" width="${r(6)}" height="${r(26)}" rx="${r(2)}"/>` +
@@ -111,18 +115,75 @@ function tree(x: number, s: number): string {
 }
 const lamp = (x: number) => `<path class="q-post" d="M${x} 98V66"/><circle class="q-light" cx="${x}" cy="63" r="4"/>`;
 const cloud = (x: number, y: number) => `<g class="q-cloud"><ellipse cx="${x}" cy="${y}" rx="26" ry="8"/><ellipse cx="${x + 14}" cy="${y - 5}" rx="15" ry="8"/><ellipse cx="${x - 12}" cy="${y - 3}" rx="11" ry="6"/></g>`;
-const TILE =
-  cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) +
-  '<rect class="q-grass" x="0" y="92" width="1200" height="28"/>' +
-  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9) +
-  '<path class="q-brick" d="M0 103Q150 98 300 103T600 103T900 103T1200 103V113Q1050 118 900 113T600 113T300 113T0 113Z"/>' +
-  '<path class="q-joint" d="M0 108Q150 103 300 108T600 108T900 108T1200 108"/>';
+/** Lawn and brick walk for a section `w` wide (a multiple of 300). */
+function ground(w: number): string {
+  let top = 'M0 103Q150 98 300 103', mid = 'M0 108Q150 103 300 108', bot = `Q${w - 150} 118 ${w - 300} 113`;
+  for (let x = 600; x <= w; x += 300) { top += `T${x} 103`; mid += `T${x} 108`; }
+  for (let x = w - 600; x >= 0; x -= 300) bot += `T${x} 113`;
+  return `<rect class="q-grass" x="0" y="92" width="${w}" height="28"/>` +
+    `<path class="q-brick" d="${top}V113${bot}Z"/><path class="q-joint" d="${mid}"/>`;
+}
+const at = (x: number, body: string) => `<g transform="translate(${x} 0)">${body}</g>`;
+/** Arched opening, `w` wide, top of the arch at y. */
+const arch = (x: number, y: number, w: number, h: number) => `<path class="q-open" d="M${x} ${y + h}V${y + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V${y + h}Z"/>`;
 
-/** The decorative band under the header. Two copies of one 1200-wide tile so wide screens never run out. */
+/** Brick campanile: plinth, brick shaft with recessed panels, pale belfry with arches, lantern and spire. */
+function bellTower(): string {
+  return '<rect class="q-stone2" x="-12" y="88" width="24" height="8"/>' +
+    '<rect class="q-brick" x="-9" y="40" width="18" height="48"/>' +
+    '<rect class="q-brick2" x="-5" y="46" width="2.5" height="38"/><rect class="q-brick2" x="2.5" y="46" width="2.5" height="38"/>' +
+    '<rect class="q-stone" x="-11" y="29" width="22" height="12"/>' +
+    arch(-7, 31, 5, 9) + arch(2, 31, 5, 9) +
+    '<rect class="q-stone2" x="-13" y="27" width="26" height="3"/>' +
+    '<rect class="q-stone" x="-7.5" y="17" width="15" height="10"/>' +
+    arch(-4.5, 19, 3.5, 7) + arch(1, 19, 3.5, 7) +
+    '<rect class="q-stone2" x="-9" y="15.5" width="18" height="2.5"/>' +
+    '<path class="q-stone" d="M-5.5 15.5L0 1L5.5 15.5Z"/>';
+}
+/** Library: pale wings, a columned portico on steps, a drum and a dome with a small lantern. */
+function library(): string {
+  let cols = '';
+  for (let i = 0; i < 8; i++) cols += `<rect class="q-stone" x="${(-40 + i * 11.1).toFixed(1)}" y="64" width="4" height="25"/>`;
+  let wins = '';
+  for (const x of [-92, -80, -68, 60, 72, 84]) wins += `<rect class="q-open" x="${x}" y="76" width="6" height="10" rx="1"/>`;
+  return '<rect class="q-stone2" x="-100" y="70" width="200" height="26"/>' +
+    '<rect class="q-stone" x="-102" y="67" width="204" height="4"/>' + wins +
+    '<rect class="q-shade" x="-45" y="62" width="90" height="27"/>' + cols +
+    '<rect class="q-stone" x="-50" y="89" width="100" height="3"/><rect class="q-stone2" x="-54" y="92" width="108" height="4"/>' +
+    '<rect class="q-stone" x="-49" y="55" width="98" height="8"/><path class="q-stone2" d="M-49 55L0 46L49 55Z"/>' +
+    '<rect class="q-stone2" x="-24" y="38" width="48" height="10"/>' +
+    '<path class="q-dome" d="M-25 39Q-25 15 0 15Q25 15 25 39Z"/>' +
+    '<rect class="q-stone" x="-3.5" y="9" width="7" height="7"/><path class="q-stone2" d="M-4.5 9.5L0 4L4.5 9.5Z"/>';
+}
+/** Stadium among the trees: a long seating bowl with tiers and portals, an upper deck and two light towers. */
+function stadium(): string {
+  let portals = '';
+  for (let x = -136; x <= 128; x += 22) portals += arch(x, 84, 8, 12);
+  const tower = (x: number) => `<rect class="q-post-fill" x="${x - 1.75}" y="26" width="3.5" height="70"/><rect class="q-post-fill" x="${x - 11}" y="16" width="22" height="11" rx="1.5"/>` +
+    `<circle class="q-light" cx="${x - 6}" cy="21.5" r="2.5"/><circle class="q-light" cx="${x}" cy="21.5" r="2.5"/><circle class="q-light" cx="${x + 6}" cy="21.5" r="2.5"/>`;
+  return tower(-124) + tower(124) +
+    '<path class="q-stand2" d="M-150 58V38Q-105 33 -55 38V54Z"/>' +
+    '<path class="q-stand" d="M-150 96V54Q0 38 150 54V96Z"/>' +
+    '<path class="q-tier" d="M-150 62Q0 46 150 62M-150 69Q0 54 150 69M-150 76Q0 62 150 76"/>' +
+    '<rect class="q-brick" x="-150" y="82" width="300" height="14"/>' + portals;
+}
+const SECTION = 900;
+const LANDMARKS =
+  cloud(120, 22) + cloud(560, 16) + ground(SECTION) +
+  at(170, stadium()) + tree(16, .75) + tree(340, .8) +
+  at(505, library()) + tree(640, .95) + lamp(700) +
+  `<g transform="translate(790 0) scale(1.4 1)">${bellTower()}</g>` + tree(860, .8);
+const TILE =
+  cloud(180, 26) + cloud(640, 18) + cloud(1010, 30) + ground(1200) +
+  tree(70, 1) + tree(250, .8) + lamp(360) + tree(470, 1.1) + tree(700, .85) + lamp(820) + tree(930, 1.05) + tree(1120, .9);
+const BAND_W = 4 * 1200 + SECTION;
+
+/** The decorative band under the header: two tiles of oaks each side of the landmarks. Scales by height and stays
+ *  centred, so the landmarks are always whole and in the middle, at any width. */
 export function quadSvg(): string {
-  return `<svg class="quad-svg" viewBox="0 0 2400 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">` +
-    '<rect class="q-sky" x="0" y="0" width="2400" height="120"/>' +
-    `<g>${TILE}</g><g transform="translate(1200 0)">${TILE}</g></svg>`;
+  return `<svg class="quad-svg" viewBox="0 0 ${BAND_W} 120" width="${BAND_W}" height="120" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">` +
+    `<rect class="q-sky" x="0" y="0" width="${BAND_W}" height="120"/>` +
+    `<g>${TILE}</g>${at(1200, TILE)}${at(2400, LANDMARKS)}${at(2400 + SECTION, TILE)}${at(3600 + SECTION, TILE)}</svg>`;
 }
 
 /** Short, friendly lines the mascot says when tapped. Place names only; no slogans, no claims about food safety. */
