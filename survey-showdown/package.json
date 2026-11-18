@@ -1,0 +1,32 @@
+{
+  "name": "survey-showdown",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Survey Showdown: a self-hosted, real-time survey-answer party game (host console, projector board, phone buzzers).",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": ["packages/shared", "packages/server", "packages/web"],
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run build -w @survey-showdown/web && npm run build -w @survey-showdown/server",
+    "start": "node --disable-warning=ExperimentalWarning packages/server/dist/server.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/web && tsc -p e2e",
+    "test": "vitest run",
+    "test:e2e": "npm run build && playwright test",
+    "check": "npm run lint && npm run typecheck && npm test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.19.0",
+    "eslint": "10.15.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0",
+    "vitest": "5.1.0"
+  }
+}

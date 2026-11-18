@@ -1,0 +1,22 @@
+{
+  "name": "@survey-showdown/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --disable-warning=ExperimentalWarning src/main.ts",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/server.mjs --packages=external --alias:@survey-showdown/shared=../shared/src/index.ts --sourcemap"
+  },
+  "dependencies": {
+    "@survey-showdown/shared": "1.0.0",
+    "cookie": "2.0.2",
+    "express": "5.3.0",
+    "socket.io": "4.8.4",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "esbuild": "0.28.2",
+    "socket.io-client": "4.8.4"
+  }
+}
