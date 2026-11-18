@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grand Cayman Trip · The Caribbean Club, Seven Mile Beach</title>
+  <meta name="description" content="Our interactive Grand Cayman itinerary: day-by-day plans, everything about the Caribbean Club, the island's best restaurants, and top-rated things to do.">
+  <meta property="og:title" content="Grand Cayman Trip · The Caribbean Club">
+  <meta property="og:description" content="Day-by-day plans, the best restaurants and top-rated things to do around Grand Cayman.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0d3b45">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+  <script src="data.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="Grand Cayman Trip, back to top">
+        <svg viewBox="0 0 32 32" aria-hidden="true" class="brand-mark"><circle cx="16" cy="13" r="6"/><path d="M3 22c3-2.5 6-2.5 9 0s6 2.5 9 0 6-2.5 8 0" fill="none"/></svg>
+        <span>Grand Cayman <em>trip</em></span>
+      </a>
+      <nav aria-label="Sections">
+        <ul class="nav-list">
+          <li><a href="#plan">Itinerary</a></li>
+          <li><a href="#map">Map</a></li>
+          <li><a href="#club">The Club</a></li>
+          <li><a href="#dining">Dining</a></li>
+          <li><a href="#explore">Explore</a></li>
+          <li><a href="#know">Good to know</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Seven Mile Beach · Grand Cayman</p>
+          <h1>Sand, sea and <em>nowhere</em> to be.</h1>
+          <p class="lede">Our trip to Grand Cayman, staying at the Caribbean Club. Plan each day, keep the dinner reservations straight, and pick from the island's best.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#plan">Open the itinerary</a>
+            <a class="btn btn-ghost" href="#explore">See what to do</a>
+          </div>
+        </div>
+
+        <form class="trip-card" id="trip-settings" aria-labelledby="trip-card-title">
+          <h2 id="trip-card-title" class="trip-card-title">Your trip</h2>
+          <p class="countdown" id="countdown" aria-live="polite">Set your arrival date to start the countdown.</p>
+          <div class="field-row">
+            <label class="field">
+              <span>Arrival</span>
+              <input type="date" id="trip-start" name="start">
+            </label>
+            <label class="field">
+              <span>Nights</span>
+              <input type="number" id="trip-nights" name="nights" min="1" max="21" value="6" inputmode="numeric">
+            </label>
+          </div>
+          <label class="field">
+            <span>Trip name</span>
+            <input type="text" id="trip-name" name="name" placeholder="e.g. Anniversary in Cayman" autocomplete="off">
+          </label>
+          <p class="hint">Saved automatically on this device.</p>
+        </form>
+      </div>
+      <svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40c120-30 240-30 360 0s240 30 360 0 240-30 360 0 240 30 360 0v40H0z"/></svg>
+    </section>
+
+    <!-- ITINERARY -->
+    <section class="section" id="plan" aria-labelledby="plan-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Day by day</p>
+            <h2 id="plan-title">The itinerary</h2>
+            <p class="section-lede">Add anything from Dining or Explore with <strong>Add to trip</strong>, or type your own plans into any day.</p>
+          </div>
+          <div class="toolbar" role="group" aria-label="Itinerary tools">
+            <button class="btn btn-small btn-primary" type="button" id="load-suggested">Use suggested plan</button>
+            <button class="btn btn-small btn-ghost-dark" type="button" id="copy-plan">Copy as text</button>
+            <button class="btn btn-small btn-ghost-dark" type="button" id="print-plan">Print</button>
+            <button class="btn btn-small btn-text" type="button" id="clear-plan">Clear all</button>
+          </div>
+        </div>
+        <noscript><p class="notice">The interactive itinerary needs JavaScript turned on.</p></noscript>
+        <ol class="days" id="days"></ol>
+      </div>
+    </section>
+
+
+    <!-- MAP -->
+    <section class="section section-map" id="map" aria-labelledby="map-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Find your way</p>
+            <h2 id="map-title">Island map</h2>
+            <p class="section-lede">Every restaurant and activity on one map, with drive times from the Club. Pick a day to see its route, then open it in Google Maps for turn-by-turn directions.</p>
+          </div>
+        </div>
+
+        <div class="map-app">
+          <aside class="map-panel" aria-label="Map places and filters">
+            <div class="map-controls">
+              <label class="field">
+                <span>Search the map</span>
+                <input type="search" id="map-search" placeholder="Restaurant, beach, area…" autocomplete="off">
+              </label>
+              <div class="filters filters-tight" role="group" aria-label="Show on map" id="map-filters">
+                <button type="button" class="chip" aria-pressed="true" data-filter="all">Everything</button>
+                <button type="button" class="chip" aria-pressed="false" data-filter="eat">Restaurants</button>
+                <button type="button" class="chip" aria-pressed="false" data-filter="do">Things to do</button>
+                <button type="button" class="chip" aria-pressed="false" data-filter="trip">In my trip</button>
+              </div>
+              <label class="field">
+                <span>Show a day's route</span>
+                <select id="map-day"><option value="">No route</option></select>
+              </label>
+            </div>
+            <div class="route-box" id="route-box" hidden>
+              <ol class="route-list" id="route-list"></ol>
+              <p class="route-note" id="route-note"></p>
+              <div class="form-actions">
+                <a class="btn btn-small btn-primary" id="route-gmaps" href="#" target="_blank" rel="noopener">Open route in Google Maps ↗</a>
+                <button class="btn btn-small btn-text" type="button" id="route-clear">Hide route</button>
+              </div>
+            </div>
+            <p class="map-count" id="map-count" aria-live="polite"></p>
+            <ul class="map-list" id="map-list"></ul>
+          </aside>
+          <div class="map-canvas">
+            <div id="leaflet-map" role="application" aria-label="Interactive map of Grand Cayman"></div>
+            <div class="map-tools">
+              <button type="button" class="map-tool" id="map-locate">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>
+                Near me
+              </button>
+              <button type="button" class="map-tool" id="map-reset">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6"/></svg>
+                Whole island
+              </button>
+            </div>
+            <p class="map-fallback" id="map-fallback" hidden>The interactive map can't load in this preview. It works on the published website. Meanwhile, tap any place in the list to open directions in Google Maps.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE CLUB -->
+    <section class="section section-club" id="club" aria-labelledby="club-title">
+      <div class="wrap">
+        <div class="club-intro">
+          <div>
+            <p class="eyebrow">Where we're staying</p>
+            <h2 id="club-title">The Caribbean Club</h2>
+            <p class="section-lede">A boutique residence hotel on one of the best stretches of Seven Mile Beach — 37 condo-style suites and villas, each with a full gourmet kitchen, a big living room and a furnished balcony over the sea. It feels more like a private beach house than a resort.</p>
+            <dl class="facts">
+              <div><dt>Address</dt><dd><a href="https://www.google.com/maps/search/?api=1&amp;query=Caribbean+Club+871+West+Bay+Road+Grand+Cayman" target="_blank" rel="noopener">871 West Bay Road, Seven Mile Beach</a></dd></div>
+              <div><dt>Front desk (24 h)</dt><dd><a href="tel:+13456234500">+1 (345) 623-4500</a></dd></div>
+              <div><dt>Toll-free</dt><dd><a href="tel:+18009411126">1-800-941-1126</a></dd></div>
+              <div><dt>Concierge</dt><dd><a href="mailto:concierge@caribclub.com">concierge@caribclub.com</a></dd></div>
+              <div><dt>Reservations</dt><dd><a href="mailto:reservations@caribclub.com">reservations@caribclub.com</a></dd></div>
+              <div><dt>Our suite</dt><dd><!-- TODO: replace with real suite and confirmation number --><span class="todo">Suite type &amp; confirmation # — add yours</span></dd></div>
+              <div><dt>Check-in / out</dt><dd><!-- TODO: replace with real check-in / check-out times --><span class="todo">Confirm times with the front desk</span></dd></div>
+            </dl>
+          </div>
+
+          <div class="suite-types">
+            <h3>Three ways to stay</h3>
+            <ul class="suite-list">
+              <li><strong>Tower Oceanfront</strong><span>Suites in the seven-storey tower, sea views from every floor, marble spa tubs.</span></li>
+              <li><strong>Beach Front</strong><span>Villas a few steps from the sand and the turquoise water.</span></li>
+              <li><strong>Pool View</strong><span>Overlooking the infinity pool and its waterfall, with the ocean beyond.</span></li>
+            </ul>
+            <p class="small">1, 2 and 3-bedroom layouts, up to about 2,700 sq ft, every one with an ocean view.</p>
+          </div>
+        </div>
+
+        <h3 class="sub-head">On property</h3>
+        <ul class="amenities">
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 18c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M12 3v9M7 12h10l-5-6z"/></svg><div><strong>Private beach</strong><span>Free cabanas &amp; loungers on ~300 ft of white sand</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2 16c2.5-1.5 5-1.5 7.5 0s5 1.5 7.5 0 3.5-1 5 0M2 20c2.5-1.5 5-1.5 7.5 0s5 1.5 7.5 0 3.5-1 5 0M6 13V4h3M15 13V4h3"/></svg><div><strong>Infinity pool</strong><span>With waterfall, overlooking the Caribbean Sea</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 0 0 3 3v7M9 3v5M12 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7h3"/></svg><div><strong>Luca restaurant</strong><span>Award-winning Italian, plus room service</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8"/></svg><div><strong>Fitness centre</strong><span>8th floor of the tower, North Sound views</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 21h16M6 21V8l6-5 6 5v13M10 21v-6h4v6"/></svg><div><strong>Full kitchens</strong><span>Granite gourmet kitchens, washer &amp; dryer</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6h-11zM7 17v2M17 17v2M8 11l1.5-4h5L16 11"/></svg><div><strong>Parking</strong><span>Free underground and valet parking</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/></svg><div><strong>Free Wi-Fi</strong><span>Throughout the suites and grounds</span></div></li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/></svg><div><strong>Walk to The Strand</strong><span>Shops and a supermarket across the road</span></div></li>
+        </ul>
+
+        <div class="concierge">
+          <div class="concierge-head">
+            <h3>The concierge can arrange</h3>
+            <p>Email <a href="mailto:concierge@caribclub.com">concierge@caribclub.com</a> once the stay is booked. Their line: "You only have to ask."</p>
+          </div>
+          <div class="concierge-cols">
+            <div>
+              <h4>Before you land</h4>
+              <ul>
+                <li><strong>Grocery pre-stocking</strong> — send a list and the fridge is full when you arrive</li>
+                <li><strong>Dinner reservations</strong> anywhere on the island</li>
+              </ul>
+            </div>
+            <div>
+              <h4>On the water</h4>
+              <ul>
+                <li><strong>Stingray City</strong> half-day trips (non-swimmers welcome)</li>
+                <li><strong>Private boat charters</strong>, half or full day</li>
+                <li><strong>Reef &amp; shipwreck snorkels</strong> for every level</li>
+                <li><strong>Scuba diving</strong>, first-timers to certification</li>
+                <li><strong>Sunset cruise</strong>, champagne on request</li>
+              </ul>
+            </div>
+            <div>
+              <h4>On the island</h4>
+              <ul>
+                <li><strong>Botanic Park</strong> &amp; the blue iguanas</li>
+                <li><strong>Pedro St. James</strong> &amp; the National Museum</li>
+                <li><strong>Galleries &amp; markets</strong> for local art</li>
+              </ul>
+            </div>
+            <div>
+              <h4>In your suite</h4>
+              <ul>
+                <li><strong>Mobile spa</strong> treatments at the hour you choose</li>
+                <li><strong>In-suite dining</strong> from Luca</li>
+                <li><strong>Private chef</strong> or a table set on your balcony</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DINING -->
+    <section class="section" id="dining" aria-labelledby="dining-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Where to eat</p>
+            <h2 id="dining-title">The island's best tables</h2>
+            <p class="section-lede">Grand Cayman calls itself the culinary capital of the Caribbean, and it earns it. Here are 42 of the most highly rated, from the Club's own Luca to Bonny Moon on the beach and Tukka at the far East End.</p>
+          </div>
+        </div>
+
+        <div class="dining-tools">
+          <label class="field">
+            <span>Search restaurants</span>
+            <input type="search" id="dining-search" placeholder="Name, dish or cuisine…" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>Style</span>
+            <select id="dining-vibe">
+              <option value="all">Any style</option>
+              <option value="fine">Fine dining &amp; date night</option>
+              <option value="casual">Casual &amp; local</option>
+              <option value="beach">Beach bars &amp; clubs</option>
+            </select>
+          </label>
+        </div>
+        <div class="filters" role="group" aria-label="Filter restaurants by area" id="dining-filters">
+          <button type="button" class="chip" aria-pressed="true" data-filter="all">All</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="smb">Seven Mile Beach</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="west">West Bay</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="camana">Camana Bay &amp; George Town</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="north">North Side &amp; Rum Point</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="east">East End &amp; Bodden Town</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="mine">My picks</button>
+        </div>
+        <div class="cards" id="dining-grid"></div>
+
+        <!-- YOUR RESTAURANTS -->
+        <div class="mine" id="my-restaurants" aria-labelledby="mine-title">
+          <div class="mine-copy">
+            <p class="eyebrow">Your list</p>
+            <h3 id="mine-title">Restaurants &amp; menus you want</h3>
+            <p>Add any restaurant here, with the dishes or menu link you're after. It shows up in the Dining list under <strong>My picks</strong> and can go straight into the itinerary.</p>
+            <p>When you're ready, tap <strong>Copy list for Claude</strong> and paste it to me. I'll add each one to the site with full details for everyone who opens it.</p>
+          </div>
+          <form class="mine-form" id="mine-form">
+            <label class="field">
+              <span>Restaurant name <abbr title="required">*</abbr></span>
+              <input type="text" name="name" required autocomplete="off" placeholder="e.g. Calypso Grill">
+            </label>
+            <label class="field">
+              <span>Area</span>
+              <select name="area">
+                <option value="smb">Seven Mile Beach</option>
+                <option value="west">West Bay</option>
+                <option value="camana">Camana Bay &amp; George Town</option>
+                <option value="north">North Side &amp; Rum Point</option>
+                <option value="east">East End &amp; Bodden Town</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Dishes or menu notes</span>
+              <textarea name="notes" rows="3" placeholder="What do you want to order? Any occasion?"></textarea>
+            </label>
+            <label class="field">
+              <span>Menu or website link</span>
+              <input type="url" name="link" placeholder="https://…" inputmode="url">
+            </label>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Add restaurant</button>
+              <button class="btn btn-ghost-dark" type="button" id="copy-mine">Copy list for Claude</button>
+            </div>
+            <p class="hint" id="mine-status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORE -->
+    <section class="section section-explore" id="explore" aria-labelledby="explore-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Suggestions</p>
+            <h2 id="explore-title">Top-rated things to do</h2>
+            <p class="section-lede">My picks of the island's most highly rated experiences, from the Stingray City sandbar to a glowing night-time bay. Every one is on the island map.</p>
+          </div>
+        </div>
+
+
+        <div class="filters" role="group" aria-label="Filter activities by type" id="explore-filters">
+          <button type="button" class="chip" aria-pressed="true" data-filter="all">All</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="water">On the water</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="beach">Beaches</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="land">On land</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="culture">Culture</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="club">At the Club</button>
+        </div>
+        <div class="cards" id="explore-grid"></div>
+      </div>
+    </section>
+
+    <!-- GOOD TO KNOW -->
+    <section class="section" id="know" aria-labelledby="know-title">
+      <div class="wrap">
+        <p class="eyebrow">Before you go</p>
+        <h2 id="know-title">Good to know</h2>
+        <dl class="know-grid">
+          <div><dt>Driving</dt><dd>Cayman drives on the <strong>left</strong>. Seven Mile Beach is a short drive from Owen Roberts Airport (GCM).</dd></div>
+          <div><dt>Money</dt><dd>The Cayman dollar is pegged at CI$1 = US$1.20. US dollars are widely accepted; check which currency a menu is priced in.</dd></div>
+          <div><dt>Sundays</dt><dd>Brunch is a Cayman tradition and many places are quieter. Book Luca's Sunday brunch well ahead — reservations are essential.</dd></div>
+          <div><dt>Sea life</dt><dd>At Starfish Point, look but keep the starfish in the water. Reef-safe sunscreen is a good idea everywhere.</dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Grand Cayman trip · <span id="year">2026</span></p>
+      <p class="small">Hours and details change — confirm with each place before you go.</p>
+    </div>
+  </footer>
+
+  <!-- Add-to-day dialog -->
+  <dialog id="add-dialog" aria-labelledby="add-title">
+    <form method="dialog" id="add-form">
+      <h2 id="add-title" class="dialog-title">Add to trip</h2>
+      <p class="dialog-item" id="add-item-name"></p>
+      <label class="field">
+        <span>Day</span>
+        <select id="add-day"></select>
+      </label>
+      <fieldset class="slots">
+        <legend>Time of day</legend>
+        <label><input type="radio" name="slot" value="Morning"> Morning</label>
+        <label><input type="radio" name="slot" value="Afternoon"> Afternoon</label>
+        <label><input type="radio" name="slot" value="Evening" checked> Evening</label>
+      </fieldset>
+      <p class="warn" id="add-warn" hidden></p>
+      <div class="form-actions">
+        <button class="btn btn-primary" value="add" type="submit">Add</button>
+        <button class="btn btn-text" value="cancel" type="submit" formnovalidate>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm dialog -->
+  <dialog id="confirm-dialog" aria-labelledby="confirm-msg">
+    <form method="dialog" class="confirm-form">
+      <p id="confirm-msg" class="confirm-msg"></p>
+      <div class="form-actions">
+        <button class="btn btn-primary" value="ok" type="submit" id="confirm-ok">Yes</button>
+        <button class="btn btn-text" value="cancel" type="submit">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
